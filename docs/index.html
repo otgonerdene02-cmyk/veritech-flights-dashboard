@@ -146,7 +146,35 @@
 
   /* Chart.js canvases */
   .cjs-chart { position: relative; height: 220px; }
-  .cjs-chart-lg { position: relative; height: 300px; }
+
+  /* breakdown table (carrier / country) */
+  .tbl { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .tbl-hdr {
+    display: flex; height: 28px; background: var(--page); border-bottom: 1px solid var(--border);
+    font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--text-muted); align-items: center;
+  }
+  .tbl-scroll { max-height: 224px; overflow-y: auto; }
+  .tbl-row {
+    display: flex; height: 32px; border-bottom: 1px solid var(--gridline); align-items: center; transition: background .1s;
+  }
+  .tbl-row:last-child { border-bottom: none; }
+  .tbl-row:hover { background: var(--accent-wash); }
+  .tbl-label {
+    width: 130px; flex: 0 0 130px; padding-left: 10px; font-size: 11.5px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary);
+  }
+  .tbl-bar-cell { flex: 1; padding: 0 8px; }
+  .tbl-bar-track { height: 14px; background: var(--gridline); border-radius: 3px; overflow: hidden; }
+  .tbl-bar-fill { height: 100%; border-radius: 0 3px 3px 0; min-width: 2px; }
+  .tbl-val { width: 108px; flex: 0 0 108px; text-align: right; padding-right: 10px; }
+  .tbl-val .n { font-size: 12px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .tbl-val .p { font-size: 10px; color: var(--text-muted); }
+  .tbl-ftr {
+    display: flex; height: 28px; background: var(--page); border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text-primary); font-weight: 700; align-items: center;
+  }
+  .tbl-more { text-align: center; font-size: 10px; color: var(--text-muted); padding: 4px; border-top: 1px solid var(--gridline); }
 
   /* line chart (SVG daily trend) */
   .line-chart-wrap { position: relative; }
@@ -322,12 +350,12 @@
       <div class="card">
         <h2>Тээвэрлэгчдийн зах зээл</h2>
         <p class="desc">Нийт зорчигчоор эрэмбэлсэн Топ 10 тээвэрлэгч</p>
-        <div class="cjs-chart-lg" id="carrier-wrap"><canvas id="cCarrier"></canvas></div>
+        <div id="carrier-wrap"></div>
       </div>
       <div class="card">
         <h2>Улс тус бүрийн зорчигч</h2>
         <p class="desc">Нийт зорчигчоор эрэмбэлсэн Топ 10 улс (Монгол, Тодорхойгүйг эс тооцов)</p>
-        <div class="cjs-chart-lg" id="country-wrap"><canvas id="cCountry"></canvas></div>
+        <div id="country-wrap"></div>
       </div>
     </div>
 
@@ -815,8 +843,9 @@
     });
   }
 
-  // ---------- Тээвэрлэгч / Улс bar чарт ----------
-  var carrierChart = null, countryChart = null;
+  // ---------- Тээвэрлэгч / Улс — progress-bar жагсаалт ----------
+  var ROW_COLORS = ['#e84749', '#ee6666', '#fc8452', '#9a60b4', '#ea7ccc', '#3ba272', '#5470c6', '#73c0de', '#fac858', '#91cc75'];
+  var BREAKDOWN_VISIBLE = 7;
 
   function topGroups(rows, keyFn, excludeKeys) {
     var by = {};
@@ -831,48 +860,42 @@
       .sort(function (a, b) { return b.pax - a.pax; }).slice(0, 10);
   }
 
-  function renderHBarChart(wrapId, canvasId, existingChart, list) {
+  function renderBreakdownTable(wrapId, list) {
     var wrap = document.getElementById(wrapId);
-    if (existingChart) existingChart.destroy();
-    wrap.innerHTML = '<canvas id="' + canvasId + '"></canvas>';
-    if (!list.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return null; }
-    var canvas = document.getElementById(canvasId);
+    if (!list.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return; }
 
-    var accent = getVar('--accent'), surface = getVar('--surface-1'), border = getVar('--border');
-    var textPrimary = getVar('--text-primary'), textSecondary = getVar('--text-secondary');
-    var gridline = getVar('--gridline'), textMuted = getVar('--text-muted');
-    var labels = list.map(function (d) { return d.name; });
-    var vals = list.map(function (d) { return d.pax; });
-    var fls = list.map(function (d) { return d.fl; });
+    var total = list.reduce(function (s, d) { return s + d.pax; }, 0);
+    var maxV = Math.max.apply(null, list.map(function (d) { return d.pax; })) || 1;
 
-    return new Chart(canvas, {
-      type: 'bar',
-      data: { labels: labels, datasets: [{ data: vals, backgroundColor: accent, borderRadius: 4, maxBarThickness: 20 }] },
-      options: {
-        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary,
-            padding: 10, cornerRadius: 8, displayColors: false,
-            callbacks: { label: function (c) { var i = c.dataIndex; return ['Зорчигч: ' + fmtNum(c.raw), 'Нислэг: ' + fls[i]]; } },
-          },
-        },
-        scales: {
-          x: { ticks: { color: textMuted, font: { size: 10 } }, grid: { color: gridline }, border: { display: false } },
-          y: { ticks: { color: textSecondary, font: { size: 11 } }, grid: { display: false }, border: { display: false } },
-        },
-      },
-    });
+    var rowsHtml = list.map(function (d, i) {
+      var pct = total > 0 ? (d.pax / total * 100) : 0;
+      var bw = Math.round(d.pax / maxV * 100);
+      var color = ROW_COLORS[i % ROW_COLORS.length];
+      return '<div class="tbl-row" title="' + escHtml(d.name) + ': ' + fmtNum(d.pax) + ' (' + pct.toFixed(1) + '%), ' + d.fl + ' нислэг">' +
+        '<div class="tbl-label">' + escHtml(d.name) + '</div>' +
+        '<div class="tbl-bar-cell"><div class="tbl-bar-track"><div class="tbl-bar-fill" style="width:' + bw + '%;background:' + color + '"></div></div></div>' +
+        '<div class="tbl-val"><div class="n">' + fmtNum(d.pax) + '</div><div class="p">' + pct.toFixed(1) + '% · ' + d.fl + ' нислэг</div></div>' +
+      '</div>';
+    }).join('');
+
+    var more = list.length > BREAKDOWN_VISIBLE
+      ? '<div class="tbl-more">↕ ' + (list.length - BREAKDOWN_VISIBLE) + ' нэмэлт мөр</div>'
+      : '';
+
+    wrap.innerHTML =
+      '<div class="tbl">' +
+        '<div class="tbl-hdr"><div class="tbl-label">Нэр</div><div class="tbl-bar-cell">Харьцаа</div><div class="tbl-val" style="padding-right:10px">Зорчигч</div></div>' +
+        '<div class="tbl-scroll">' + rowsHtml + '</div>' +
+        '<div class="tbl-ftr"><div class="tbl-label">Нийт (' + list.length + ')</div><div class="tbl-bar-cell"></div><div class="tbl-val" style="padding-right:10px">' + fmtNum(total) + '</div></div>' +
+        more +
+      '</div>';
   }
 
   function renderCarrierChart(rows) {
-    var list = topGroups(rows, function (r) { return r.carr; });
-    carrierChart = renderHBarChart('carrier-wrap', 'cCarrier', carrierChart, list);
+    renderBreakdownTable('carrier-wrap', topGroups(rows, function (r) { return r.carr; }));
   }
   function renderCountryChart(rows) {
-    var list = topGroups(rows, function (r) { return r.cntry; }, ['Монгол', 'Тодорхойгүй']);
-    countryChart = renderHBarChart('country-wrap', 'cCountry', countryChart, list);
+    renderBreakdownTable('country-wrap', topGroups(rows, function (r) { return r.cntry; }, ['Монгол', 'Тодорхойгүй']));
   }
 
   // ---------- Өдөр тутмын trend (SVG) ----------
