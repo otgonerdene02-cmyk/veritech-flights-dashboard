@@ -132,14 +132,26 @@
   @media (min-width: 560px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
   .kpi {
     background: var(--surface-1); border: 1px solid var(--border); border-top: 3px solid var(--accent);
-    border-radius: 10px; padding: 12px 14px;
+    border-radius: 10px; padding: 14px 14px 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 1px 1px rgba(0,0,0,0.03);
   }
-  .kpi-blue   { border-top-color: #2a78d6; }
-  .kpi-green  { border-top-color: #1baf7a; }
-  .kpi-amber  { border-top-color: #eda100; }
-  .kpi-purple { border-top-color: #9a60b4; }
-  .kpi-teal   { border-top-color: #0d9488; }
-  .kpi-red    { border-top-color: #e84749; }
+  .kpi-icon {
+    width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 9px;
+  }
+  .kpi-icon svg { width: 18px; height: 18px; }
+  .kpi-blue   { border-top-color: #2a78d6; background: rgba(42,120,214,0.07); }
+  .kpi-blue   .kpi-icon { background: rgba(42,120,214,0.16); color: #2a78d6; }
+  .kpi-green  { border-top-color: #1baf7a; background: rgba(27,175,122,0.07); }
+  .kpi-green  .kpi-icon { background: rgba(27,175,122,0.16); color: #1baf7a; }
+  .kpi-amber  { border-top-color: #eda100; background: rgba(237,161,0,0.08); }
+  .kpi-amber  .kpi-icon { background: rgba(237,161,0,0.18); color: #eda100; }
+  .kpi-purple { border-top-color: #9a60b4; background: rgba(154,96,180,0.07); }
+  .kpi-purple .kpi-icon { background: rgba(154,96,180,0.16); color: #9a60b4; }
+  .kpi-teal   { border-top-color: #0d9488; background: rgba(13,148,136,0.07); }
+  .kpi-teal   .kpi-icon { background: rgba(13,148,136,0.16); color: #0d9488; }
+  .kpi-red    { border-top-color: #e84749; background: rgba(232,71,73,0.07); }
+  .kpi-red    .kpi-icon { background: rgba(232,71,73,0.16); color: #e84749; }
   .kpi .v { font-size: 22px; font-weight: 600; letter-spacing: -.3px; font-variant-numeric: proportional-nums; }
   .kpi .l { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
   .kpi .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
@@ -553,6 +565,20 @@
   }
 
   // ---------- KPI ----------
+  var KPI_ICON_SVG = {
+    plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    package: '<path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>',
+    briefcase: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+    'map-pin': '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+  };
+  function kpiIcon(name) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      (KPI_ICON_SVG[name] || '') + '</svg>';
+  }
+
   function renderKPI(rows, all) {
     var totalAll = all.length;
     var totalPaxAll = all.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
@@ -570,17 +596,19 @@
     function pct(v, t) { return t > 0 ? ((v / t * 100).toFixed(1) + '%') : ''; }
 
     var tiles = [
-      { l: 'Нийт нислэг', v: fmtNum(n), s: filtered ? pct(n, totalAll) : '', c: 'blue' },
-      { l: 'Нийт зорчигч', v: compact(p), s: filtered ? pct(p, totalPaxAll) : '', c: 'green' },
-      { l: 'ОУ нислэг', v: fmtNum(intlF), s: n > 0 ? pct(intlF, n) : '', c: 'amber' },
-      { l: 'ОУ зорчигч', v: compact(intlP), s: p > 0 ? pct(intlP, p) : '', c: 'purple' },
-      { l: 'Дотоодын зорчигч', v: compact(domP), s: p > 0 ? pct(domP, p) : '', c: 'teal' },
-      { l: 'Нийт ачаа (кг)', v: compact(cargo), s: '', c: 'red' },
-      { l: 'Тээвэрлэгч', v: fmtNum(carriers), s: '', c: 'blue' },
-      { l: 'Хот', v: fmtNum(cities), s: '', c: 'green' },
+      { l: 'Нийт нислэг', v: fmtNum(n), s: filtered ? pct(n, totalAll) : '', c: 'blue', icon: 'plane' },
+      { l: 'Нийт зорчигч', v: compact(p), s: filtered ? pct(p, totalPaxAll) : '', c: 'green', icon: 'users' },
+      { l: 'ОУ нислэг', v: fmtNum(intlF), s: n > 0 ? pct(intlF, n) : '', c: 'amber', icon: 'globe' },
+      { l: 'ОУ зорчигч', v: compact(intlP), s: p > 0 ? pct(intlP, p) : '', c: 'purple', icon: 'globe' },
+      { l: 'Дотоодын зорчигч', v: compact(domP), s: p > 0 ? pct(domP, p) : '', c: 'teal', icon: 'home' },
+      { l: 'Нийт ачаа (кг)', v: compact(cargo), s: '', c: 'red', icon: 'package' },
+      { l: 'Тээвэрлэгч', v: fmtNum(carriers), s: '', c: 'blue', icon: 'briefcase' },
+      { l: 'Хот', v: fmtNum(cities), s: '', c: 'green', icon: 'map-pin' },
     ];
     document.getElementById('kpi-grid').innerHTML = tiles.map(function (t) {
-      return '<div class="kpi kpi-' + t.c + '"><div class="v">' + t.v + '</div><div class="l">' + t.l + '</div>' +
+      return '<div class="kpi kpi-' + t.c + '">' +
+        '<div class="kpi-icon">' + kpiIcon(t.icon) + '</div>' +
+        '<div class="v">' + t.v + '</div><div class="l">' + t.l + '</div>' +
         (t.s ? '<div class="sub">' + t.s + '</div>' : '') + '</div>';
     }).join('');
   }
