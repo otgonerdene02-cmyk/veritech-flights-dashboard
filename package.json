@@ -1,0 +1,12 @@
+{
+  "name": "veritech-flights-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "description": "MRTD Veritech KPI flight data fetcher + GitHub Pages dashboard",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "fetch": "node scripts/fetchFlights.js"
+  }
+}
