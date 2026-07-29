@@ -17,6 +17,7 @@
     --baseline:       #c3c2b7;
     --border:         rgba(11,11,11,0.10);
     --accent:         #2a78d6;
+    --accent-2:       #eda100;
     --accent-wash:    rgba(42,120,214,0.10);
   }
   @media (prefers-color-scheme: dark) {
@@ -30,6 +31,7 @@
       --baseline:       #383835;
       --border:         rgba(255,255,255,0.10);
       --accent:         #3987e5;
+      --accent-2:       #c98500;
       --accent-wash:    rgba(57,135,229,0.14);
     }
   }
@@ -43,6 +45,7 @@
     --baseline:       #383835;
     --border:         rgba(255,255,255,0.10);
     --accent:         #3987e5;
+    --accent-2:       #c98500;
     --accent-wash:    rgba(57,135,229,0.14);
   }
 
@@ -77,35 +80,75 @@
   .card h2 { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
   .card .desc { font-size: 12px; color: var(--text-muted); margin: 0 0 14px; }
 
-  .stat-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px; margin-bottom: 16px;
-  }
-  .stat-tile {
-    background: var(--surface-1); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 16px;
-  }
-  .stat-tile .label { font-size: 12px; color: var(--text-secondary); }
-  .stat-tile .value { font-size: 26px; font-weight: 600; margin-top: 4px; font-variant-numeric: proportional-nums; }
+  .row2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (min-width: 720px) { .row2 { grid-template-columns: 1fr 1fr; } }
+  .row2 .card { margin-bottom: 0; }
 
-  /* horizontal bar chart */
-  .bar-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
-  .bar-label {
-    width: 150px; flex: 0 0 150px; font-size: 12px; color: var(--text-secondary);
-    text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* filter bar */
+  .filter-bar { display: flex; flex-direction: column; gap: 10px; }
+  .frow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .flabel {
+    font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--text-muted); min-width: 46px; flex-shrink: 0;
   }
-  .bar-track { flex: 1 1 auto; position: relative; height: 20px; }
-  .bar-fill {
-    position: absolute; left: 0; top: 0; height: 20px; max-height: 24px;
-    background: var(--accent); border-radius: 0 4px 4px 0;
-    min-width: 2px;
+  .fchips { display: flex; gap: 5px; flex-wrap: wrap; }
+  .fchip {
+    font-size: 12px; font-weight: 500; padding: 5px 11px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--page); color: var(--text-secondary);
+    cursor: pointer; transition: all .1s;
   }
-  .bar-value {
-    margin-left: 8px; font-size: 12px; color: var(--text-secondary);
-    font-variant-numeric: tabular-nums; white-space: nowrap;
+  .fchip:hover { border-color: var(--accent); color: var(--accent); }
+  .fchip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .range-wrap { display: flex; align-items: center; gap: 5px; }
+  .range-wrap input {
+    width: 48px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 12px; font-family: inherit; background: var(--page); color: var(--text-primary); outline: none;
   }
+  .range-wrap input:focus { border-color: var(--accent); }
+  .range-wrap input.err { border-color: #d03b3b; }
+  .range-sep { font-size: 12px; color: var(--text-muted); }
+  .clr-btn, .reset-btn {
+    font-size: 11px; color: var(--text-muted); cursor: pointer; padding: 4px 9px;
+    border-radius: 6px; border: 1px solid var(--border); background: transparent;
+  }
+  .clr-btn:hover, .reset-btn:hover { color: var(--text-primary); }
+  .reset-btn { margin-left: auto; }
+  .divider { height: 1px; background: var(--gridline); }
 
-  /* line chart */
+  .atags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .atags-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .atag {
+    display: inline-flex; align-items: center; gap: 5px; background: var(--accent-wash);
+    border: 1px solid var(--border); color: var(--accent); font-size: 12px; font-weight: 500;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .atag .x { cursor: pointer; color: var(--text-muted); font-size: 11px; }
+  .atag .x:hover { color: #d03b3b; }
+  .atags-clear { font-size: 12px; color: var(--text-muted); cursor: pointer; margin-left: 2px; }
+  .atags-clear:hover { color: var(--text-primary); }
+
+  /* KPI grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (min-width: 560px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+  .kpi {
+    background: var(--surface-1); border: 1px solid var(--border); border-top: 3px solid var(--accent);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .kpi-blue   { border-top-color: #2a78d6; }
+  .kpi-green  { border-top-color: #1baf7a; }
+  .kpi-amber  { border-top-color: #eda100; }
+  .kpi-purple { border-top-color: #9a60b4; }
+  .kpi-teal   { border-top-color: #0d9488; }
+  .kpi-red    { border-top-color: #e84749; }
+  .kpi .v { font-size: 22px; font-weight: 600; letter-spacing: -.3px; font-variant-numeric: proportional-nums; }
+  .kpi .l { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
+  .kpi .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Chart.js canvases */
+  .cjs-chart { position: relative; height: 220px; }
+  .cjs-chart-lg { position: relative; height: 300px; }
+
+  /* line chart (SVG daily trend) */
   .line-chart-wrap { position: relative; }
   svg.line-chart { width: 100%; height: 220px; display: block; overflow: visible; }
   .lc-gridline { stroke: var(--gridline); stroke-width: 1; }
@@ -159,6 +202,55 @@
   .map-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
   .map-legend .item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
   .map-legend .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+
+  /* AI chatbot */
+  .chat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .cchip {
+    font-size: 12px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--page); color: var(--text-secondary); cursor: pointer; transition: all .1s;
+  }
+  .cchip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+  #conv { max-height: 420px; overflow-y: auto; padding: 4px 2px; display: flex; flex-direction: column; gap: 12px; }
+  .cbw { display: flex; gap: 8px; align-items: flex-start; }
+  .cbw.u { flex-direction: row-reverse; }
+  .cav {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;
+  }
+  .cav.ai { background: var(--accent); color: #fff; }
+  .cav.u { background: var(--gridline); color: var(--text-secondary); }
+  .cbub { max-width: 82%; padding: 10px 13px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+  .cbub.ai { background: var(--page); border: 1px solid var(--border); border-top-left-radius: 4px; }
+  .cbub.u { background: var(--accent); color: #fff; border-top-right-radius: 4px; }
+  .cbub.err { background: rgba(208,59,59,0.08); border: 1px solid rgba(208,59,59,0.3); color: #d03b3b; }
+  .cpill {
+    display: inline-flex; align-items: center; gap: 4px; background: var(--gridline);
+    color: var(--text-secondary); font-size: 11px; padding: 3px 8px; border-radius: 6px; margin-top: 8px;
+  }
+  .chat-ibar { display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; }
+  .chat-ibar textarea {
+    flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: 13px; color: var(--text-primary); background: var(--page);
+    outline: none; resize: none; max-height: 90px;
+  }
+  .chat-ibar textarea:focus { border-color: var(--accent); }
+  #sb {
+    width: 38px; height: 38px; border-radius: 8px; border: none; background: var(--accent);
+    color: #fff; cursor: pointer; font-size: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #sb:disabled { background: var(--baseline); cursor: default; }
+  .chat-chart-box { margin-top: 10px; height: 260px; position: relative; }
+  .tw { overflow-x: auto; margin-top: 6px; }
+  table.rt { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  table.rt th {
+    background: var(--page); color: var(--text-secondary); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .03em; padding: 6px 8px;
+    border-bottom: 2px solid var(--accent); text-align: left; white-space: nowrap;
+  }
+  table.rt td { padding: 6px 8px; border-bottom: 1px solid var(--gridline); }
+  table.rt td.n, table.rt th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  table.rt tr:hover td { background: var(--accent-wash); }
 </style>
 </head>
 <body>
@@ -175,7 +267,36 @@
       </div>
     </header>
 
-    <div class="stat-grid" id="stat-grid"></div>
+    <div class="card filter-bar">
+      <div class="frow">
+        <span class="flabel">Сар</span>
+        <div class="range-wrap">
+          <input type="text" id="mFrom" placeholder="1" maxlength="2" />
+          <span class="range-sep">–</span>
+          <input type="text" id="mTo" placeholder="12" maxlength="2" />
+        </div>
+        <button class="clr-btn" id="clr-month" type="button">× Арилгах</button>
+      </div>
+      <div class="divider"></div>
+      <div class="frow">
+        <span class="flabel">Төрөл</span>
+        <div class="fchips" id="chips-ou">
+          <div class="fchip active" data-ou="all">Бүгд</div>
+          <div class="fchip" data-ou="ОУ">Олон улсын</div>
+          <div class="fchip" data-ou="ОН">Дотоодын</div>
+        </div>
+        <div class="fchips" id="chips-dir" style="margin-left:8px">
+          <div class="fchip active" data-dir="all">Бүгд</div>
+          <div class="fchip" data-dir="1">Явсан ↗</div>
+          <div class="fchip" data-dir="0">Ирсэн ↙</div>
+        </div>
+        <button class="reset-btn" id="reset-filters" type="button">↺ Бүгд арилгах</button>
+      </div>
+    </div>
+
+    <div class="atags" id="atags" style="display:none"></div>
+
+    <div class="kpi-grid" id="kpi-grid"></div>
 
     <div class="card">
       <h2>Улаанбаатараас чиглэсэн зорчигчийн урсгал</h2>
@@ -184,10 +305,30 @@
       <div class="map-legend" id="map-legend"></div>
     </div>
 
-    <div class="card">
-      <h2>Улсаар нийт зорчигч (Топ 10)</h2>
-      <p class="desc">Нийт TOTAL_PASSENGER дүнгээр эрэмбэлсэн, хамгийн их урсгалтай 10 улс</p>
-      <div id="country-bars"></div>
+    <div class="row2">
+      <div class="card">
+        <h2>Сараар зорчигч ба нислэг</h2>
+        <p class="desc">Багана = нийт зорчигч, шугам = нислэгийн тоо</p>
+        <div class="cjs-chart" id="month-wrap"><canvas id="cMonth"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>ОУ / Дотоодын харьцаа</h2>
+        <p class="desc">Олон улсын болон дотоодын зорчигчийн харьцаа</p>
+        <div class="cjs-chart" id="ou-wrap"><canvas id="cOU"></canvas></div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <h2>Тээвэрлэгчдийн зах зээл</h2>
+        <p class="desc">Нийт зорчигчоор эрэмбэлсэн Топ 10 тээвэрлэгч</p>
+        <div class="cjs-chart-lg" id="carrier-wrap"><canvas id="cCarrier"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Улс тус бүрийн зорчигч</h2>
+        <p class="desc">Нийт зорчигчоор эрэмбэлсэн Топ 10 улс (Монгол, Тодорхойгүйг эс тооцов)</p>
+        <div class="cjs-chart-lg" id="country-wrap"><canvas id="cCountry"></canvas></div>
+      </div>
     </div>
 
     <div class="card">
@@ -215,12 +356,41 @@
         <button id="next">Дараах →</button>
       </div>
     </div>
+
+    <div class="card">
+      <h2>AI туслах — Монгол хэлээр асуугаарай</h2>
+      <p class="desc">Ачаалагдсан бүх бичлэг дээр шууд, локал тооцоолол хийж хариулна (Claude API дуудахгүй)</p>
+      <div class="chat-chips" id="chat-chips"></div>
+      <div id="conv">
+        <div id="chat-welcome" class="empty-state">Дээрх товчнуудыг дарж эхэлнэ үү, эсвэл өөрөө бичээрэй</div>
+      </div>
+      <div class="chat-ibar">
+        <textarea id="qi" rows="1" placeholder="Асуулт бичнэ үү..."></textarea>
+        <button id="sb" type="button">➤</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
+  // ---------- helpers ----------
+  function fmtNum(n) {
+    return Math.round(n).toLocaleString('mn-MN');
+  }
+  function compact(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return String(Math.round(n));
+  }
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function monthLabel(m) { return m + '-р сар'; }
+  function getVar(name) {
+    return getComputedStyle(document.querySelector('.viz-root')).getPropertyValue(name).trim();
+  }
+
   // ---------- theme toggle ----------
   var root = document.documentElement;
   var toggleBtn = document.getElementById('theme-toggle');
@@ -235,20 +405,12 @@
     var next = current === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);
     applyTheme(next);
-    if (lastRows.length) renderWorldMap(lastRows);
+    if (allRows.length) rerender();
   });
 
-  // ---------- helpers ----------
-  function fmtNum(n) {
-    return Math.round(n).toLocaleString('mn-MN');
-  }
-  function compact(n) {
-    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
-    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-    return String(Math.round(n));
-  }
-  function pad2(n) { return String(n).padStart(2, '0'); }
-
+  // ---------- state ----------
+  var allRows = [];
+  var filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all' };
   var COLUMNS = [
     { key: 'date', label: 'Огноо', num: false },
     { key: 'carr', label: 'Компани', num: false },
@@ -260,8 +422,140 @@
     { key: 'pax', label: 'Зорчигч', num: true },
     { key: 'cargoKg', label: 'Ачаа (кг)', num: true },
   ];
-
   var state = { rows: [], filtered: [], sortKey: 'date', sortDir: 'desc', page: 0, pageSize: 25 };
+
+  // ---------- filter bar ----------
+  function isFiltered() {
+    return filters.mFrom !== null || filters.mTo !== null || filters.ou !== 'all' || filters.dir !== 'all';
+  }
+
+  function applyFilters(rows) {
+    return rows.filter(function (r) {
+      if (filters.mFrom !== null && r.month < filters.mFrom) return false;
+      if (filters.mTo !== null && r.month > filters.mTo) return false;
+      if (filters.ou !== 'all' && r.ou !== filters.ou) return false;
+      if (filters.dir !== 'all' && r.dir !== filters.dir) return false;
+      return true;
+    });
+  }
+
+  var rangeDebounce = null;
+  function onRangeInput() {
+    clearTimeout(rangeDebounce);
+    rangeDebounce = setTimeout(function () {
+      var fEl = document.getElementById('mFrom'), tEl = document.getElementById('mTo');
+      var fv = fEl.value.trim(), tv = tEl.value.trim();
+      var from = fv === '' ? null : parseInt(fv, 10);
+      var to = tv === '' ? null : parseInt(tv, 10);
+      var fErr = fv !== '' && (isNaN(from) || from < 1 || from > 12);
+      var tErr = tv !== '' && (isNaN(to) || to < 1 || to > 12);
+      fEl.classList.toggle('err', fErr);
+      tEl.classList.toggle('err', tErr);
+      if (fErr || tErr) return;
+      if (from && to && from > to) { fEl.classList.add('err'); tEl.classList.add('err'); return; }
+      filters.mFrom = from;
+      filters.mTo = to !== null ? to : from;
+      rerender();
+    }, 350);
+  }
+  function clearMonthFilter() {
+    document.getElementById('mFrom').value = '';
+    document.getElementById('mTo').value = '';
+    document.getElementById('mFrom').classList.remove('err');
+    document.getElementById('mTo').classList.remove('err');
+    filters.mFrom = null; filters.mTo = null;
+    rerender();
+  }
+  function setChip(el, key) {
+    var group = el.parentElement;
+    group.querySelectorAll('.fchip').forEach(function (c) { c.classList.remove('active'); });
+    el.classList.add('active');
+    filters[key] = el.getAttribute('data-' + key);
+    rerender();
+  }
+  function resetFilters() {
+    document.getElementById('mFrom').value = '';
+    document.getElementById('mTo').value = '';
+    document.getElementById('mFrom').classList.remove('err');
+    document.getElementById('mTo').classList.remove('err');
+    filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all' };
+    document.querySelectorAll('.fchip').forEach(function (c) { c.classList.remove('active'); });
+    document.querySelector('[data-ou="all"]').classList.add('active');
+    document.querySelector('[data-dir="all"]').classList.add('active');
+    rerender();
+  }
+
+  document.getElementById('mFrom').addEventListener('input', onRangeInput);
+  document.getElementById('mTo').addEventListener('input', onRangeInput);
+  document.getElementById('clr-month').addEventListener('click', clearMonthFilter);
+  document.getElementById('reset-filters').addEventListener('click', resetFilters);
+  document.querySelectorAll('#chips-ou .fchip').forEach(function (chip) {
+    chip.addEventListener('click', function () { setChip(chip, 'ou'); });
+  });
+  document.querySelectorAll('#chips-dir .fchip').forEach(function (chip) {
+    chip.addEventListener('click', function () { setChip(chip, 'dir'); });
+  });
+
+  function updateFilterTags() {
+    var wrap = document.getElementById('atags');
+    var tags = [];
+    if (filters.mFrom !== null || filters.mTo !== null) {
+      var f = filters.mFrom, t = filters.mTo;
+      var lbl = f === t ? monthLabel(f) : (monthLabel(f) + ' – ' + monthLabel(t));
+      tags.push({ l: lbl, k: 'month' });
+    }
+    if (filters.ou !== 'all') tags.push({ l: filters.ou === 'ОУ' ? 'Олон улсын' : 'Дотоодын', k: 'ou' });
+    if (filters.dir !== 'all') tags.push({ l: filters.dir === '1' ? 'Явсан' : 'Ирсэн', k: 'dir' });
+    if (!tags.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    wrap.style.display = 'flex';
+    wrap.innerHTML = '<span class="atags-label">Шүүлт:</span>' +
+      tags.map(function (t) { return '<div class="atag" data-key="' + t.k + '">' + t.l + '<span class="x">✕</span></div>'; }).join('') +
+      '<span class="atags-clear">Бүгдийг арилгах</span>';
+    wrap.querySelectorAll('.atag .x').forEach(function (x) {
+      x.addEventListener('click', function () {
+        var key = x.parentElement.getAttribute('data-key');
+        if (key === 'month') { clearMonthFilter(); return; }
+        filters[key] = 'all';
+        document.querySelectorAll('[data-' + key + ']').forEach(function (c) { c.classList.remove('active'); });
+        document.querySelector('[data-' + key + '="all"]').classList.add('active');
+        rerender();
+      });
+    });
+    wrap.querySelector('.atags-clear').addEventListener('click', resetFilters);
+  }
+
+  // ---------- KPI ----------
+  function renderKPI(rows, all) {
+    var totalAll = all.length;
+    var totalPaxAll = all.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+    var n = rows.length;
+    var p = rows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+    var cargo = rows.reduce(function (s, r) { return s + (r.cargo || 0); }, 0);
+    var intlRows = rows.filter(function (r) { return r.ou === 'ОУ'; });
+    var domRows = rows.filter(function (r) { return r.ou === 'ОН'; });
+    var intlF = intlRows.length;
+    var intlP = intlRows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+    var domP = domRows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+    var carriers = new Set(rows.map(function (r) { return r.carr; }).filter(Boolean)).size;
+    var cities = new Set(rows.map(function (r) { return r.city; }).filter(Boolean)).size;
+    var filtered = isFiltered();
+    function pct(v, t) { return t > 0 ? ((v / t * 100).toFixed(1) + '%') : ''; }
+
+    var tiles = [
+      { l: 'Нийт нислэг', v: fmtNum(n), s: filtered ? pct(n, totalAll) : '', c: 'blue' },
+      { l: 'Нийт зорчигч', v: compact(p), s: filtered ? pct(p, totalPaxAll) : '', c: 'green' },
+      { l: 'ОУ нислэг', v: fmtNum(intlF), s: n > 0 ? pct(intlF, n) : '', c: 'amber' },
+      { l: 'ОУ зорчигч', v: compact(intlP), s: p > 0 ? pct(intlP, p) : '', c: 'purple' },
+      { l: 'Дотоодын зорчигч', v: compact(domP), s: p > 0 ? pct(domP, p) : '', c: 'teal' },
+      { l: 'Нийт ачаа (кг)', v: compact(cargo), s: '', c: 'red' },
+      { l: 'Тээвэрлэгч', v: fmtNum(carriers), s: '', c: 'blue' },
+      { l: 'Хот', v: fmtNum(cities), s: '', c: 'green' },
+    ];
+    document.getElementById('kpi-grid').innerHTML = tiles.map(function (t) {
+      return '<div class="kpi kpi-' + t.c + '"><div class="v">' + t.v + '</div><div class="l">' + t.l + '</div>' +
+        (t.s ? '<div class="sub">' + t.s + '</div>' : '') + '</div>';
+    }).join('');
+  }
 
   // ---------- world map ----------
   var COUNTRY_COORD = {
@@ -286,11 +580,6 @@
 
   var mapChart = null;
   var worldMapReady = null;
-  var lastRows = [];
-
-  function getVar(name) {
-    return getComputedStyle(document.querySelector('.viz-root')).getPropertyValue(name).trim();
-  }
 
   function ensureWorldMap() {
     if (worldMapReady) return worldMapReady;
@@ -310,7 +599,6 @@
   }
 
   function renderWorldMap(rows) {
-    lastRows = rows;
     var mapDom = document.getElementById('world-map');
     if (typeof echarts === 'undefined') {
       mapDom.innerHTML = '<div class="empty-state">ECharts номын сан ачаалагдсангүй</div>';
@@ -436,86 +724,158 @@
       .join('');
   }
 
-  fetch('./flights.json', { cache: 'no-store' })
-    .then(function (r) { return r.json(); })
-    .then(function (data) { render(data); })
-    .catch(function (err) {
-      document.getElementById('updated-at').textContent = 'Өгөгдөл ачаалахад алдаа гарлаа';
-      console.error(err);
-    });
-
-  function render(data) {
-    var flights = (data && data.flights) || [];
-    var meta = (data && data.meta) || {};
-
-    document.getElementById('updated-at').textContent = meta.fetchedAt
-      ? 'Сүүлд шинэчилсэн: ' + new Date(meta.fetchedAt).toLocaleString('mn-MN')
-      : '';
-
-    var enriched = flights.map(function (f) {
-      var date = (f.year && f.month && f.day)
-        ? f.year + '-' + pad2(f.month) + '-' + pad2(f.day)
-        : '';
-      return Object.assign({}, f, {
-        date: date,
-        dirLabel: f.dir === '0' ? 'Ирсэн' : (f.dir === '1' ? 'Явсан' : f.dir),
-      });
-    });
-    state.rows = enriched;
-
-    renderStats(enriched);
-    renderWorldMap(enriched);
-    renderCountryBars(enriched);
-    renderLineChart(enriched);
-    renderTable();
-  }
-
-  // ---------- stat tiles ----------
-  function renderStats(rows) {
-    var totalFlights = rows.length;
-    var totalPax = rows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
-    var totalCargo = rows.reduce(function (s, r) { return s + (r.cargoKg || 0); }, 0);
-    var tiles = [
-      { label: 'Нийт нислэг', value: fmtNum(totalFlights) },
-      { label: 'Нийт зорчигч', value: compact(totalPax) },
-      { label: 'Нийт ачаа (кг)', value: compact(totalCargo) },
-    ];
-    var grid = document.getElementById('stat-grid');
-    grid.innerHTML = tiles.map(function (t) {
-      return '<div class="stat-tile"><div class="label">' + t.label + '</div><div class="value">' + t.value + '</div></div>';
-    }).join('');
-  }
-
-  // ---------- country bar chart ----------
-  function renderCountryBars(rows) {
-    var byCountry = {};
+  // ---------- Сараар зорчигч ба нислэг (Chart.js bar+line) ----------
+  var monthChart = null;
+  function renderMonthChart(rows) {
+    var wrap = document.getElementById('month-wrap');
+    var byM = {};
     rows.forEach(function (r) {
-      var c = r.cntry || 'Тодорхойгүй';
-      byCountry[c] = (byCountry[c] || 0) + (r.pax || 0);
+      if (!r.month) return;
+      var key = (r.year || 0) + '-' + r.month;
+      if (!byM[key]) byM[key] = { month: r.month, year: r.year || 0, pax: 0, fl: 0 };
+      byM[key].pax += (r.pax || 0); byM[key].fl++;
     });
-    var top = Object.keys(byCountry)
-      .map(function (k) { return { label: k, value: byCountry[k] }; })
-      .sort(function (a, b) { return b.value - a.value; })
-      .slice(0, 10);
+    var keys = Object.keys(byM).sort(function (a, b) {
+      return (byM[a].year - byM[b].year) || (byM[a].month - byM[b].month);
+    });
 
-    var container = document.getElementById('country-bars');
-    if (!top.length) {
-      container.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>';
-      return;
-    }
-    var max = top[0].value || 1;
-    container.innerHTML = top.map(function (d) {
-      var pct = Math.max((d.value / max) * 100, 1);
-      return '' +
-        '<div class="bar-row">' +
-          '<div class="bar-label" title="' + d.label + '">' + d.label + '</div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
-          '<div class="bar-value">' + fmtNum(d.value) + '</div>' +
-        '</div>';
-    }).join('');
+    if (monthChart) { monthChart.destroy(); monthChart = null; }
+    wrap.innerHTML = '<canvas id="cMonth"></canvas>';
+    if (!keys.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return; }
+    var canvas = document.getElementById('cMonth');
+
+    var labels = keys.map(function (k) { return monthLabel(byM[k].month); });
+    var paxV = keys.map(function (k) { return byM[k].pax; });
+    var flV = keys.map(function (k) { return byM[k].fl; });
+
+    var accent = getVar('--accent'), accent2 = getVar('--accent-2');
+    var gridline = getVar('--gridline'), textMuted = getVar('--text-muted'), textSecondary = getVar('--text-secondary');
+    var surface = getVar('--surface-1'), border = getVar('--border'), textPrimary = getVar('--text-primary');
+
+    monthChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Зорчигч', data: paxV, backgroundColor: accent, borderRadius: 4, yAxisID: 'y' },
+          { label: 'Нислэг', data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1' },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 11 }, boxWidth: 10, padding: 8 } },
+          tooltip: {
+            backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary,
+            padding: 10, cornerRadius: 8, displayColors: false,
+            callbacks: { label: function (c) { return c.dataset.label === 'Нислэг' ? ('Нислэг: ' + c.raw) : ('Зорчигч: ' + fmtNum(c.raw)); } },
+          },
+        },
+        scales: {
+          y: { ticks: { color: textMuted, font: { size: 10 } }, grid: { color: gridline }, border: { display: false } },
+          y1: { position: 'right', ticks: { color: textMuted, font: { size: 10 } }, grid: { drawOnChartArea: false }, border: { display: false } },
+          x: { ticks: { color: textSecondary, font: { size: 11 } }, grid: { display: false }, border: { display: false } },
+        },
+      },
+    });
   }
 
-  // ---------- line chart ----------
+  // ---------- ОУ / Дотоодын харьцаа (doughnut) ----------
+  var ouChart = null;
+  function renderOUChart(rows) {
+    var wrap = document.getElementById('ou-wrap');
+    var intlP = rows.filter(function (r) { return r.ou === 'ОУ'; }).reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+    var domP = rows.filter(function (r) { return r.ou === 'ОН'; }).reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+
+    if (ouChart) { ouChart.destroy(); ouChart = null; }
+    wrap.innerHTML = '<canvas id="cOU"></canvas>';
+    if (intlP + domP <= 0) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return; }
+    var canvas = document.getElementById('cOU');
+
+    var accent = getVar('--accent'), accent2 = getVar('--accent-2');
+    var surface = getVar('--surface-1'), border = getVar('--border');
+    var textPrimary = getVar('--text-primary'), textSecondary = getVar('--text-secondary');
+    var total = intlP + domP;
+
+    ouChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: { labels: ['Олон улсын', 'Дотоодын'], datasets: [{ data: [intlP, domP], backgroundColor: [accent, accent2], borderColor: surface, borderWidth: 3, hoverOffset: 8 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '58%',
+        plugins: {
+          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 11 }, boxWidth: 12, padding: 10 } },
+          tooltip: {
+            backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: accent, bodyColor: textSecondary,
+            padding: 10, cornerRadius: 8, displayColors: false,
+            callbacks: { label: function (c) { return ['Зорчигч: ' + fmtNum(c.raw), 'Хувь: ' + (c.raw / Math.max(total, 1) * 100).toFixed(1) + '%']; } },
+          },
+        },
+      },
+    });
+  }
+
+  // ---------- Тээвэрлэгч / Улс bar чарт ----------
+  var carrierChart = null, countryChart = null;
+
+  function topGroups(rows, keyFn, excludeKeys) {
+    var by = {};
+    rows.forEach(function (r) {
+      var k = keyFn(r);
+      if (!k) return;
+      if (excludeKeys && excludeKeys.indexOf(k) !== -1) return;
+      if (!by[k]) by[k] = { pax: 0, fl: 0 };
+      by[k].pax += (r.pax || 0); by[k].fl++;
+    });
+    return Object.keys(by).map(function (k) { return { name: k, pax: by[k].pax, fl: by[k].fl }; })
+      .sort(function (a, b) { return b.pax - a.pax; }).slice(0, 10);
+  }
+
+  function renderHBarChart(wrapId, canvasId, existingChart, list) {
+    var wrap = document.getElementById(wrapId);
+    if (existingChart) existingChart.destroy();
+    wrap.innerHTML = '<canvas id="' + canvasId + '"></canvas>';
+    if (!list.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return null; }
+    var canvas = document.getElementById(canvasId);
+
+    var accent = getVar('--accent'), surface = getVar('--surface-1'), border = getVar('--border');
+    var textPrimary = getVar('--text-primary'), textSecondary = getVar('--text-secondary');
+    var gridline = getVar('--gridline'), textMuted = getVar('--text-muted');
+    var labels = list.map(function (d) { return d.name; });
+    var vals = list.map(function (d) { return d.pax; });
+    var fls = list.map(function (d) { return d.fl; });
+
+    return new Chart(canvas, {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ data: vals, backgroundColor: accent, borderRadius: 4, maxBarThickness: 20 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary,
+            padding: 10, cornerRadius: 8, displayColors: false,
+            callbacks: { label: function (c) { var i = c.dataIndex; return ['Зорчигч: ' + fmtNum(c.raw), 'Нислэг: ' + fls[i]]; } },
+          },
+        },
+        scales: {
+          x: { ticks: { color: textMuted, font: { size: 10 } }, grid: { color: gridline }, border: { display: false } },
+          y: { ticks: { color: textSecondary, font: { size: 11 } }, grid: { display: false }, border: { display: false } },
+        },
+      },
+    });
+  }
+
+  function renderCarrierChart(rows) {
+    var list = topGroups(rows, function (r) { return r.carr; });
+    carrierChart = renderHBarChart('carrier-wrap', 'cCarrier', carrierChart, list);
+  }
+  function renderCountryChart(rows) {
+    var list = topGroups(rows, function (r) { return r.cntry; }, ['Монгол', 'Тодорхойгүй']);
+    countryChart = renderHBarChart('country-wrap', 'cCountry', countryChart, list);
+  }
+
+  // ---------- Өдөр тутмын trend (SVG) ----------
   function renderLineChart(rows) {
     var byDate = {};
     rows.forEach(function (r) {
@@ -682,6 +1042,430 @@
     prevBtn.disabled = state.page <= 0;
     nextBtn.disabled = state.page >= totalPages - 1;
   }
+
+  // ---------- data ingest + master render ----------
+  function enrichRow(f) {
+    var date = (f.year && f.month && f.day)
+      ? f.year + '-' + pad2(f.month) + '-' + pad2(f.day)
+      : '';
+    return Object.assign({}, f, {
+      date: date,
+      dirLabel: f.dir === '0' ? 'Ирсэн' : (f.dir === '1' ? 'Явсан' : f.dir),
+    });
+  }
+
+  function rerender() {
+    var rows = applyFilters(allRows);
+    state.rows = rows;
+    updateFilterTags();
+    renderKPI(rows, allRows);
+    renderWorldMap(rows);
+    renderMonthChart(rows);
+    renderOUChart(rows);
+    renderCarrierChart(rows);
+    renderCountryChart(rows);
+    renderLineChart(rows);
+    renderTable();
+  }
+
+  fetch('./flights.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var flights = (data && data.flights) || [];
+      var meta = (data && data.meta) || {};
+      document.getElementById('updated-at').textContent = meta.fetchedAt
+        ? 'Сүүлд шинэчилсэн: ' + new Date(meta.fetchedAt).toLocaleString('mn-MN')
+        : '';
+      allRows = flights.map(enrichRow);
+      rerender();
+    })
+    .catch(function (err) {
+      document.getElementById('updated-at').textContent = 'Өгөгдөл ачаалахад алдаа гарлаа';
+      console.error(err);
+    });
+
+  // ══════════════════════════════════════════════════════════════
+  // AI ТУСЛАХ (чатбот) — локал тооцоолол, Claude API ашиглахгүй
+  // ══════════════════════════════════════════════════════════════
+
+  var SYN = {
+    'солонгос':'Өмнөд Солонгос','өмнөд солонгос':'Өмнөд Солонгос','солонгост':'Өмнөд Солонгос','солонгосоос':'Өмнөд Солонгос',
+    'хятад':'Хятад','бнхау':'Хятад','хятадад':'Хятад','хятадаас':'Хятад',
+    'япон':'Япон','японд':'Япон','японоос':'Япон',
+    'орос':'Орос','оху':'Орос','охү':'Орос','оросоос':'Орос',
+    'казахстан':'Казахстан','турк':'Турк','вьетнам':'Вьетнам',
+    'тайланд':'Тайланд','сингапур':'Сингапур','хонг конг':'Хонг Конг',
+    'герман':'Герман','энэтхэг':'Энэтхэг','узбекистан':'Узбекистан',
+    'монгол':'Монгол','анау':'АНАУ','дубай':'АНАУ','их британи':'Их Британи',
+  };
+
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function mkTbl(headers, rows) {
+    var h = '<div class="tw"><table class="rt"><thead><tr>';
+    headers.forEach(function (hd, i) {
+      var isN = rows.some(function (r) { return r[i] !== null && r[i] !== '' && !isNaN(parseFloat(r[i])); });
+      h += '<th class="' + (isN ? 'n' : '') + '">' + escHtml(String(hd)) + '</th>';
+    });
+    h += '</tr></thead><tbody>';
+    rows.forEach(function (r) {
+      h += '<tr>';
+      r.forEach(function (c) {
+        var isN = c !== null && c !== '' && !isNaN(parseFloat(c));
+        h += '<td class="' + (isN ? 'n' : '') + '">' + (isN ? fmtNum(c) : escHtml(String(c == null ? '-' : c))) + '</td>';
+      });
+      h += '</tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+
+  // Дата талбарын нэрс манай flights.json-той адилхан: month, day, carr, city,
+  // cntry, dir ("1"=явсан,"0"=ирсэн), ou ("ОУ"/"ОН"), pax, cargo, adult, child,
+  // infant, transit, vip, diplomat, crew, mailKg гэх мэт — шууд ашигладаг.
+  function computeChat(q) {
+    var D = allRows;
+    var ql = q.toLowerCase();
+
+    var country = null, carrier = null, month = null, dayFrom = null, dayTo = null, dir = null, ou = null;
+
+    for (var k in SYN) {
+      if (Object.prototype.hasOwnProperty.call(SYN, k) && ql.indexOf(k) !== -1) { country = SYN[k]; break; }
+    }
+
+    var allCarriers = Array.from(new Set(D.map(function (r) { return r.carr; }).filter(Boolean)))
+      .sort(function (a, b) { return b.length - a.length; });
+    for (var i = 0; i < allCarriers.length; i++) {
+      if (ql.indexOf(allCarriers[i].toLowerCase()) !== -1) { carrier = allCarriers[i]; break; }
+    }
+
+    var mm = ql.match(/(\d{1,2})\s*[-]?\s*(р|дугаар|дүгээр)?\s*сар/);
+    if (mm) month = parseInt(mm[1], 10);
+
+    var dr = ql.match(/(\d{1,2})\s*[-]?\s*(ээс|нээс|аас|наас)\s*(\d{1,2})/);
+    if (dr && month) {
+      var a = parseInt(dr[1], 10), b = parseInt(dr[3], 10);
+      if (a >= 1 && a <= 31 && b >= 1 && b <= 31 && a !== b) { dayFrom = Math.min(a, b); dayTo = Math.max(a, b); }
+    }
+
+    // dir талбар манай өгөгдөлд "1"(явсан)/"0"(ирсэн) — үгийг код руу хөрвүүлнэ
+    if (/явсан|ниссэн/.test(ql) && !/ирсэн/.test(ql)) dir = '1';
+    if (/ирсэн|буусан/.test(ql) && !/явсан/.test(ql)) dir = '0';
+
+    var hasIntl = /олон улс/.test(ql);
+    var hasDom = /дотоод/.test(ql);
+    if (hasIntl && !hasDom) ou = 'ОУ';
+    if (hasDom && !hasIntl) ou = 'ОН';
+
+    var rows = D;
+    if (country) rows = rows.filter(function (r) { return r.cntry === country; });
+    if (carrier) rows = rows.filter(function (r) { return r.carr === carrier; });
+    if (month) rows = rows.filter(function (r) { return r.month === month; });
+    if (dayFrom) rows = rows.filter(function (r) { return r.day >= dayFrom && r.day <= dayTo; });
+    if (dir) rows = rows.filter(function (r) { return r.dir === dir; });
+    if (ou) rows = rows.filter(function (r) { return r.ou === ou; });
+
+    var wCargo = /ачаа\s*(кг|жин|хэмжээ)/.test(ql);
+    var wMail = /шуудан/.test(ql);
+    var wChild = /хүүхэд/.test(ql) && !/нялх/.test(ql);
+    var wInfant = /нялх/.test(ql) && !/хүүхэд/.test(ql);
+    var wBoth = /хүүхэд.*нялх|нялх.*хүүхэд/.test(ql);
+    var wTransit = /транзит/.test(ql);
+    var wAdult = /том хүн|насанд хүрэгч/.test(ql);
+    var wFlights = /нислэгийн тоо|хэдэн нислэг|нийт нислэг/.test(ql);
+
+    function getVal(r) {
+      if (wCargo) return r.cargo || 0;
+      if (wMail) return r.mailKg || 0;
+      if (wChild) return r.child || 0;
+      if (wInfant) return r.infant || 0;
+      if (wBoth) return (r.child || 0) + (r.infant || 0);
+      if (wTransit) return r.transit || 0;
+      if (wAdult) return r.adult || 0;
+      if (wFlights) return 1;
+      return r.pax || 0;
+    }
+    var mLabel = wCargo ? 'Ачаа (кг)' : wMail ? 'Шуудан (кг)' : wChild ? 'Хүүхэд' : wInfant ? 'Нялх' :
+      wBoth ? 'Хүүхэд+Нялх' : wTransit ? 'Транзит' : wAdult ? 'Том хүн' : wFlights ? 'Нислэг' : 'Зорчигч';
+    function sum(arr) { return arr.reduce(function (s, r) { return s + getVal(r); }, 0); }
+
+    var filtersUsed = { country: country, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou };
+
+    if (/өссөн дүн|хуримтлагдсан|нэмэгдсэн дүн/.test(ql)) {
+      var byM = {};
+      rows.forEach(function (r) {
+        if (!byM[r.month]) byM[r.month] = { v: 0, c: 0 };
+        byM[r.month].v += getVal(r); byM[r.month].c++;
+      });
+      var cum = 0;
+      var monthKeys = Object.keys(byM).map(Number).sort(function (a, b) { return a - b; });
+      var cumRows = monthKeys.map(function (m) {
+        cum += byM[m].v;
+        return [monthLabel(m), byM[m].v, cum, byM[m].c];
+      });
+      return { type: 'cumulative', label: 'Сар', mLabel: mLabel, rows: cumRows, total: cum, count: rows.length, filters: filtersUsed };
+    }
+
+    var topM = ql.match(/топ\s*(\d+)|(\d+)\s*(улс|тээвэрлэгч|хот)/);
+    var topN = topM ? parseInt(topM[1] || topM[2], 10) : 10;
+
+    var grpC = /тээвэрлэгч/.test(ql) && !carrier;
+    var grpN = /улс(аар|ыг|ын|ууд)?/.test(ql) && !country && !carrier;
+    var grpCt = /(хот|чиглэл)/.test(ql) && !country && !carrier;
+    var grpM = /сараар|сар бүр|сар тус бүр/.test(ql) && !month;
+    var grpD = /өдөр бүр|өдрөөр/.test(ql) || (dayFrom && dayTo);
+    var grpOU = hasIntl && hasDom;
+    var grpDr = /явсан.*ирсэн|ирсэн.*явсан|харьцуул.*чиглэл/.test(ql) && !dir;
+
+    if (grpC || grpN || grpCt || grpM || grpD || grpOU || grpDr) {
+      var keyFn = grpC ? function (r) { return r.carr; }
+        : grpN ? function (r) { return r.cntry; }
+        : grpCt ? function (r) { return r.city; }
+        : grpM ? function (r) { return monthLabel(r.month); }
+        : grpD ? function (r) { return pad2(r.month) + '/' + pad2(r.day); }
+        : grpDr ? function (r) { return r.dir === '1' ? 'Явсан' : 'Ирсэн'; }
+        : function (r) { return r.ou === 'ОУ' ? 'Олон улсын' : 'Дотоодын'; };
+      var label = grpC ? 'Тээвэрлэгч' : grpN ? 'Улс' : grpCt ? 'Хот' : grpM ? 'Сар' : grpD ? 'Өдөр' : grpDr ? 'Чиглэл' : 'Нислэгийн төрөл';
+
+      var grps = {};
+      rows.forEach(function (r) {
+        var key = keyFn(r) || 'Бусад';
+        if (!grps[key]) grps[key] = { v: 0, c: 0 };
+        grps[key].v += getVal(r); grps[key].c++;
+      });
+      var sorted = Object.keys(grps).map(function (key) { return [key, grps[key]]; })
+        .sort(function (a, b) { return b[1].v - a[1].v; });
+      if (grpM) sorted.sort(function (a, b) { return parseInt(a[0], 10) - parseInt(b[0], 10); });
+      else if (grpD) sorted.sort(function (a, b) { return a[0].localeCompare(b[0]); });
+      var sliced = sorted.slice(0, topN).map(function (e) { return [e[0], e[1].v, e[1].c]; });
+      return { type: 'table', label: label, mLabel: mLabel, topN: topN, rows: sliced, total: sum(rows), count: rows.length, filters: filtersUsed };
+    }
+
+    return { type: 'single', value: sum(rows), count: rows.length, mLabel: mLabel, filters: filtersUsed };
+  }
+
+  function renderChatMessage(result, wantChart, wantGrowth) {
+    var conv = document.getElementById('conv');
+    var w = document.createElement('div'); w.className = 'cbw';
+    var av = document.createElement('div'); av.className = 'cav ai'; av.textContent = 'AI';
+    var b = document.createElement('div'); b.className = 'cbub ai';
+    var html = '';
+
+    if (result.type === 'cumulative') {
+      html += mkTbl([result.label, result.mLabel, 'Өссөн дүн', 'Нислэг'], result.rows);
+    } else if (result.type === 'table') {
+      html += mkTbl([result.label, result.mLabel, 'Нислэг'], result.rows);
+    } else {
+      var f = result.filters || {};
+      var scopeParts = [
+        f.country, f.carrier,
+        f.month && (f.month + '-р сар'),
+        f.dayFrom && f.dayTo && (f.dayFrom + '-' + f.dayTo + '-ны өдөр'),
+        f.dir && (f.dir === '1' ? 'Явсан' : 'Ирсэн'),
+        f.ou,
+      ].filter(Boolean);
+      var scope = scopeParts.length ? scopeParts.join(' · ') : 'Нийт бүртгэгдсэн хугацаа';
+      html += '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">' + escHtml(scope) + '</div>';
+      html += '<div style="font-size:28px;font-weight:700;color:var(--text-primary)">' + fmtNum(result.value) + '</div>';
+      html += '<div style="font-size:12px;color:var(--text-muted);margin-top:4px">' + escHtml(result.mLabel) + ' · ' + fmtNum(result.count) + ' нислэг</div>';
+    }
+
+    var needChart = wantChart || wantGrowth || result.type === 'cumulative' || (result.type === 'table' && (result.label === 'Өдөр' || result.label === 'Сар'));
+    var cid = 'cc' + Date.now();
+    if (needChart && result.rows && result.rows.length > 0) {
+      html += '<div class="chat-chart-box"><canvas id="' + cid + '"></canvas></div>';
+    }
+
+    html += '<div class="cpill">' + fmtNum(allRows.length) + ' бичлэг · JS тооцоо</div>';
+    b.innerHTML = html;
+    w.appendChild(av); w.appendChild(b);
+    conv.appendChild(w);
+    conv.scrollTop = conv.scrollHeight;
+
+    if (!needChart || !result.rows || result.rows.length === 0) return;
+    var canvas = document.getElementById(cid);
+    if (!canvas) return;
+    drawChatChart(canvas, result, wantGrowth);
+  }
+
+  function drawChatChart(canvas, result, wantGrowth) {
+    var labels = result.rows.map(function (r) { return String(r[0]); });
+    var vals = result.rows.map(function (r) { return Number(r[1]); });
+    var n = labels.length;
+    var totalV = vals.reduce(function (s, v) { return s + v; }, 0);
+    var growth = vals.map(function (v, i) { return i === 0 ? null : parseFloat(((v - vals[i - 1]) / Math.max(vals[i - 1], 1) * 100).toFixed(1)); });
+
+    var accent = getVar('--accent'), accent2 = getVar('--accent-2');
+    var surface = getVar('--surface-1'), border = getVar('--border');
+    var textPrimary = getVar('--text-primary'), textSecondary = getVar('--text-secondary');
+    var gridline = getVar('--gridline'), textMuted = getVar('--text-muted');
+    var good = '#0ca30c', critical = '#d03b3b';
+    var baseTooltip = { backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary, padding: 10, cornerRadius: 8 };
+
+    if (result.type === 'cumulative') {
+      var cumVals = result.rows.map(function (r) { return Number(r[2]); });
+      new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: labels, datasets: [
+            { label: 'Сарын нийт', data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, yAxisID: 'y' },
+            { label: 'Өссөн дүн', data: cumVals, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: accent2, tension: 0.3, yAxisID: 'y1' },
+          ],
+        },
+        options: {
+          responsive: true, interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12 } },
+            tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + fmtNum(c.raw); } } }),
+          },
+          scales: {
+            y: { ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { color: gridline } },
+            y1: { position: 'right', ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { drawOnChartArea: false } },
+            x: { ticks: { color: textSecondary }, grid: { display: false } },
+          },
+        },
+      });
+      return;
+    }
+
+    if (wantGrowth || result.label === 'Өдөр' || result.label === 'Сар') {
+      new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: labels, datasets: [
+            { label: result.mLabel, data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, yAxisID: 'y' },
+            {
+              label: 'Өсөлт (%)', data: growth, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5,
+              pointRadius: growth.map(function (v) { return v === null ? 0 : 6; }),
+              pointBackgroundColor: growth.map(function (v) { return v === null ? 'transparent' : (v >= 0 ? good : critical); }),
+              pointBorderColor: growth.map(function (v) { return v === null ? 'transparent' : (v >= 0 ? good : critical); }),
+              tension: 0.3, spanGaps: true, yAxisID: 'y1',
+            },
+          ],
+        },
+        options: {
+          responsive: true, interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12 } },
+            tooltip: Object.assign({}, baseTooltip, {
+              callbacks: {
+                label: function (c) {
+                  if (c.dataset.label === 'Өсөлт (%)') { var v = c.raw; if (v === null) return null; return ' Өсөлт: ' + (v > 0 ? '+' : '') + v + '%'; }
+                  return ' ' + c.dataset.label + ': ' + fmtNum(c.raw);
+                },
+              },
+            }),
+          },
+          scales: {
+            y: { ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { color: gridline } },
+            y1: { position: 'right', ticks: { color: textMuted, callback: function (v) { return (v > 0 ? '+' : '') + v + '%'; } }, grid: { drawOnChartArea: false } },
+            x: { ticks: { color: textSecondary }, grid: { display: false } },
+          },
+        },
+      });
+      return;
+    }
+
+    if (n <= 2) {
+      new Chart(canvas, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: vals, backgroundColor: [accent, accent2], borderColor: surface, borderWidth: 4, hoverOffset: 10 }] },
+        options: {
+          responsive: true, cutout: '60%',
+          plugins: {
+            legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12, padding: 16 } },
+            tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { return ' ' + result.mLabel + ': ' + fmtNum(c.raw) + '  (' + (c.raw / Math.max(totalV, 1) * 100).toFixed(1) + '%)'; } } }),
+          },
+        },
+      });
+      return;
+    }
+
+    canvas.parentElement.style.height = Math.max(220, n * 34 + 60) + 'px';
+    new Chart(canvas, {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ data: vals, backgroundColor: accent, borderRadius: 4, maxBarThickness: 20 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { var pct = totalV > 0 ? (' (' + (c.raw / totalV * 100).toFixed(1) + '%)') : ''; return ' ' + result.mLabel + ': ' + fmtNum(c.raw) + pct; } } }),
+        },
+        scales: {
+          x: { ticks: { color: textMuted }, grid: { color: gridline } },
+          y: { ticks: { color: textSecondary }, grid: { display: false } },
+        },
+      },
+    });
+  }
+
+  var CHAT_EXAMPLES = [
+    'Солонгос руу хэдэн зорчигч ниссэн бэ?',
+    'Аль тээвэрлэгч хамгийн их зорчигч тээвэрлэсэн бэ?',
+    'Сараар нийт зорчигчийг чартаар харуул',
+    'Олон улсын нислэгийн зах зээлийг тээвэрлэгчээр харуул',
+    'Хятад руу хэдэн нислэг байсан бэ?',
+    'Топ 5 улсыг харуул',
+  ];
+  document.getElementById('chat-chips').innerHTML = CHAT_EXAMPLES.map(function (e) {
+    return '<div class="cchip" data-q="' + escHtml(e) + '">' + escHtml(e) + '</div>';
+  }).join('');
+  document.querySelectorAll('.cchip').forEach(function (chip) {
+    chip.addEventListener('click', function () { askChat(chip.getAttribute('data-q')); });
+  });
+
+  var chatBusy = false;
+  function sendChat() {
+    if (chatBusy) return;
+    var inp = document.getElementById('qi');
+    var q = inp.value.trim();
+    if (!q) return;
+    inp.value = ''; inp.style.height = 'auto';
+    chatBusy = true;
+    document.getElementById('sb').disabled = true;
+
+    var conv = document.getElementById('conv');
+    var welcome = document.getElementById('chat-welcome');
+    if (welcome) welcome.style.display = 'none';
+
+    var uw = document.createElement('div'); uw.className = 'cbw u';
+    var ub = document.createElement('div'); ub.className = 'cbub u'; ub.textContent = q;
+    var uav = document.createElement('div'); uav.className = 'cav u'; uav.textContent = 'Та';
+    uw.appendChild(ub); uw.appendChild(uav);
+    conv.appendChild(uw); conv.scrollTop = conv.scrollHeight;
+
+    try {
+      var result = computeChat(q);
+      var ql = q.toLowerCase();
+      var wantChart = /чарт|график|зурагт|диаграм|харуул|визуал/.test(ql) || result.type === 'cumulative';
+      var wantGrowth = /өсөлт|бууралт|өөрчлөлт/.test(ql) && wantChart;
+      renderChatMessage(result, wantChart, wantGrowth);
+    } catch (e) {
+      var ew = document.createElement('div'); ew.className = 'cbw';
+      var eav = document.createElement('div'); eav.className = 'cav ai'; eav.textContent = 'AI';
+      var eb = document.createElement('div'); eb.className = 'cbub ai err';
+      eb.textContent = 'Алдаа: ' + e.message;
+      ew.appendChild(eav); ew.appendChild(eb);
+      conv.appendChild(ew);
+      console.error('Chatbot error:', e);
+    } finally {
+      chatBusy = false;
+      document.getElementById('sb').disabled = false;
+    }
+  }
+  function askChat(t) { document.getElementById('qi').value = t; sendChat(); }
+
+  document.getElementById('sb').addEventListener('click', sendChat);
+  document.getElementById('qi').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  });
+  document.getElementById('qi').addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 90) + 'px';
+  });
 })();
 </script>
 </body>
