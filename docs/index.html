@@ -1122,6 +1122,22 @@
     'монгол':'Монгол','анау':'АНАУ','дубай':'АНАУ','их британи':'Их Британи',
   };
 
+  // Хотын нэрийн ярианы/зөв бичгийн хувилбарууд — бодит city талбарт байдаггvй
+  // авиа зvйн хувилбарыг canonical (city_country_map.js-тэй адилхан) нэр рvv хөрвvvлнэ
+  var CITY_SYN = {
+    'пусон':'Бусан','пусан':'Бусан',
+    'сеул':'Сөүл','сөүл':'Сөүл',
+    'дэгү':'Тэгү','тэгу':'Тэгү',
+    'чеджу':'Чэжү','жэжу':'Чэжү','жэжү':'Чэжү',
+    'бээжин':'Бээжин','пекин':'Бээжин',
+  };
+  // city талбар "Сөүл/Инчеон", "Бээжин/Капитал" гэх мэт нийлмэл утгатай байдаг тул
+  // "/"-ын өмнөх суурь нэрээр таарууна (жишээ нь "Сөүл" нь хоёр Сөүлийн буудлыг хамарна)
+  function cityBase(c) { return c.split('/')[0]; }
+  function matchesCity(rowCity, target) {
+    return rowCity === target || rowCity.indexOf(target + '/') === 0;
+  }
+
   function escHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -1153,7 +1169,7 @@
     var D = allRows;
     var ql = q.toLowerCase();
 
-    var country = null, carrier = null, month = null, dayFrom = null, dayTo = null, dir = null, ou = null;
+    var country = null, carrier = null, city = null, month = null, dayFrom = null, dayTo = null, dir = null, ou = null;
 
     for (var k in SYN) {
       if (Object.prototype.hasOwnProperty.call(SYN, k) && ql.indexOf(k) !== -1) { country = SYN[k]; break; }
@@ -1163,6 +1179,21 @@
       .sort(function (a, b) { return b.length - a.length; });
     for (var i = 0; i < allCarriers.length; i++) {
       if (ql.indexOf(allCarriers[i].toLowerCase()) !== -1) { carrier = allCarriers[i]; break; }
+    }
+
+    // 1. flights.json-оос давхардуулгаагvй хотуудын (суурь нэрээр) жагсаалт
+    var cityBases = Array.from(new Set(D.map(function (r) { return r.city; }).filter(Boolean).map(cityBase)));
+
+    // 2-3. Эхлээд CITY_SYN-ээр (авиа зvйн хувилбар), олдоогvй бол бодит хотын
+    // нэрсээр шалгана — урт нэр эхэлж таарч богино нэрийн санамсаргvй давхцлаас сэргийлнэ
+    for (var sk in CITY_SYN) {
+      if (Object.prototype.hasOwnProperty.call(CITY_SYN, sk) && ql.indexOf(sk) !== -1) { city = CITY_SYN[sk]; break; }
+    }
+    if (!city) {
+      var sortedCityBases = cityBases.slice().sort(function (a, b) { return b.length - a.length; });
+      for (var ci = 0; ci < sortedCityBases.length; ci++) {
+        if (ql.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
+      }
     }
 
     var mm = ql.match(/(\d{1,2})\s*[-]?\s*(р|дугаар|дүгээр)?\s*сар/);
@@ -1185,6 +1216,7 @@
 
     var rows = D;
     if (country) rows = rows.filter(function (r) { return r.cntry === country; });
+    if (city) rows = rows.filter(function (r) { return matchesCity(r.city, city); });
     if (carrier) rows = rows.filter(function (r) { return r.carr === carrier; });
     if (month) rows = rows.filter(function (r) { return r.month === month; });
     if (dayFrom) rows = rows.filter(function (r) { return r.day >= dayFrom && r.day <= dayTo; });
@@ -1215,7 +1247,7 @@
       wBoth ? 'Хүүхэд+Нялх' : wTransit ? 'Транзит' : wAdult ? 'Том хүн' : wFlights ? 'Нислэг' : 'Зорчигч';
     function sum(arr) { return arr.reduce(function (s, r) { return s + getVal(r); }, 0); }
 
-    var filtersUsed = { country: country, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou };
+    var filtersUsed = { country: country, city: city, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou };
 
     if (/өссөн дүн|хуримтлагдсан|нэмэгдсэн дүн/.test(ql)) {
       var byM = {};
@@ -1237,7 +1269,7 @@
 
     var grpC = /тээвэрлэгч/.test(ql) && !carrier;
     var grpN = /улс(аар|ыг|ын|ууд)?/.test(ql) && !country && !carrier;
-    var grpCt = /(хот|чиглэл)/.test(ql) && !country && !carrier;
+    var grpCt = /(хот|чиглэл)/.test(ql) && !country && !carrier && !city;
     var grpM = /сараар|сар бүр|сар тус бүр/.test(ql) && !month;
     var grpD = /өдөр бүр|өдрөөр/.test(ql) || (dayFrom && dayTo);
     var grpOU = hasIntl && hasDom;
@@ -1284,7 +1316,7 @@
     } else {
       var f = result.filters || {};
       var scopeParts = [
-        f.country, f.carrier,
+        f.country, f.city, f.carrier,
         f.month && (f.month + '-р сар'),
         f.dayFrom && f.dayTo && (f.dayFrom + '-' + f.dayTo + '-ны өдөр'),
         f.dir && (f.dir === '1' ? 'Явсан' : 'Ирсэн'),
