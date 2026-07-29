@@ -152,6 +152,13 @@
   .pager button:disabled { opacity: 0.4; cursor: default; }
 
   .empty-state { color: var(--text-muted); font-size: 13px; padding: 20px 0; text-align: center; }
+
+  /* world map */
+  #world-map { width: 100%; height: 480px; }
+  @media (max-width: 640px) { #world-map { height: 360px; } }
+  .map-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
+  .map-legend .item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+  .map-legend .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
 </style>
 </head>
 <body>
@@ -169,6 +176,13 @@
     </header>
 
     <div class="stat-grid" id="stat-grid"></div>
+
+    <div class="card">
+      <h2>Улаанбаатараас чиглэсэн зорчигчийн урсгал</h2>
+      <p class="desc">Бөмбөлгийн хэмжээ = тухайн улс руу/-аас нийт зорчигчийн тоо. Улс дээр hover/дарахад дэлгэрэнгүй харагдана</p>
+      <div id="world-map"></div>
+      <div class="map-legend" id="map-legend"></div>
+    </div>
 
     <div class="card">
       <h2>Улсаар нийт зорчигч (Топ 10)</h2>
@@ -204,6 +218,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <script>
 (function () {
   // ---------- theme toggle ----------
@@ -220,6 +235,7 @@
     var next = current === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);
     applyTheme(next);
+    if (lastRows.length) renderWorldMap(lastRows);
   });
 
   // ---------- helpers ----------
@@ -246,6 +262,179 @@
   ];
 
   var state = { rows: [], filtered: [], sortKey: 'date', sortDir: 'desc', page: 0, pageSize: 25 };
+
+  // ---------- world map ----------
+  var COUNTRY_COORD = {
+    'Өмнөд Солонгос':[127.5,37.5],'Хятад':[104.0,35.0],'Япон':[138.0,36.0],
+    'Турк':[35.0,39.0],'Хонг Конг':[114.2,22.3],'Герман':[10.5,51.2],
+    'Вьетнам':[108.0,14.0],'Тайланд':[101.0,15.0],'Казахстан':[66.9,48.0],
+    'Орос':[105.0,61.0],'Сингапур':[103.8,1.3],'Энэтхэг':[78.9,20.6],
+    'Узбекистан':[63.9,41.3],'АНАУ':[54.4,24.0],'Их Британи':[-1.5,52.5],
+    'Унгар':[19.5,47.2],'Азербайжан':[47.6,40.4],'Филиппин':[122.0,12.9],
+    'Ирланд':[-8.2,53.4],'Индонез':[113.9,-0.8],
+  };
+  var CC = {
+    'Өмнөд Солонгос':'#e84749','Хятад':'#ee6666','Япон':'#fc8452',
+    'Турк':'#9a60b4','Хонг Конг':'#ea7ccc','Герман':'#3ba272',
+    'Вьетнам':'#5470c6','Тайланд':'#73c0de','Казахстан':'#fac858',
+    'Орос':'#91cc75','Сингапур':'#48cae4','Энэтхэг':'#ff9f1c',
+    'Узбекистан':'#a8dadc','АНАУ':'#ffb347','Их Британи':'#4ecdc4',
+    'Унгар':'#c7f2a4','Азербайжан':'#e8c49a','Филиппин':'#ff6b9d',
+  };
+  var UB = [106.9, 47.9];
+  var FALLBACK_DOT_COLOR = '#8a8a86';
+
+  var mapChart = null;
+  var worldMapReady = null;
+  var lastRows = [];
+
+  function getVar(name) {
+    return getComputedStyle(document.querySelector('.viz-root')).getPropertyValue(name).trim();
+  }
+
+  function ensureWorldMap() {
+    if (worldMapReady) return worldMapReady;
+    worldMapReady = fetch('https://raw.githubusercontent.com/apache/echarts/master/test/data/map/json/world.json')
+      .then(function (r) { return r.json(); })
+      .then(function (geoJson) {
+        echarts.registerMap('world', geoJson);
+        return true;
+      });
+    return worldMapReady;
+  }
+
+  function bubbleSize(pax, maxPax) {
+    var minS = 8, maxS = 46;
+    if (!maxPax) return minS;
+    return minS + (maxS - minS) * Math.sqrt(Math.max(pax, 0) / maxPax);
+  }
+
+  function renderWorldMap(rows) {
+    lastRows = rows;
+    var mapDom = document.getElementById('world-map');
+    if (typeof echarts === 'undefined') {
+      mapDom.innerHTML = '<div class="empty-state">ECharts номын сан ачаалагдсангүй</div>';
+      return;
+    }
+
+    ensureWorldMap().then(function () {
+      var totals = {};
+      rows.forEach(function (r) {
+        var c = r.cntry;
+        if (!c || !COUNTRY_COORD[c]) return; // lookup хүснэгтэд байхгүй улсыг алгасана
+        totals[c] = (totals[c] || 0) + (r.pax || 0);
+      });
+
+      var countries = Object.keys(totals);
+      var maxPax = countries.reduce(function (m, c) { return Math.max(m, totals[c]); }, 0);
+
+      var linesData = countries.map(function (c) {
+        return {
+          coords: [UB, COUNTRY_COORD[c]],
+          lineStyle: { color: CC[c] || FALLBACK_DOT_COLOR, width: 1, curveness: 0.2, opacity: 0.45 },
+        };
+      });
+
+      var scatterData = countries.map(function (c) {
+        return {
+          name: c,
+          value: [COUNTRY_COORD[c][0], COUNTRY_COORD[c][1], totals[c]],
+          itemStyle: { color: CC[c] || FALLBACK_DOT_COLOR },
+          symbolSize: bubbleSize(totals[c], maxPax),
+        };
+      });
+
+      if (!mapChart) {
+        mapChart = echarts.init(mapDom);
+        window.addEventListener('resize', function () { mapChart.resize(); });
+      }
+
+      var areaColor = getVar('--gridline');
+      var surface = getVar('--surface-1');
+      var border = getVar('--border');
+      var textPrimary = getVar('--text-primary');
+      var textSecondary = getVar('--text-secondary');
+      var accent = getVar('--accent');
+
+      mapChart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+          trigger: 'item',
+          backgroundColor: surface,
+          borderColor: border,
+          borderWidth: 1,
+          textStyle: { color: textPrimary, fontSize: 12 },
+          formatter: function (params) {
+            if (params.data && params.data.isUB) return 'Улаанбаатар (эх цэг)';
+            if (params.seriesType === 'effectScatter') {
+              return '<b>' + params.name + '</b><br/>Нийт зорчигч: ' + fmtNum(params.value[2]);
+            }
+            return params.name || '';
+          },
+        },
+        geo: {
+          map: 'world',
+          roam: true,
+          left: 10, right: 10, top: 10, bottom: 10,
+          silent: true,
+          label: { show: false },
+          itemStyle: { areaColor: areaColor, borderColor: surface, borderWidth: 0.5 },
+          emphasis: { itemStyle: { areaColor: areaColor }, label: { show: false } },
+        },
+        series: [
+          {
+            type: 'lines',
+            coordinateSystem: 'geo',
+            zlevel: 1,
+            silent: true,
+            effect: { show: true, period: 5, trailLength: 0.3, symbol: 'arrow', symbolSize: 4, color: accent },
+            lineStyle: { curveness: 0.2 },
+            data: linesData,
+          },
+          {
+            name: 'Улс',
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            zlevel: 2,
+            rippleEffect: { brushType: 'stroke', scale: 2.2, period: 3 },
+            showEffectOn: 'render',
+            hoverAnimation: true,
+            label: { show: false },
+            itemStyle: { shadowBlur: 6, shadowColor: 'rgba(0,0,0,0.25)' },
+            data: scatterData,
+          },
+          {
+            name: 'Улаанбаатар',
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            zlevel: 3,
+            symbolSize: 12,
+            rippleEffect: { brushType: 'stroke', scale: 2.5 },
+            showEffectOn: 'render',
+            itemStyle: { color: accent, shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' },
+            label: { show: true, formatter: 'УБ', position: 'top', color: textSecondary, fontSize: 10 },
+            data: [{ name: 'Улаанбаатар', value: [UB[0], UB[1], null], isUB: true }],
+          },
+        ],
+      }, true);
+
+      renderMapLegend(countries);
+    }).catch(function (err) {
+      mapDom.innerHTML = '<div class="empty-state">Дэлхийн газрын зураг ачаалахад алдаа гарлаа</div>';
+      console.error(err);
+    });
+  }
+
+  function renderMapLegend(countries) {
+    var legend = document.getElementById('map-legend');
+    legend.innerHTML = countries
+      .slice()
+      .sort(function (a, b) { return a.localeCompare(b); })
+      .map(function (c) {
+        return '<div class="item"><span class="dot" style="background:' + (CC[c] || FALLBACK_DOT_COLOR) + '"></span>' + c + '</div>';
+      })
+      .join('');
+  }
 
   fetch('./flights.json', { cache: 'no-store' })
     .then(function (r) { return r.json(); })
@@ -275,6 +464,7 @@
     state.rows = enriched;
 
     renderStats(enriched);
+    renderWorldMap(enriched);
     renderCountryBars(enriched);
     renderLineChart(enriched);
     renderTable();

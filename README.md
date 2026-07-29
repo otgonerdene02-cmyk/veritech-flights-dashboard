@@ -15,6 +15,11 @@ docs/index.html                       GitHub Pages dashboard (статик, зө
 docs/flights.json                     Action-аар автоматаар шинэчлэгддэг өгөгдөл
 ```
 
+`docs/index.html` нь дэлхийн газрын зургийн визуалчлалд [ECharts](https://echarts.apache.org/)-г
+CDN-ээс (`cdn.jsdelivr.net`) ачаалдаг, мөн газрын зургийн GeoJSON-г
+`raw.githubusercontent.com/apache/echarts`-с fetch хийдэг тул эдгээр хаягууд хориглогдоогүй
+сүлжээнд л бүрэн ажиллана.
+
 ## Тохируулга (нэг удаа)
 
 1. GitHub дээр хоосон repo үүсгэ (жишээ нь `veritech-flights-dashboard`), README/gitignore
