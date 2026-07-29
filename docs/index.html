@@ -285,7 +285,7 @@
   table.rt { border-collapse: collapse; width: 100%; font-size: 12.5px; }
   table.rt th {
     background: var(--page); color: var(--text-secondary); font-weight: 600; font-size: 11px;
-    text-transform: uppercase; letter-spacing: .03em; padding: 6px 8px;
+    letter-spacing: .03em; padding: 6px 8px;
     border-bottom: 2px solid var(--accent); text-align: left; white-space: nowrap;
   }
   table.rt td { padding: 6px 8px; border-bottom: 1px solid var(--gridline); }
@@ -813,7 +813,7 @@
       data: {
         labels: labels,
         datasets: [
-          { label: 'Зорчигч', data: paxV, backgroundColor: accent, borderRadius: 4, yAxisID: 'y' },
+          { label: 'Зорчигч', data: paxV, backgroundColor: accent, borderRadius: 4, maxBarThickness: 64, yAxisID: 'y' },
           { label: 'Нислэг', data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1' },
         ],
       },
@@ -1172,17 +1172,25 @@
     });
   }
 
+  // parseFloat("7-р сар") === 7 (сарын шошго тоогоор эхэлдэг тул) — parseFloat
+  // хэт сул шалгуур байсан бөгөөд текст баганыг тоо гэж андуурч Math.round()-д
+  // дамжуулаад NaN гаргадаг байсан. Бүхэл мөр цэвэр тоо байх ёстой гэдгийг шалгана.
+  function isNumericVal(v) {
+    if (v === null || v === '' || typeof v === 'undefined') return false;
+    return /^-?\d+(\.\d+)?$/.test(String(v).trim());
+  }
+
   function mkTbl(headers, rows) {
     var h = '<div class="tw"><table class="rt"><thead><tr>';
     headers.forEach(function (hd, i) {
-      var isN = rows.some(function (r) { return r[i] !== null && r[i] !== '' && !isNaN(parseFloat(r[i])); });
+      var isN = rows.some(function (r) { return isNumericVal(r[i]); });
       h += '<th class="' + (isN ? 'n' : '') + '">' + escHtml(String(hd)) + '</th>';
     });
     h += '</tr></thead><tbody>';
     rows.forEach(function (r) {
       h += '<tr>';
       r.forEach(function (c) {
-        var isN = c !== null && c !== '' && !isNaN(parseFloat(c));
+        var isN = isNumericVal(c);
         h += '<td class="' + (isN ? 'n' : '') + '">' + (isN ? fmtNum(c) : escHtml(String(c == null ? '-' : c))) + '</td>';
       });
       h += '</tr>';
@@ -1394,7 +1402,7 @@
         type: 'bar',
         data: {
           labels: labels, datasets: [
-            { label: 'Сарын нийт', data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, yAxisID: 'y' },
+            { label: 'Сарын нийт', data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, maxBarThickness: 64, yAxisID: 'y' },
             { label: 'Өссөн дүн', data: cumVals, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: accent2, tension: 0.3, yAxisID: 'y1' },
           ],
         },
@@ -1419,7 +1427,7 @@
         type: 'bar',
         data: {
           labels: labels, datasets: [
-            { label: result.mLabel, data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, yAxisID: 'y' },
+            { label: result.mLabel, data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, maxBarThickness: 64, yAxisID: 'y' },
             {
               label: 'Өсөлт (%)', data: growth, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5,
               pointRadius: growth.map(function (v) { return v === null ? 0 : 6; }),
