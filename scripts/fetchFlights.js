@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const { mapVeritechRow } = require('./mapVeritechRow');
 
 const API_URL = process.env.MRTD_API_URL || 'https://platform.mrtd.gov.mn/restapi';
@@ -26,8 +27,15 @@ if (!USERNAME || !PASSWORD) {
   process.exit(1);
 }
 
-async function fetchLatestRows() {
-  const body = {
+// platform.mrtd.gov.mn presents a certificate chain the GitHub Actions runner's
+// CA store can't verify (UNABLE_TO_VERIFY_LEAF_SIGNATURE). This agent is only
+// ever handed to this one request — TLS verification stays on everywhere else
+// in the process. Do NOT "fix" this by setting NODE_TLS_REJECT_UNAUTHORIZED=0,
+// which disables verification for every outbound connection in the run.
+const insecureAgent = new https.Agent({ rejectUnauthorized: false });
+
+function fetchLatestRows() {
+  const body = JSON.stringify({
     request: {
       username: USERNAME,
       password: PASSWORD,
@@ -38,24 +46,52 @@ async function fetchLatestRows() {
         pageSize: PAGE_SIZE,
       },
     },
-  };
-
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
   });
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText}`);
-  }
+  const url = new URL(API_URL);
 
-  const json = await res.json();
-  if (json?.response?.status !== 'success') {
-    throw new Error(`API error: ${JSON.stringify(json)}`);
-  }
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+        agent: insecureAgent,
+      },
+      (res) => {
+        let data = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            reject(new Error(`HTTP ${res.statusCode} ${res.statusMessage}`));
+            return;
+          }
+          let json;
+          try {
+            json = JSON.parse(data);
+          } catch (err) {
+            reject(new Error(`Invalid JSON response: ${err.message}`));
+            return;
+          }
+          if (json?.response?.status !== 'success') {
+            reject(new Error(`API error: ${data}`));
+            return;
+          }
+          resolve(json.response.result?.rows || []);
+        });
+      }
+    );
 
-  return json.response.result?.rows || [];
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
 }
 
 function loadExisting() {
