@@ -214,10 +214,10 @@
     border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
     flex: 1 1 220px;
   }
-  .table-scroll { overflow-x: auto; }
-  table.flights { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 500px; }
+  table.flights { border-collapse: collapse; width: 100%; font-size: 12px; }
   table.flights th, table.flights td {
-    padding: 7px 10px; text-align: left; white-space: nowrap;
+    padding: 6px 10px; text-align: left; white-space: nowrap;
     border-bottom: 1px solid var(--gridline);
   }
   table.flights td.num, table.flights th.num { text-align: right; font-variant-numeric: tabular-nums; }
