@@ -1,10 +1,9 @@
 {
   "meta": {
-    "fetchedAt": "2026-07-30T08:04:09.357Z",
+    "fetchedAt": "2026-07-30T13:17:53.754Z",
     "indicatorId": "14995832",
     "count": 11748,
-    "retentionDays": 400,
-    "source": "bulk-import: Агаарын тээврийн статистик - 202607290957.xlsx"
+    "retentionDays": 400
   },
   "flights": [
     {
