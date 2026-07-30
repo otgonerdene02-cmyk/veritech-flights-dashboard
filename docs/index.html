@@ -368,7 +368,7 @@
   }
   #chat-card.chat-fullscreen .chat-ibar textarea { font-size: 1rem; max-height: 140px; }
   #chat-card.chat-fullscreen .cbub { font-size: 1.0625rem; max-width: 70%; }
-  #chat-card.chat-fullscreen .chat-chart-box { height: 340px; }
+  #chat-card.chat-fullscreen .chat-chart-box { height: 380px; }
   #chat-card.chat-fullscreen table.rt { font-size: 1rem; }
   #chat-card.chat-fullscreen .cchip { font-size: 0.9375rem; padding: 6px 13px; }
 
@@ -919,8 +919,8 @@
       data: {
         labels: labels,
         datasets: [
-          { label: 'Зорчигч', data: paxV, backgroundColor: accent, borderRadius: 4, maxBarThickness: 64, yAxisID: 'y' },
-          { label: 'Нислэг', data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1' },
+          { label: 'Нийт зорчигч (хүн) — зүүн тэнхлэг', data: paxV, backgroundColor: accent, borderRadius: 4, maxBarThickness: 64, yAxisID: 'y' },
+          { label: 'Нислэгийн тоо (удаа) — баруун тэнхлэг', data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1' },
         ],
       },
       options: {
@@ -931,13 +931,13 @@
           tooltip: {
             backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary,
             padding: 10, cornerRadius: 8, displayColors: false,
-            callbacks: { label: function (c) { return c.dataset.label === 'Нислэг' ? ('Нислэг: ' + c.raw) : ('Зорчигч: ' + fmtNum(c.raw)); } },
+            callbacks: { label: function (c) { return c.datasetIndex === 1 ? ('Нислэгийн тоо: ' + fmtNum(c.raw) + ' удаа') : ('Нийт зорчигч: ' + fmtNum(c.raw) + ' хүн'); } },
           },
         },
         scales: {
-          y: { ticks: { color: textMuted, font: { size: 12 } }, grid: { color: gridline }, border: { display: false } },
-          y1: { position: 'right', ticks: { color: textMuted, font: { size: 12 } }, grid: { drawOnChartArea: false }, border: { display: false } },
-          x: { ticks: { color: textSecondary, font: { size: 13 } }, grid: { display: false }, border: { display: false } },
+          y: { title: { display: true, text: 'Зорчигчийн тоо (хүн)', color: accent, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 } }, grid: { color: gridline }, border: { display: false } },
+          y1: { position: 'right', title: { display: true, text: 'Нислэгийн тоо (удаа)', color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 } }, grid: { drawOnChartArea: false }, border: { display: false } },
+          x: { title: { display: true, text: 'Сар', color: textSecondary, font: { size: 12 } }, ticks: { color: textSecondary, font: { size: 13 } }, grid: { display: false }, border: { display: false } },
         },
       },
     });
