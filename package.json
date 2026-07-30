@@ -7,6 +7,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "fetch": "node scripts/fetchFlights.js"
+    "fetch": "node scripts/fetchFlights.js",
+    "test": "node scripts/test-chatbot-accuracy.js"
   }
 }
