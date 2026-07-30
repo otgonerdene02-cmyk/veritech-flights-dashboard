@@ -970,7 +970,7 @@
           tooltip: {
             backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: accent, bodyColor: textSecondary,
             padding: 10, cornerRadius: 8, displayColors: false,
-            callbacks: { label: function (c) { return ['Зорчигч: ' + fmtNum(c.raw), 'Хувь: ' + (c.raw / Math.max(total, 1) * 100).toFixed(1) + '%']; } },
+            callbacks: { label: function (c) { return ['Нийт зорчигч: ' + fmtNum(c.raw) + ' хүн', 'Нийт дүнгийн эзлэх хувь: ' + (c.raw / Math.max(total, 1) * 100).toFixed(1) + '%']; } },
           },
         },
       },
