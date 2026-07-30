@@ -501,9 +501,21 @@
       fEl.classList.toggle('err', fErr);
       tEl.classList.toggle('err', tErr);
       if (fErr || tErr) return;
-      if (from && to && from > to) { fEl.classList.add('err'); tEl.classList.add('err'); return; }
+      if (from !== null && to !== null && from > to) { fEl.classList.add('err'); tEl.classList.add('err'); return; }
+
+      // Хоёр талбарыг АЛЬ АЛИНЫГ нь бөглөх хүртэл шүүлт идэвхжихгүй —
+      // өмнө нь mTo хоосон үед "mTo = mFrom" гэж орлуулдаг байсан тул зөвхөн
+      // эхний талбарт "1" бичихэд шууд 1-р сарын дан шүүлт болж хувирдаг байв.
+      if (from === null || to === null) {
+        if (filters.mFrom !== null || filters.mTo !== null) {
+          filters.mFrom = null; filters.mTo = null;
+          rerender();
+        }
+        return;
+      }
+
       filters.mFrom = from;
-      filters.mTo = to !== null ? to : from;
+      filters.mTo = to;
       rerender();
     }, 350);
   }
