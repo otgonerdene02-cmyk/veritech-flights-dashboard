@@ -17,7 +17,12 @@ const PAGE_SIZE = 200;
 // for the dashboard's daily trend, new rows are merged into the existing
 // docs/flights.json (deduped by ID) instead of overwriting it, then trimmed
 // to RETENTION_DAYS so the committed file doesn't grow without bound.
-const RETENTION_DAYS = Number(process.env.FLIGHTS_RETENTION_DAYS) || 180;
+//
+// 2026-07-30: docs/flights.json was bulk-backfilled from a manual MRTD Excel
+// export (Агаарын тээврийн статистик - 202607290957.xlsx, ~11.7k rows back
+// to 2026-01-01). RETENTION_DAYS was raised from 180 to 400 so that history
+// isn't immediately trimmed away by the very next scheduled run.
+const RETENTION_DAYS = Number(process.env.FLIGHTS_RETENTION_DAYS) || 400;
 const MAX_RECORDS = 20000;
 
 const OUT_FILE = path.join(__dirname, '..', 'docs', 'flights.json');
