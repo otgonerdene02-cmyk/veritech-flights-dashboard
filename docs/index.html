@@ -1163,10 +1163,12 @@
   // авиа зүйн хувилбарыг canonical (city_country_map.js-тэй адилхан) нэр рүү хөрвүүлнэ
   var CITY_SYN = {
     'пусон':'Бусан','пусан':'Бусан','бусон':'Бусан',
-    'сеул':'Сөүл','сөүл':'Сөүл',
+    'сеул':'Сөүл','сөүл':'Сөүл','seoul':'Сөүл',
+    'инчон':'Инчеон','incheon':'Инчеон',
     'дэгү':'Тэгү','тэгу':'Тэгү',
     'чеджу':'Чэжү','жэжу':'Чэжү','жэжү':'Чэжү',
-    'бээжин':'Бээжин','пекин':'Бээжин',
+    'бээжин':'Бээжин','пекин':'Бээжин','beijing':'Бээжин',
+    'tokyo':'Токио',
   };
 
   // grpC/grpN/grpCt/wCargo/... regex-үүдэд аль хэдийн ашиглагдаж буй ерөнхий
@@ -1187,10 +1189,15 @@
     return words.some(function (w) { return !CHAT_STOPWORDS.has(w); });
   }
   // city талбар "Сөүл/Инчеон", "Бээжин/Капитал" гэх мэт нийлмэл утгатай байдаг тул
-  // "/"-ын өмнөх суурь нэрээр таарууна (жишээ нь "Сөүл" нь хоёр Сөүлийн буудлыг хамарна)
+  // "/"-ээр тусгаарлагдсан хэсэг бүрийг (хотын нэр БА тухайн хотын онгоцны буудлын нэр)
+  // тус тусад нь таних боломжтой болгоно: "Сөүл" гэвэл хоёр талын бүх буудлыг (Инчеон
+  // орсон бүх мөр) хамруулж, харин "Инчеон" гэвэл яг тэр буудлын мөрийг л онооно.
   function cityBase(c) { return c.split('/')[0]; }
+  function cityParts(c) { return c.split('/'); }
   function matchesCity(rowCity, target) {
-    return rowCity === target || rowCity.indexOf(target + '/') === 0;
+    return rowCity === target
+      || rowCity.indexOf(target + '/') === 0
+      || rowCity.slice(-(target.length + 1)) === '/' + target;
   }
 
   function escHtml(s) {
@@ -1244,8 +1251,13 @@
       if (ql.indexOf(allCarriers[i].toLowerCase()) !== -1) { carrier = allCarriers[i]; break; }
     }
 
-    // 1. flights.json-оос давхардуулгаагүй хотуудын (суурь нэрээр) жагсаалт
-    var cityBases = Array.from(new Set(D.map(function (r) { return r.city; }).filter(Boolean).map(cityBase)));
+    // 1. flights.json-оос давхардуулгаагүй хотуудын жагсаалт — нийлмэл утгын хоёр
+    // талыг (жишээ нь "Сөүл" ба "Инчеон") тус тусад нь тааруулж болохоор задална
+    var cityBases = Array.from(new Set(
+      D.map(function (r) { return r.city; }).filter(Boolean).reduce(function (acc, c) {
+        return acc.concat(cityParts(c));
+      }, [])
+    ));
 
     // 2-3. Эхлээд CITY_SYN-ээр (авиа зүйн хувилбар), олдоогүй бол бодит хотын
     // нэрсээр шалгана — урт нэр эхэлж таарч богино нэрийн санамсаргүй давхцлаас сэргийлнэ
