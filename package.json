@@ -8,6 +8,10 @@
   },
   "scripts": {
     "fetch": "node scripts/fetchFlights.js",
-    "test": "node scripts/test-chatbot-accuracy.js"
+    "test": "node scripts/test-chatbot-accuracy.js",
+    "test:visibility": "node test-visibility.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.0"
   }
 }

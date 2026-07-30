@@ -34,7 +34,7 @@ function loadChatEngine() {
   ) + "  function monthLabel(m) { return m + '-р сар'; }\n";
 
   // SYN (улс) -оос эхлээд computeChat()-ийн төгсгөл хүртэлх бүх туслах
-  // өгөгдөл/функцүүд (CITY_SYN, CHAT_STOPWORDS, matchesCity, mkTbl, гэх мэт)
+  // өгөгдөл/функцүүд (fuzzyFindCity, CHAT_STOPWORDS, matchesCity, mkTbl, гэх мэт)
   const chatCore = extractBlock(html, '  var SYN = {', '\n  function renderChatMessage');
 
   const sandbox = { allRows: [], console };

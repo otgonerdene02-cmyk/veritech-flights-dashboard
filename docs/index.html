@@ -17,6 +17,7 @@
     --baseline:       #c3c2b7;
     --border:         rgba(11,11,11,0.10);
     --accent:         #2a78d6;
+    --accent-strong:  #246cc4;
     --accent-2:       #eda100;
     --accent-wash:    rgba(42,120,214,0.10);
     color:            var(--text-primary);
@@ -32,6 +33,7 @@
       --baseline:       #383835;
       --border:         rgba(255,255,255,0.10);
       --accent:         #3987e5;
+      --accent-strong:  #2d6ec8;
       --accent-2:       #c98500;
       --accent-wash:    rgba(57,135,229,0.14);
     }
@@ -46,15 +48,30 @@
     --baseline:       #383835;
     --border:         rgba(255,255,255,0.10);
     --accent:         #3987e5;
+    --accent-strong:  #2d6ec8;
     --accent-2:       #c98500;
     --accent-wash:    rgba(57,135,229,0.14);
   }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  /* Бүх font-size энэ файлд rem-ээр бичигдсэн (16px = 1rem үндэслэсэн) —
+     dashboard даяар текстийг зэрэг томруулах/жижигрүүлэх хэрэгтэй бол
+     ЭНД ганцхан утгыг өөрчлөх л хангалттай, доод элемент бүр rem-ээр
+     пропорционалоор дагана. */
+  html { font-size: 16px; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-weight: 400;
   }
+  /* Нимгэн (400) фонт dark mode-д (цайвар текст харанхуй дэвсгэр дээр)
+     хөнгөн зураастай тул бүдгэрч харагддаг оптик эффект бий — жинхэнэ
+     font-size/өнгө хэвээр атлаа арай илүү тод харагдуулахын тулд
+     энгийн текстийн жин бага зэрэг нэмнэ. */
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) body { font-weight: 500; }
+  }
+  :root[data-theme="dark"] body { font-weight: 500; }
   /* --page/--text-primary зэрэг хувьсагчид зөвхөн .viz-root дотор
      тодорхойлогддог тул body дээр (эцэг элемент, .viz-root-ийн гадна)
      var(...)-ээр хандах боломжгүй байсан — үнэлгээ хүчингүй болж,
@@ -73,12 +90,12 @@
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
   }
-  h1 { font-size: 27px; font-weight: 700; margin: 0; }
-  .subtitle { color: var(--text-secondary); font-size: 15px; margin-top: 4px; }
-  .updated { color: var(--text-muted); font-size: 14px; }
+  h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
+  .subtitle { color: var(--text-secondary); font-size: 1rem; margin-top: 4px; }
+  .updated { color: var(--text-muted); font-size: 1rem; }
 
   button.theme-toggle {
-    font: inherit; font-size: 14px; color: var(--text-secondary);
+    font: inherit; font-size: 1rem; color: var(--text-secondary);
     background: var(--surface-1); border: 1px solid var(--border);
     border-radius: 6px; padding: 6px 10px; cursor: pointer;
   }
@@ -88,8 +105,8 @@
     background: var(--surface-1); border: 1px solid var(--border);
     border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;
   }
-  .card h2 { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
-  .card .desc { font-size: 12px; color: var(--text-muted); margin: 0 0 14px; }
+  .card h2 { font-size: 1rem; font-weight: 600; margin: 0 0 2px; }
+  .card .desc { font-size: 0.875rem; color: var(--text-muted); margin: 0 0 14px; }
 
   .row2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
   @media (min-width: 720px) { .row2 { grid-template-columns: 1fr 1fr; } }
@@ -99,27 +116,27 @@
   .filter-bar { display: flex; flex-direction: column; gap: 10px; }
   .frow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .flabel {
-    font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    font-size: 0.9375rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
     color: var(--text-muted); min-width: 46px; flex-shrink: 0;
   }
   .fchips { display: flex; gap: 5px; flex-wrap: wrap; }
   .fchip {
-    font-size: 14px; font-weight: 500; padding: 5px 11px; border-radius: 999px;
+    font-size: 1rem; font-weight: 500; padding: 5px 11px; border-radius: 999px;
     border: 1px solid var(--border); background: var(--page); color: var(--text-secondary);
     cursor: pointer; transition: all .1s;
   }
   .fchip:hover { border-color: var(--accent); color: var(--accent); }
-  .fchip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .fchip.active { background: var(--accent-strong); color: #fff; border-color: var(--accent-strong); }
   .range-wrap { display: flex; align-items: center; gap: 5px; }
   .range-wrap input {
     width: 48px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px;
-    font-size: 12px; font-family: inherit; background: var(--page); color: var(--text-primary); outline: none;
+    font-size: 0.875rem; font-family: inherit; background: var(--page); color: var(--text-primary); outline: none;
   }
   .range-wrap input:focus { border-color: var(--accent); }
   .range-wrap input.err { border-color: #d03b3b; }
-  .range-sep { font-size: 12px; color: var(--text-muted); }
+  .range-sep { font-size: 0.875rem; color: var(--text-muted); }
   .clr-btn, .reset-btn {
-    font-size: 11px; color: var(--text-muted); cursor: pointer; padding: 4px 9px;
+    font-size: 0.8125rem; color: var(--text-muted); cursor: pointer; padding: 4px 9px;
     border-radius: 6px; border: 1px solid var(--border); background: transparent;
   }
   .clr-btn:hover, .reset-btn:hover { color: var(--text-primary); }
@@ -127,15 +144,15 @@
   .divider { height: 1px; background: var(--gridline); }
 
   .atags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
-  .atags-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .atags-label { font-size: 0.8125rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
   .atag {
     display: inline-flex; align-items: center; gap: 5px; background: var(--accent-wash);
-    border: 1px solid var(--border); color: var(--accent); font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); color: var(--accent); font-size: 0.875rem; font-weight: 500;
     padding: 4px 10px; border-radius: 999px;
   }
-  .atag .x { cursor: pointer; color: var(--text-muted); font-size: 11px; }
+  .atag .x { cursor: pointer; color: var(--text-muted); font-size: 0.8125rem; }
   .atag .x:hover { color: #d03b3b; }
-  .atags-clear { font-size: 12px; color: var(--text-muted); cursor: pointer; margin-left: 2px; }
+  .atags-clear { font-size: 0.875rem; color: var(--text-muted); cursor: pointer; margin-left: 2px; }
   .atags-clear:hover { color: var(--text-primary); }
 
   /* KPI grid */
@@ -163,9 +180,9 @@
   .kpi-teal   .kpi-icon { background: rgba(13,148,136,0.16); color: #0d9488; }
   .kpi-red    { border-top-color: #e84749; background: rgba(232,71,73,0.07); }
   .kpi-red    .kpi-icon { background: rgba(232,71,73,0.16); color: #e84749; }
-  .kpi .v { font-size: 22px; font-weight: 800; color: var(--text-primary); letter-spacing: -.3px; font-variant-numeric: proportional-nums; }
-  .kpi .l { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
-  .kpi .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .kpi .v { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); letter-spacing: -.3px; font-variant-numeric: proportional-nums; }
+  .kpi .l { font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
+  .kpi .sub { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 2px; }
 
   /* Chart.js canvases */
   .cjs-chart { position: relative; height: 220px; }
@@ -174,7 +191,7 @@
   .tbl { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
   .tbl-hdr {
     display: flex; height: 28px; background: var(--page); border-bottom: 1px solid var(--border);
-    font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
     color: var(--text-muted); align-items: center;
   }
   .tbl-scroll { max-height: 224px; overflow-y: auto; }
@@ -184,26 +201,26 @@
   .tbl-row:last-child { border-bottom: none; }
   .tbl-row:hover { background: var(--accent-wash); }
   .tbl-label {
-    width: 130px; flex: 0 0 130px; padding-left: 10px; font-size: 11.5px; font-weight: 600;
+    width: 130px; flex: 0 0 130px; padding-left: 10px; font-size: 0.8125rem; font-weight: 600;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary);
   }
   .tbl-bar-cell { flex: 1; padding: 0 8px; }
   .tbl-bar-track { height: 14px; background: var(--gridline); border-radius: 3px; overflow: hidden; }
   .tbl-bar-fill { height: 100%; border-radius: 0 3px 3px 0; min-width: 2px; }
   .tbl-val { width: 108px; flex: 0 0 108px; text-align: right; padding-right: 10px; }
-  .tbl-val .n { font-size: 12px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-  .tbl-val .p { font-size: 10px; color: var(--text-muted); }
+  .tbl-val .n { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .tbl-val .p { font-size: 0.75rem; color: var(--text-muted); }
   .tbl-ftr {
     display: flex; height: 28px; background: var(--page); border-top: 1px solid var(--border);
-    font-size: 11px; color: var(--text-primary); font-weight: 700; align-items: center;
+    font-size: 0.8125rem; color: var(--text-primary); font-weight: 700; align-items: center;
   }
-  .tbl-more { text-align: center; font-size: 10px; color: var(--text-muted); padding: 4px; border-top: 1px solid var(--gridline); }
+  .tbl-more { text-align: center; font-size: 0.75rem; color: var(--text-muted); padding: 4px; border-top: 1px solid var(--gridline); }
 
   /* line chart (SVG daily trend) */
   .line-chart-wrap { position: relative; }
   svg.line-chart { width: 100%; height: 220px; display: block; overflow: visible; }
   .lc-gridline { stroke: var(--gridline); stroke-width: 1; }
-  .lc-axis-label { fill: var(--text-muted); font-size: 10px; }
+  .lc-axis-label { fill: var(--text-muted); font-size: 0.75rem; }
   .lc-area { fill: var(--accent); opacity: 0.10; }
   .lc-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
   .lc-dot { fill: var(--accent); stroke: var(--surface-1); stroke-width: 2; }
@@ -212,21 +229,21 @@
   .lc-tooltip {
     position: absolute; pointer-events: none; background: var(--surface-1);
     border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px;
-    font-size: 12px; color: var(--text-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    font-size: 0.875rem; color: var(--text-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     transform: translate(-50%, -110%); white-space: nowrap; display: none;
   }
-  .lc-tooltip .t-date { color: var(--text-muted); font-size: 11px; }
+  .lc-tooltip .t-date { color: var(--text-muted); font-size: 0.8125rem; }
   .lc-tooltip .t-val { font-weight: 600; font-variant-numeric: tabular-nums; }
 
   /* table */
   .table-controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
   input.search {
-    font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 6px;
+    font: inherit; font-size: 0.9375rem; padding: 7px 10px; border-radius: 6px;
     border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
     flex: 1 1 220px;
   }
   .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 340px; }
-  table.flights { border-collapse: collapse; width: 100%; font-size: 12px; }
+  table.flights { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
   table.flights th, table.flights td {
     padding: 6px 10px; text-align: left; white-space: nowrap;
     border-bottom: 1px solid var(--gridline);
@@ -238,26 +255,26 @@
   }
   table.flights th:hover { color: var(--text-primary); }
   table.flights tbody tr:hover { background: var(--accent-wash); }
-  .pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
+  .pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.875rem; color: var(--text-secondary); }
   .pager button {
-    font: inherit; font-size: 12px; background: var(--page); border: 1px solid var(--border);
+    font: inherit; font-size: 0.875rem; background: var(--page); border: 1px solid var(--border);
     color: var(--text-primary); border-radius: 6px; padding: 5px 10px; cursor: pointer;
   }
   .pager button:disabled { opacity: 0.4; cursor: default; }
 
-  .empty-state { color: var(--text-muted); font-size: 13px; padding: 20px 0; text-align: center; }
+  .empty-state { color: var(--text-muted); font-size: 0.9375rem; padding: 20px 0; text-align: center; }
 
   /* world map */
   #world-map { width: 100%; height: 480px; }
   @media (max-width: 640px) { #world-map { height: 360px; } }
   .map-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
-  .map-legend .item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+  .map-legend .item { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--text-secondary); }
   .map-legend .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
 
   /* AI chatbot */
   .chat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
   .cchip {
-    font-size: 12px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border);
+    font-size: 0.875rem; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border);
     background: var(--page); color: var(--text-secondary); cursor: pointer; transition: all .1s;
   }
   .cchip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
@@ -266,12 +283,12 @@
   .cbw.u { flex-direction: row-reverse; }
   .cav {
     width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;
   }
   .cav.ai { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
   .cav.u { background: var(--gridline); color: var(--text-secondary); }
   .cbub {
-    max-width: 82%; padding: 10px 13px; border-radius: 16px; font-size: 13px; line-height: 1.6;
+    max-width: 82%; padding: 10px 13px; border-radius: 16px; font-size: 0.9375rem; line-height: 1.6;
     box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.05);
   }
   .cbub.ai { background: var(--page); border: 1px solid var(--border); border-top-left-radius: 4px; }
@@ -285,32 +302,82 @@
   .chat-title-icon svg { width: 13px; height: 13px; color: #fff; }
   .cpill {
     display: inline-flex; align-items: center; gap: 4px; background: var(--gridline);
-    color: var(--text-secondary); font-size: 11px; padding: 3px 8px; border-radius: 6px; margin-top: 8px;
+    color: var(--text-secondary); font-size: 0.8125rem; padding: 3px 8px; border-radius: 6px; margin-top: 8px;
   }
   .chat-ibar { display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; }
   .chat-ibar textarea {
     flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
-    font-family: inherit; font-size: 13px; color: var(--text-primary); background: var(--page);
+    font-family: inherit; font-size: 0.9375rem; color: var(--text-primary); background: var(--page);
     outline: none; resize: none; max-height: 90px;
   }
   .chat-ibar textarea:focus { border-color: var(--accent); }
   #sb {
     width: 38px; height: 38px; border-radius: 8px; border: none; background: var(--accent);
-    color: #fff; cursor: pointer; font-size: 16px; flex-shrink: 0;
+    color: #fff; cursor: pointer; font-size: 1.125rem; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
   }
   #sb:disabled { background: var(--baseline); cursor: default; }
-  .chat-chart-box { margin-top: 10px; height: 260px; position: relative; }
+  .chat-chart-box { margin-top: 10px; height: 300px; position: relative; }
   .tw { overflow-x: auto; margin-top: 6px; }
-  table.rt { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  table.rt { border-collapse: collapse; width: 100%; font-size: 0.9375rem; }
   table.rt th {
-    background: var(--page); color: var(--text-secondary); font-weight: 600; font-size: 11px;
+    background: var(--page); color: var(--text-secondary); font-weight: 600; font-size: 0.8125rem;
     letter-spacing: .03em; padding: 6px 8px;
     border-bottom: 2px solid var(--accent); text-align: left; white-space: nowrap;
   }
   table.rt td { padding: 6px 8px; border-bottom: 1px solid var(--gridline); }
   table.rt td.n, table.rt th.n { text-align: right; font-variant-numeric: tabular-nums; }
   table.rt tr:hover td { background: var(--accent-wash); }
+
+  .chat-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .chat-header h2 { margin: 0; }
+  .chat-fs-btn {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--page); color: var(--text-secondary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all .1s;
+  }
+  .chat-fs-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+  .chat-fs-btn svg { width: 16px; height: 16px; }
+  .chat-fs-btn .icon-collapse { display: none; }
+  #chat-card.chat-fullscreen .chat-fs-btn .icon-expand { display: none; }
+  #chat-card.chat-fullscreen .chat-fs-btn .icon-collapse { display: block; }
+
+  .chat-backdrop {
+    position: fixed; inset: 0; z-index: 998; background: rgba(0,0,0,0);
+    opacity: 0; pointer-events: none; transition: opacity .18s ease, background-color .18s ease;
+  }
+  .chat-backdrop.active { background: rgba(0,0,0,0.55); opacity: 1; pointer-events: auto; }
+
+  #chat-card.chat-fullscreen {
+    position: fixed; inset: 16px; z-index: 999; margin: 0;
+    display: flex; flex-direction: column; max-width: none;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    animation: chatFsIn .18s ease;
+  }
+  @keyframes chatFsIn { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: scale(1); } }
+  #chat-card.chat-fullscreen .chat-header,
+  #chat-card.chat-fullscreen .desc,
+  #chat-card.chat-fullscreen .chat-chips { flex-shrink: 0; }
+  #chat-card.chat-fullscreen .chat-header h2 { font-size: 1.125rem; }
+  #chat-card.chat-fullscreen #conv {
+    flex: 1 1 auto; max-height: none; padding: 8px 4px 4px;
+  }
+  #chat-card.chat-fullscreen .chat-ibar {
+    flex-shrink: 0; position: sticky; bottom: 0; margin-top: 10px;
+    background: var(--surface-1); padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  #chat-card.chat-fullscreen .chat-ibar textarea { font-size: 1rem; max-height: 140px; }
+  #chat-card.chat-fullscreen .cbub { font-size: 1.0625rem; max-width: 70%; }
+  #chat-card.chat-fullscreen .chat-chart-box { height: 340px; }
+  #chat-card.chat-fullscreen table.rt { font-size: 1rem; }
+  #chat-card.chat-fullscreen .cchip { font-size: 0.9375rem; padding: 6px 13px; }
+
+  body.chat-fs-open { overflow: hidden; }
+
+  @media (max-width: 640px) {
+    #chat-card.chat-fullscreen { inset: 8px; padding: 14px 16px; }
+    #chat-card.chat-fullscreen .cbub { max-width: 88%; }
+  }
 </style>
 </head>
 <body>
@@ -417,8 +484,14 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2><span class="chat-title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg></span>AI туслах — Монгол хэлээр асуугаарай</h2>
+    <div class="card" id="chat-card">
+      <div class="chat-header">
+        <h2><span class="chat-title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg></span>AI туслах — Монгол хэлээр асуугаарай</h2>
+        <button class="chat-fs-btn" id="chat-fs-btn" type="button" aria-label="Дэлгэц бүтэн горимд нээх" title="Дэлгэц бүтэн горимд нээх">
+          <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          <svg class="icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <p class="desc">Ачаалагдсан бүх бичлэг дээр шууд, локал тооцоолол хийж хариулна (Claude API дуудахгүй)</p>
       <div class="chat-chips" id="chat-chips"></div>
       <div id="conv">
@@ -430,6 +503,7 @@
       </div>
     </div>
   </div>
+  <div class="chat-backdrop" id="chat-backdrop"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
@@ -739,7 +813,7 @@
           backgroundColor: surface,
           borderColor: border,
           borderWidth: 1,
-          textStyle: { color: textPrimary, fontSize: 12 },
+          textStyle: { color: textPrimary, fontSize: 14 },
           formatter: function (params) {
             if (params.data && params.data.isUB) return 'Улаанбаатар (эх цэг)';
             if (params.seriesType === 'effectScatter') {
@@ -788,7 +862,7 @@
             rippleEffect: { brushType: 'stroke', scale: 2.5 },
             showEffectOn: 'render',
             itemStyle: { color: accent, shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' },
-            label: { show: true, formatter: 'УБ', position: 'top', color: textSecondary, fontSize: 10 },
+            label: { show: true, formatter: 'УБ', position: 'top', color: textSecondary, fontSize: 12 },
             data: [{ name: 'Улаанбаатар', value: [UB[0], UB[1], null], isUB: true }],
           },
         ],
@@ -853,7 +927,7 @@
         responsive: true, maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 11 }, boxWidth: 10, padding: 8 } },
+          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 10, padding: 8 } },
           tooltip: {
             backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary,
             padding: 10, cornerRadius: 8, displayColors: false,
@@ -861,9 +935,9 @@
           },
         },
         scales: {
-          y: { ticks: { color: textMuted, font: { size: 10 } }, grid: { color: gridline }, border: { display: false } },
-          y1: { position: 'right', ticks: { color: textMuted, font: { size: 10 } }, grid: { drawOnChartArea: false }, border: { display: false } },
-          x: { ticks: { color: textSecondary, font: { size: 11 } }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: textMuted, font: { size: 12 } }, grid: { color: gridline }, border: { display: false } },
+          y1: { position: 'right', ticks: { color: textMuted, font: { size: 12 } }, grid: { drawOnChartArea: false }, border: { display: false } },
+          x: { ticks: { color: textSecondary, font: { size: 13 } }, grid: { display: false }, border: { display: false } },
         },
       },
     });
@@ -892,7 +966,7 @@
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '58%',
         plugins: {
-          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 11 }, boxWidth: 12, padding: 10 } },
+          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 12, padding: 10 } },
           tooltip: {
             backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: accent, bodyColor: textSecondary,
             padding: 10, cornerRadius: 8, displayColors: false,
@@ -1182,39 +1256,136 @@
     'монгол':'Монгол','анау':'АНАУ','дубай':'АНАУ','их британи':'Их Британи',
   };
 
-  // Хотын нэрийн ярианы/зөв бичгийн хувилбарууд — бодит city талбарт байдаггүй
-  // авиа зүйн хувилбарыг canonical (city_country_map.js-тэй адилхан) нэр рүү хөрвүүлнэ
-  var CITY_SYN = {
-    // Өмнөд Солонгос
-    'пусон':'Бусан','пусан':'Бусан','бусон':'Бусан','busan':'Бусан',
-    'сеул':'Сөүл','сөүл':'Сөүл','seoul':'Сөүл',
-    'инчон':'Инчеон','incheon':'Инчеон','icn':'Инчеон',
-    'гимпо':'Гимпо','gimpo':'Гимпо',
-    'дэгү':'Тэгү','тэгу':'Тэгү','daegu':'Тэгү',
-    'чеджу':'Чэжү','жэжу':'Чэжү','жэжү':'Чэжү','jeju':'Чэжү',
-    // Япон
-    'tokyo':'Токио',
-    'нарита':'Нарита','narita':'Нарита',
-    'ханеда':'Ханеда','haneda':'Ханеда',
-    'осака':'Осака','osaka':'Осака',
-    'кансай':'Кансай','kansai':'Кансай',
-    'фукуока':'Фукуока','fukuoka':'Фукуока',
-    'хоккайдо':'Хоккайдо','hokkaido':'Хоккайдо',
-    // Хятад
-    'бээжин':'Бээжин','пекин':'Бээжин','beijing':'Бээжин',
-    'капитал':'Капитал','capital':'Капитал',
-    'дашин':'Дашин','daxing':'Дашин',
-    'шанхай':'Шанхай','shanghai':'Шанхай',
-    'пудон':'Пудон','pudong':'Пудон',
-    'хунцяо':'Хунцяо','hongqiao':'Хунцяо',
-    'хонгконг':'ХонгКонг','hong kong':'ХонгКонг','hongkong':'ХонгКонг',
-    'гуанжоу':'Гуанжоу','guangzhou':'Гуанжоу',
-    'шинжен':'Шинжен','shenzhen':'Шинжен',
-    'вухан':'Вухан','wuhan':'Вухан',
-    'тяньжин':'Тяньжин','tianjin':'Тяньжин',
-    'санья':'Санья','sanya':'Санья',
-    'хайнань':'Хайнань','hainan':'Хайнань',
+  // ── Хотын нэр таних: fuzzy matching (хатуу alias жагсаалтгүйгээр) ──
+  // Өмнө нь хот бүрийн латин/яриа хэлбэрийг CITY_SYN дотор гараар жагсаадаг байсан
+  // (жишээ нь 'tokyo':'Токио', 'инчон':'Инчеон') — энэ нь тогтвортой биш, хот бүрт
+  // алдаа/хувилбар гарах бүрт код руу гараар нэмэлт хийх шаардлагатай болдог байв.
+  // Үүний оронд: (1) латин үсгийг Кирилл рүү дуудлагаар хөрвүүлж, (2) төстэй
+  // эгшгийг (ё/е, ө/о, ү/у) жигдэлж, (3) Левенштейний зайгаар өгөгдөл дэх бодит
+  // хотын нэрсийн жагсаалттай хамгийн ойрыг олно — шинэ хот нэмэгдэхэд (flights.json
+  // өргөжихөд) энэ логикийг өөрчлөх шаардлагагүй, автоматаар дасна.
+
+  // Латин үсгийг Монгол Кирилл дуудлагаар ойролцоогоор хөрвүүлнэ (олон үсэгтэй
+  // дараалал эхэлж, дараа нь дан үсэг) — жишээ нь "tokio" -> "токио"
+  var LATIN_TO_CYR_MULTI = [
+    ['shch', 'щ'], ['sch', 'щ'], ['yo', 'ё'], ['jo', 'ё'], ['zh', 'ж'], ['kh', 'х'],
+    ['ts', 'ц'], ['ch', 'ч'], ['sh', 'ш'], ['yu', 'ю'], ['ju', 'ю'], ['ya', 'я'], ['ja', 'я'],
+  ];
+  var LATIN_TO_CYR_SINGLE = {
+    a: 'а', b: 'б', v: 'в', g: 'г', d: 'д', e: 'е', z: 'з', i: 'и', y: 'й',
+    k: 'к', l: 'л', m: 'м', n: 'н', o: 'о', p: 'п', r: 'р', s: 'с', t: 'т',
+    u: 'у', f: 'ф', h: 'х', c: 'к', w: 'в', x: 'кс', q: 'к', j: 'й',
   };
+  function transliterateToCyr(s) {
+    for (var i = 0; i < LATIN_TO_CYR_MULTI.length; i++) {
+      s = s.split(LATIN_TO_CYR_MULTI[i][0]).join(LATIN_TO_CYR_MULTI[i][1]);
+    }
+    var out = '';
+    for (var j = 0; j < s.length; j++) {
+      var ch = s[j];
+      out += Object.prototype.hasOwnProperty.call(LATIN_TO_CYR_SINGLE, ch) ? LATIN_TO_CYR_SINGLE[ch] : ch;
+    }
+    return out;
+  }
+  // Дуудлагаар ойролцоо/бичлэгийн хэлбэрээр ялгаатай эгшиг үсгүүдийг нэг хэлбэрт
+  // жигдэлнэ — ингэснээр "Сөүл" ба "Сеул", "Токёо" ба "Токио" зэрэг харьцуулахад
+  // ижилхэн болно. Зөөлний/хатуугийн тэмдгийг ч мөн хасна (дуудлагад нөлөөгүй).
+  var VOWEL_NORMALIZE = { 'ё': 'е', 'ө': 'о', 'ү': 'у', 'ъ': '', 'ь': '' };
+  function normalizeForMatch(s) {
+    s = transliterateToCyr(String(s).toLowerCase());
+    var out = '';
+    for (var i = 0; i < s.length; i++) {
+      var ch = s[i];
+      out += Object.prototype.hasOwnProperty.call(VOWEL_NORMALIZE, ch) ? VOWEL_NORMALIZE[ch] : ch;
+    }
+    return out;
+  }
+  // Стандарт Левенштейний зай (мөр хувиргахад шаардагдах засвар/оруулга/хасалтын
+  // хамгийн бага тоо) — жижиг мөрүүдэд (хотын нэр) хурдан ажиллана
+  function levenshtein(a, b) {
+    var m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    var prev = new Array(n + 1);
+    var cur = new Array(n + 1);
+    for (var j = 0; j <= n; j++) prev[j] = j;
+    for (var i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (var k = 1; k <= n; k++) {
+        var cost = a[i - 1] === b[k - 1] ? 0 : 1;
+        cur[k] = Math.min(prev[k] + 1, cur[k - 1] + 1, prev[k - 1] + cost);
+      }
+      var tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  }
+  // 0..1 хооронд, 0=яг таарсан. length-ээр нормчилсон тул урт нэр/богино нэрийг
+  // шударгаар харьцуулна.
+  function fuzzyRatio(a, b) {
+    if (!a.length && !b.length) return 0;
+    return levenshtein(a, b) / Math.max(a.length, b.length);
+  }
+  var CITY_FUZZY_THRESHOLD = 0.4;
+  // Монгол хэл нийлмэл (agglutinative) тул хотын нэрэнд төгсгөлийн нөхцөл
+  // шууд наалдана ("Сөүлийн", "Токёогоор" гэх мэт). Нэг тодорхой хот бүрт зориулсан
+  // дүрэм бичихийн оронд ЕРӨНХИЙ байдлаар токений төгсгөлөөс 0-3 үсэг тайрч
+  // үзээд хамгийн сайн (хамгийн бага зай) тохирлыг сонгоно — энэ нь ямар ч
+  // хот/нөхцөлд адилхан ажиллана.
+  function bestTrimmedRatio(token, normCity) {
+    var best = Infinity;
+    for (var trim = 0; trim <= 3 && token.length - trim >= 2; trim++) {
+      var t = trim === 0 ? token : token.slice(0, token.length - trim);
+      var r = fuzzyRatio(t, normCity);
+      if (r < best) best = r;
+    }
+    return best;
+  }
+  // Хэрэглэгчийн бичсэн асуултаас нэг үгийн болон 2-3 үгийн залгаа хэсгүүдийг
+  // (жишээ нь "Хонг Конг" -> "хонгконг") нэр дэвшигч болгон гаргана — "ХонгКонг"
+  // мэт зайгүй бичигддэг өгөгдлийн хотын нэртэй харьцуулахад хэрэгтэй.
+  function fuzzyCandidateTokens(ql) {
+    // Ерөнхий (стоп) vгсийг (жишээ нь "явсан", "хэдэн") эхнээс нь хасна —
+    // эс тэгвээс тэдгээр vг санамсаргvй давхцлаар (жишээ нь "явсан" ба
+    // "Бусан" хотын нэр хоёрын хооронд ердөө 2 vсгийн ялгаа байдаг) хотын нэр
+    // мэт танигдах эрсдэлтэй. isGenericWord нь -ын/-ийн гэх мэт төгсгөлийн
+    // нөхцөлийг тайраад стоп vгтэй тааруулна ("улсын" -> "улс" гэх мэт).
+    var words = ql.replace(/[^a-zа-яёөүA-ZА-ЯЁӨҮ]+/g, ' ').trim().split(/\s+/)
+      .filter(function (w) { return w.length >= 3 && !isGenericWord(w); });
+    var out = [];
+    for (var i = 0; i < words.length; i++) {
+      var combo = '';
+      for (var j = i; j < Math.min(i + 3, words.length); j++) {
+        combo += words[j];
+        out.push(combo);
+      }
+    }
+    return out;
+  }
+  // cityBases (flights.json-оос гаргасан бодит хотын нэрс) дундаас asуултад хамгийн
+  // ойр тохирохыг олно. Буцаах: { city, score, alt } — alt нь score-той маш ойрхон
+  // хоёр дахь өөр хот байвал тодруулах мессежид ашиглагдана (сонголтоор).
+  function fuzzyFindCity(ql, cityBases) {
+    var candidates = fuzzyCandidateTokens(ql);
+    if (!candidates.length) return null;
+    var normCities = cityBases.map(function (c) { return { display: c, norm: normalizeForMatch(c) }; });
+    var best = null, second = null;
+    for (var i = 0; i < candidates.length; i++) {
+      var tok = normalizeForMatch(candidates[i]);
+      if (tok.length < 2) continue;
+      for (var j = 0; j < normCities.length; j++) {
+        var score = bestTrimmedRatio(tok, normCities[j].norm);
+        if (!best || score < best.score) {
+          if (!best || best.display !== normCities[j].display) second = best;
+          best = { display: normCities[j].display, score: score };
+        } else if (score < (second ? second.score : Infinity) && normCities[j].display !== (best && best.display)) {
+          second = { display: normCities[j].display, score: score };
+        }
+      }
+    }
+    if (!best || best.score > CITY_FUZZY_THRESHOLD) return null;
+    var alt = (second && second.score <= CITY_FUZZY_THRESHOLD && (second.score - best.score) <= 0.08) ? second.display : null;
+    return { city: best.display, score: best.score, alt: alt };
+  }
 
   // grpC/grpN/grpCt/wCargo/... regex-үүдэд аль хэдийн ашиглагдаж буй ерөнхий
   // асуулт/хэмжүүрийн үг сан — country/city/carrier ямар ч тохирол өгөөгүй үед
@@ -1229,9 +1400,19 @@
   ]);
   // Асуулт дотор аль нэг таних үгсэн санд ороогүй 3+ үсэгтэй үг үлдсэн эсэхийг шалгана —
   // тийм бол хэрэглэгч тодорхой нэр хэлсэн ч бид таниагүй байх магадлалтай
+  // vг (эсвэл түүний -ын/-ийг/-аас гэх мэт төгсгөлийн нөхцөл тайрсан хэлбэр нь)
+  // CHAT_STOPWORDS-д байгаа эсэхийг шалгана — Монгол хэл нийлмэл (agglutinative)
+  // тул "улс" стоп vг ч "улсын", "улсаар" гэх мэт хэлбэрээр өгүүлбэрт орж ирдэг;
+  // яг таарсан эсэхийг л шалбал ийм хувилбарууд танигдахгvй vлдэнэ.
+  function isGenericWord(word) {
+    for (var trim = 0; trim <= 3 && word.length - trim >= 2; trim++) {
+      if (CHAT_STOPWORDS.has(trim === 0 ? word : word.slice(0, word.length - trim))) return true;
+    }
+    return false;
+  }
   function hasUnrecognizedWord(q) {
     var words = q.replace(/[^a-zа-яёөү]+/g, ' ').split(' ').filter(function (w) { return w.length >= 3; });
-    return words.some(function (w) { return !CHAT_STOPWORDS.has(w); });
+    return words.some(function (w) { return !isGenericWord(w); });
   }
   // city талбар "Сөүл/Инчеон", "Бээжин/Капитал" гэх мэт нийлмэл утгатай байдаг тул
   // "/"-ээр тусгаарлагдсан хэсэг бүрийг (хотын нэр БА тухайн хотын онгоцны буудлын нэр)
@@ -1304,16 +1485,18 @@
       }, [])
     ));
 
-    // 2-3. Эхлээд CITY_SYN-ээр (авиа зүйн хувилбар), олдоогүй бол бодит хотын
-    // нэрсээр шалгана — урт нэр эхэлж таарч богино нэрийн санамсаргүй давхцлаас сэргийлнэ
-    for (var sk in CITY_SYN) {
-      if (Object.prototype.hasOwnProperty.call(CITY_SYN, sk) && ql.indexOf(sk) !== -1) { city = CITY_SYN[sk]; break; }
+    // 2. Эхлээд яг таарсан бодит хотын нэрсээр шалгана (урт нэр эхэлж таарч
+    // богино нэрийн санамсаргүй давхцлаас сэргийлнэ), 3. олдоогүй бол fuzzy
+    // matching-ээр (латин/өөр бичлэг, дутуу vсэг, залгасан төгсгөлийн нөхцөл
+    // зэргийг тэвчих) хамгийн ойрхон хотыг олно — хатуу alias жагсаалт хэрэггvй
+    var cityClarify = null;
+    var sortedCityBases = cityBases.slice().sort(function (a, b) { return b.length - a.length; });
+    for (var ci = 0; ci < sortedCityBases.length; ci++) {
+      if (ql.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
     }
     if (!city) {
-      var sortedCityBases = cityBases.slice().sort(function (a, b) { return b.length - a.length; });
-      for (var ci = 0; ci < sortedCityBases.length; ci++) {
-        if (ql.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
-      }
+      var fuzzy = fuzzyFindCity(ql, cityBases);
+      if (fuzzy) { city = fuzzy.city; cityClarify = fuzzy.alt; }
     }
 
     var mm = ql.match(/(\d{1,2})\s*[-]?\s*(р|дугаар|дүгээр)?\s*сар/);
@@ -1366,8 +1549,9 @@
       if (wFlights) return 1;
       return r.pax || 0;
     }
-    var mLabel = wCargo ? 'Ачаа (кг)' : wMail ? 'Шуудан (кг)' : wChild ? 'Хүүхэд' : wInfant ? 'Нялх' :
-      wBoth ? 'Хүүхэд+Нялх' : wTransit ? 'Транзит' : wAdult ? 'Том хүн' : wFlights ? 'Нислэг' : 'Зорчигч';
+    var mLabel = wCargo ? 'Ачааны жин (кг)' : wMail ? 'Шуудангийн жин (кг)' : wChild ? 'Хүүхэд зорчигч (хүн)' : wInfant ? 'Нялх зорчигч (хүн)' :
+      wBoth ? 'Хүүхэд + нялх зорчигч (хүн)' : wTransit ? 'Транзит зорчигч (хүн)' : wAdult ? 'Насанд хүрэгч зорчигч (хүн)' :
+      wFlights ? 'Нислэгийн тоо (удаа)' : 'Нийт зорчигч (хүн)';
     function sum(arr) { return arr.reduce(function (s, r) { return s + getVal(r); }, 0); }
 
     var filtersUsed = { country: country, city: city, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou };
@@ -1434,7 +1618,7 @@
     // 3+ үсэгтэй үг үлдсэн бол — чимээгүйгээр бүх датагийн нийт дүнг буцаах
     // оронд тайлбар нэмж хэрэглэгчийг төөрөгдүүлэхгүй байхаар анхааруулна
     var unmatched = !country && !city && !carrier && hasUnrecognizedWord(ql);
-    return { type: 'single', value: sum(rows), count: rows.length, mLabel: mLabel, filters: filtersUsed, unmatched: unmatched };
+    return { type: 'single', value: sum(rows), count: rows.length, mLabel: mLabel, filters: filtersUsed, unmatched: unmatched, cityClarify: cityClarify };
   }
 
   function renderChatMessage(result, wantChart, wantGrowth) {
@@ -1445,9 +1629,9 @@
     var html = '';
 
     if (result.type === 'cumulative') {
-      html += mkTbl([result.label, result.mLabel, 'Өссөн дүн', 'Нислэг'], result.rows);
+      html += mkTbl([result.label, result.mLabel, 'Хуримтлагдсан дүн', 'Нислэгийн тоо (удаа)'], result.rows);
     } else if (result.type === 'table') {
-      html += mkTbl([result.label, result.mLabel, 'Нислэг'], result.rows);
+      html += mkTbl([result.label, result.mLabel, 'Нислэгийн тоо (удаа)'], result.rows);
     } else {
       var f = result.filters || {};
       var scopeParts = [
@@ -1459,11 +1643,14 @@
       ].filter(Boolean);
       var scope = scopeParts.length ? scopeParts.join(' · ') : 'Нийт бүртгэгдсэн хугацаа';
       if (result.unmatched) {
-        html += '<div style="font-size:12px;color:var(--accent-2);margin-bottom:6px">⚠ Тодорхой хот/улс/тээвэрлэгч олдсонгүй тул нийт дүнг харуулж байна:</div>';
+        html += '<div style="font-size: 0.875rem;color:var(--accent-2);margin-bottom:6px">⚠ Тодорхой хот/улс/тээвэрлэгч олдсонгүй тул нийт дүнг харуулж байна:</div>';
       }
-      html += '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">' + escHtml(scope) + '</div>';
-      html += '<div style="font-size:28px;font-weight:700;color:var(--text-primary)">' + fmtNum(result.value) + '</div>';
-      html += '<div style="font-size:12px;color:var(--text-muted);margin-top:4px">' + escHtml(result.mLabel) + ' · ' + fmtNum(result.count) + ' нислэг</div>';
+      if (result.cityClarify) {
+        html += '<div style="font-size: 0.875rem;color:var(--accent-2);margin-bottom:6px">💡 "' + escHtml(f.city) + '" гэж тодорхойлов — "' + escHtml(result.cityClarify) + '" хотыг хэлж байсан бол дахин тодорхой бичнэ үү.</div>';
+      }
+      html += '<div style="font-size: 0.875rem;color:var(--text-muted);margin-bottom:6px">' + escHtml(scope) + '</div>';
+      html += '<div style="font-size: 1.875rem;font-weight:700;color:var(--text-primary)">' + fmtNum(result.value) + '</div>';
+      html += '<div style="font-size: 0.875rem;color:var(--text-muted);margin-top:4px">' + escHtml(result.mLabel) + ' · ' + fmtNum(result.count) + ' нислэг</div>';
     }
 
     var needChart = wantChart || wantGrowth || result.type === 'cumulative' || (result.type === 'table' && (result.label === 'Өдөр' || result.label === 'Сар'));
@@ -1496,7 +1683,24 @@
     var textPrimary = getVar('--text-primary'), textSecondary = getVar('--text-secondary');
     var gridline = getVar('--gridline'), textMuted = getVar('--text-muted');
     var good = '#0ca30c', critical = '#d03b3b';
-    var baseTooltip = { backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary, padding: 10, cornerRadius: 8 };
+    var baseTooltip = { backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary, padding: 10, cornerRadius: 8, displayColors: true };
+    var baseTitle = { display: true, color: textPrimary, font: { size: 14, weight: '600' }, padding: { bottom: 14 } };
+
+    // result.mLabel нь "Нэр (нэгж)" хэлбэртэй тул tooltip дээр "Нэр: утга нэгж"
+    // гэсэн стандарт бүтэц болгож харуулахын тулд нэр ба нэгжийг тусад нь ялгана
+    var mlParts = /^(.*?)\s*\(([^)]+)\)\s*$/.exec(result.mLabel || '');
+    var mName = mlParts ? mlParts[1] : (result.mLabel || 'Утга');
+    var mUnit = mlParts ? mlParts[2] : '';
+    var mNameLC = mName.charAt(0).toLowerCase() + mName.slice(1);
+    function fmtWithUnit(v) { return fmtNum(v) + (mUnit ? ' ' + mUnit : ''); }
+    function axisTitle(name, unit) { return unit ? name + ' (' + unit + ')' : name; }
+
+    var GROWTH_META = {
+      'Сар': { name: 'Сарын өсөлт', period: 'Сарын', vs: 'өмнөх сартай харьцуулахад' },
+      'Өдөр': { name: 'Өдрийн өсөлт', period: 'Өдрийн', vs: 'өмнөх өдөртэй харьцуулахад' },
+    };
+    var gm = GROWTH_META[result.label] || { name: 'Өсөлт', period: cap(result.label) || 'Үзүүлэлтийн', vs: 'өмнөх утгатай харьцуулахад' };
+    function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
     if (result.type === 'cumulative') {
       var cumVals = result.rows.map(function (r) { return Number(r[2]); });
@@ -1504,20 +1708,28 @@
         type: 'bar',
         data: {
           labels: labels, datasets: [
-            { label: 'Сарын нийт', data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, maxBarThickness: 64, yAxisID: 'y' },
-            { label: 'Өссөн дүн', data: cumVals, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: accent2, tension: 0.3, yAxisID: 'y1' },
+            { label: axisTitle(mName, mUnit) + ' — зүүн тэнхлэг', data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, maxBarThickness: 64, yAxisID: 'y' },
+            { label: 'Хуримтлагдсан дүн' + (mUnit ? ' (' + mUnit + ')' : '') + ' — баруун тэнхлэг', data: cumVals, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: accent2, tension: 0.3, yAxisID: 'y1' },
           ],
         },
         options: {
           responsive: true, interaction: { mode: 'index', intersect: false },
           plugins: {
+            title: Object.assign({}, baseTitle, { text: 'Сарын ' + mNameLC + ' ба хуримтлагдсан дүнгийн хандлага' }),
             legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12 } },
-            tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + fmtNum(c.raw); } } }),
+            tooltip: Object.assign({}, baseTooltip, {
+              callbacks: {
+                label: function (c) {
+                  if (c.datasetIndex === 1) return ' Хуримтлагдсан дүн: ' + fmtWithUnit(c.raw);
+                  return ' ' + mName + ': ' + fmtWithUnit(c.raw);
+                },
+              },
+            }),
           },
           scales: {
-            y: { ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { color: gridline } },
-            y1: { position: 'right', ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { drawOnChartArea: false } },
-            x: { ticks: { color: textSecondary }, grid: { display: false } },
+            y: { title: { display: true, text: axisTitle(mName, mUnit), color: accent, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { color: gridline } },
+            y1: { position: 'right', title: { display: true, text: axisTitle('Хуримтлагдсан дүн', mUnit), color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { drawOnChartArea: false } },
+            x: { title: { display: true, text: result.label, color: textSecondary, font: { size: 12 } }, ticks: { color: textSecondary }, grid: { display: false } },
           },
         },
       });
@@ -1529,9 +1741,9 @@
         type: 'bar',
         data: {
           labels: labels, datasets: [
-            { label: result.mLabel, data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, maxBarThickness: 64, yAxisID: 'y' },
+            { label: axisTitle(mName, mUnit) + ' — зүүн тэнхлэг', data: vals, type: 'bar', backgroundColor: accent, borderRadius: 6, maxBarThickness: 64, yAxisID: 'y' },
             {
-              label: 'Өсөлт (%)', data: growth, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5,
+              label: gm.name + ' (%) — баруун тэнхлэг', data: growth, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2.5,
               pointRadius: growth.map(function (v) { return v === null ? 0 : 6; }),
               pointBackgroundColor: growth.map(function (v) { return v === null ? 'transparent' : (v >= 0 ? good : critical); }),
               pointBorderColor: growth.map(function (v) { return v === null ? 'transparent' : (v >= 0 ? good : critical); }),
@@ -1542,20 +1754,24 @@
         options: {
           responsive: true, interaction: { mode: 'index', intersect: false },
           plugins: {
+            title: Object.assign({}, baseTitle, { text: gm.period + ' ' + mNameLC + ' ба өсөлтийн хандлага' }),
             legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12 } },
             tooltip: Object.assign({}, baseTooltip, {
               callbacks: {
                 label: function (c) {
-                  if (c.dataset.label === 'Өсөлт (%)') { var v = c.raw; if (v === null) return null; return ' Өсөлт: ' + (v > 0 ? '+' : '') + v + '%'; }
-                  return ' ' + c.dataset.label + ': ' + fmtNum(c.raw);
+                  if (c.datasetIndex === 1) {
+                    var v = c.raw; if (v === null || v === undefined) return null;
+                    return ' ' + gm.name + ': ' + (v > 0 ? '+' : '') + v + '% (' + gm.vs + ')';
+                  }
+                  return ' ' + mName + ': ' + fmtWithUnit(c.raw);
                 },
               },
             }),
           },
           scales: {
-            y: { ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { color: gridline } },
-            y1: { position: 'right', ticks: { color: textMuted, callback: function (v) { return (v > 0 ? '+' : '') + v + '%'; } }, grid: { drawOnChartArea: false } },
-            x: { ticks: { color: textSecondary }, grid: { display: false } },
+            y: { title: { display: true, text: axisTitle(mName, mUnit), color: accent, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, callback: function (v) { return fmtNum(v); } }, grid: { color: gridline } },
+            y1: { position: 'right', title: { display: true, text: gm.name + ' (%)', color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, callback: function (v) { return (v > 0 ? '+' : '') + v + '%'; } }, grid: { drawOnChartArea: false } },
+            x: { title: { display: true, text: result.label, color: textSecondary, font: { size: 12 } }, ticks: { color: textSecondary }, grid: { display: false } },
           },
         },
       });
@@ -1569,27 +1785,29 @@
         options: {
           responsive: true, cutout: '60%',
           plugins: {
+            title: Object.assign({}, baseTitle, { text: (result.label || '') + ' — ' + mName + ' харьцуулалт' }),
             legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12, padding: 16 } },
-            tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { return ' ' + result.mLabel + ': ' + fmtNum(c.raw) + '  (' + (c.raw / Math.max(totalV, 1) * 100).toFixed(1) + '%)'; } } }),
+            tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { return ' ' + mName + ': ' + fmtWithUnit(c.raw) + '  (нийт дүнгийн ' + (c.raw / Math.max(totalV, 1) * 100).toFixed(1) + '%)'; } } }),
           },
         },
       });
       return;
     }
 
-    canvas.parentElement.style.height = Math.max(220, n * 34 + 60) + 'px';
+    canvas.parentElement.style.height = Math.max(240, n * 34 + 80) + 'px';
     new Chart(canvas, {
       type: 'bar',
-      data: { labels: labels, datasets: [{ data: vals, backgroundColor: accent, borderRadius: 4, maxBarThickness: 20 }] },
+      data: { labels: labels, datasets: [{ label: axisTitle(mName, mUnit), data: vals, backgroundColor: accent, borderRadius: 4, maxBarThickness: 20 }] },
       options: {
         indexAxis: 'y', responsive: true, maintainAspectRatio: false,
         plugins: {
+          title: Object.assign({}, baseTitle, { text: (result.topN ? 'Топ ' + Math.min(result.topN, n) + ' ' : '') + (result.label || '') + ' — ' + mName }),
           legend: { display: false },
-          tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { var pct = totalV > 0 ? (' (' + (c.raw / totalV * 100).toFixed(1) + '%)') : ''; return ' ' + result.mLabel + ': ' + fmtNum(c.raw) + pct; } } }),
+          tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { var pct = totalV > 0 ? ('  (нийт дүнгийн ' + (c.raw / totalV * 100).toFixed(1) + '%)') : ''; return ' ' + mName + ': ' + fmtWithUnit(c.raw) + pct; } } }),
         },
         scales: {
-          x: { ticks: { color: textMuted }, grid: { color: gridline } },
-          y: { ticks: { color: textSecondary }, grid: { display: false } },
+          x: { title: { display: true, text: axisTitle(mName, mUnit), color: textSecondary, font: { size: 12 } }, ticks: { color: textMuted }, grid: { color: gridline } },
+          y: { title: { display: true, text: result.label, color: textSecondary, font: { size: 12 } }, ticks: { color: textSecondary }, grid: { display: false } },
         },
       },
     });
@@ -1658,6 +1876,27 @@
   document.getElementById('qi').addEventListener('input', function () {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 90) + 'px';
+  });
+
+  // ---------- chat fullscreen ----------
+  var chatCard = document.getElementById('chat-card');
+  var chatFsBtn = document.getElementById('chat-fs-btn');
+  var chatBackdrop = document.getElementById('chat-backdrop');
+  function setChatFullscreen(on) {
+    chatCard.classList.toggle('chat-fullscreen', on);
+    chatBackdrop.classList.toggle('active', on);
+    document.body.classList.toggle('chat-fs-open', on);
+    var label = on ? 'Дэлгэц бүтэн горимоос гарах (Esc)' : 'Дэлгэц бүтэн горимд нээх';
+    chatFsBtn.setAttribute('aria-label', label);
+    chatFsBtn.title = label;
+    if (on) { document.getElementById('conv').scrollTop = document.getElementById('conv').scrollHeight; }
+  }
+  chatFsBtn.addEventListener('click', function () {
+    setChatFullscreen(!chatCard.classList.contains('chat-fullscreen'));
+  });
+  chatBackdrop.addEventListener('click', function () { setChatFullscreen(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && chatCard.classList.contains('chat-fullscreen')) setChatFullscreen(false);
   });
 })();
 </script>
