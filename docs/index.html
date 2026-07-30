@@ -54,8 +54,18 @@
   html, body { margin: 0; padding: 0; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  /* --page/--text-primary зэрэг хувьсагчид зөвхөн .viz-root дотор
+     тодорхойлогддог тул body дээр (эцэг элемент, .viz-root-ийн гадна)
+     var(...)-ээр хандах боломжгүй байсан — үнэлгээ хүчингүй болж,
+     browser-ийн өгөгдмөл хар текст рvv буцдаг байв (dark mode-д
+     фонтой ойролцоо өнгөтэй тул харагдахгүй болдог байсан гол шалтгаан).
+     background/color-ийг тэдгээр хувьсагч бодитоор харагддаг цэг дээр
+     (.viz-root өөрөө) тохируулна. */
+  .viz-root {
     background: var(--page);
     color: var(--text-primary);
+    min-height: 100vh;
   }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 20px 64px; }
 
