@@ -135,6 +135,11 @@
   .range-wrap input:focus { border-color: var(--accent); }
   .range-wrap input.err { border-color: #d03b3b; }
   .range-sep { font-size: 0.875rem; color: var(--text-muted); }
+  .region-select {
+    padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.875rem; font-family: inherit; background: var(--page); color: var(--text-primary); outline: none;
+  }
+  .region-select:focus { border-color: var(--accent); }
   .clr-btn, .reset-btn {
     font-size: 0.8125rem; color: var(--text-muted); cursor: pointer; padding: 4px 9px;
     border-radius: 6px; border: 1px solid var(--border); background: transparent;
@@ -420,6 +425,11 @@
         </div>
         <button class="reset-btn" id="reset-filters" type="button">↺ Бүгд арилгах</button>
       </div>
+      <div class="divider"></div>
+      <div class="frow">
+        <span class="flabel">Бүс нутгаар</span>
+        <select id="region-select" class="region-select"><option value="all">Бүгд</option></select>
+      </div>
     </div>
 
     <div class="atags" id="atags" style="display:none"></div>
@@ -545,7 +555,7 @@
 
   // ---------- state ----------
   var allRows = [];
-  var filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all' };
+  var filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
   var COLUMNS = [
     { key: 'date', label: 'Огноо', num: false },
     { key: 'carr', label: 'Компани', num: false },
@@ -561,7 +571,7 @@
 
   // ---------- filter bar ----------
   function isFiltered() {
-    return filters.mFrom !== null || filters.mTo !== null || filters.ou !== 'all' || filters.dir !== 'all';
+    return filters.mFrom !== null || filters.mTo !== null || filters.ou !== 'all' || filters.dir !== 'all' || filters.region !== 'all';
   }
 
   function applyFilters(rows) {
@@ -570,9 +580,24 @@
       if (filters.mTo !== null && r.month > filters.mTo) return false;
       if (filters.ou !== 'all' && r.ou !== filters.ou) return false;
       if (filters.dir !== 'all' && r.dir !== filters.dir) return false;
+      if (filters.region !== 'all' && r.region !== filters.region) return false;
       return true;
     });
   }
+
+  function populateRegionSelect(rows) {
+    var sel = document.getElementById('region-select');
+    var regions = Array.from(new Set(rows.map(function (r) { return r.region; }).filter(Boolean))).sort();
+    regions.forEach(function (r) {
+      var opt = document.createElement('option');
+      opt.value = r; opt.textContent = r;
+      sel.appendChild(opt);
+    });
+  }
+  document.getElementById('region-select').addEventListener('change', function (e) {
+    filters.region = e.target.value;
+    rerender();
+  });
 
   var rangeDebounce = null;
   function onRangeInput() {
@@ -625,10 +650,11 @@
     document.getElementById('mTo').value = '';
     document.getElementById('mFrom').classList.remove('err');
     document.getElementById('mTo').classList.remove('err');
-    filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all' };
+    filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
     document.querySelectorAll('.fchip').forEach(function (c) { c.classList.remove('active'); });
     document.querySelector('[data-ou="all"]').classList.add('active');
     document.querySelector('[data-dir="all"]').classList.add('active');
+    document.getElementById('region-select').value = 'all';
     rerender();
   }
 
@@ -653,6 +679,7 @@
     }
     if (filters.ou !== 'all') tags.push({ l: filters.ou === 'ОУ' ? 'Олон улсын' : 'Дотоодын', k: 'ou' });
     if (filters.dir !== 'all') tags.push({ l: filters.dir === '1' ? 'Явсан' : 'Ирсэн', k: 'dir' });
+    if (filters.region !== 'all') tags.push({ l: filters.region, k: 'region' });
     if (!tags.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
     wrap.style.display = 'flex';
     wrap.innerHTML = '<span class="atags-label">Шүүлт:</span>' +
@@ -662,6 +689,7 @@
       x.addEventListener('click', function () {
         var key = x.parentElement.getAttribute('data-key');
         if (key === 'month') { clearMonthFilter(); return; }
+        if (key === 'region') { filters.region = 'all'; document.getElementById('region-select').value = 'all'; rerender(); return; }
         filters[key] = 'all';
         document.querySelectorAll('[data-' + key + ']').forEach(function (c) { c.classList.remove('active'); });
         document.querySelector('[data-' + key + '="all"]').classList.add('active');
@@ -1235,6 +1263,7 @@
         ? 'Сүүлд шинэчилсэн: ' + new Date(meta.fetchedAt).toLocaleString('mn-MN')
         : '';
       allRows = flights.map(enrichRow);
+      populateRegionSelect(allRows);
       rerender();
     })
     .catch(function (err) {
@@ -1255,6 +1284,46 @@
     'тайланд':'Тайланд','сингапур':'Сингапур','хонг конг':'Хонг Конг',
     'герман':'Герман','энэтхэг':'Энэтхэг','узбекистан':'Узбекистан',
     'монгол':'Монгол','анау':'АНАУ','дубай':'АНАУ','их британи':'Их Британи',
+    'ирланд':'Ирланд','ирландад':'Ирланд','ирландаас':'Ирланд',
+  };
+
+  // ── Онтологийн иерархи: бvс нутаг/тив/альянс синоним ──
+  // flights.json-ий мөр бvр (scripts/ontology.js-ээр урьдчилан баяжуулагдсан) region/
+  // continent/alliance гэсэн бэлэн баганатай тул эндэх map зөвхөн хэрэглэгчийн
+  // асуултад орсон vгийг тэдгээр баганын БОДИТ утгатай тааруулах л vvрэгтэй — join/
+  // нэгтгэх нэмэлт логик хэрэггvй (SYN-тай яг адил pattern).
+  var REGION_SYN = {
+    'зүүн ази':'Зүүн Ази', 'дорнод ази':'Зүүн Ази',
+    'зүүн өмнөд ази':'Зүүн Өмнөд Ази', 'зүүн-өмнөд ази':'Зүүн Өмнөд Ази',
+    'өмнөд ази':'Өмнөд Ази', 'төв ази':'Төв Ази', 'ойрхи дорнод':'Ойрхи Дорнод',
+    'кавказ':'Кавказ', 'сибирь':'Сибирь', 'баруун европ':'Баруун Европ',
+    'өмнөд европ':'Өмнөд Европ', 'төв европ':'Төв Европ',
+  };
+  var CONTINENT_SYN = {
+    'ази тив':'Ази', 'азийн тив':'Ази', 'азид':'Ази', 'ази руу':'Ази',
+    'европ тив':'Европ', 'европт':'Европ',
+  };
+  var ALLIANCE_SYN = {
+    'star alliance':'Star Alliance', 'стар альянс':'Star Alliance', 'старальянс':'Star Alliance',
+    'skyteam':'SkyTeam', 'скайтим':'SkyTeam', 'скай тим':'SkyTeam',
+    'oneworld':'oneworld', 'ван ворлд':'oneworld',
+  };
+
+  // ── Хотын alias (гар аргаар цэгцэлсэн, data/ontology/city-country-region.json-ий
+  // aliases талбартай нийцтэй) — Токёо/Инчон/Пекин мэт vг сан/зохион бичлэгээрээ
+  // өөр (фонетик fuzzy match-аар барьж чадахгvй) нэрсийг ТОДОРХОЙ, найдвартай
+  // байдлаар шийднэ. Утга нь cityBase (композит биш) хэлбэрээр — matchesCity()
+  // аль хэдийн "/" -ээр задарсан хоёр талыг адилхан тааруулдаг тул жишээ нь
+  // "Токио" гэж шийдвэл Нарита/Ханеда хоёр буудлын мөрийг АЛИНЫГ нь ч хамруулна.
+  var CITY_ALIASES = {
+    'токёо':'Токио', 'токио':'Токио', 'tokyo':'Токио',
+    'инчон':'Сөүл', 'инчеон':'Сөүл', 'сеул':'Сөүл',
+    'бээжин':'Бээжин', 'пекин':'Бээжин', 'beijing':'Бээжин',
+    'хонгконг':'ХонгКонг', 'хонг конг':'ХонгКонг', 'hong kong':'ХонгКонг',
+    'хошимин':'Хо Ши Мин', 'сайгон':'Хо Ши Мин', 'saigon':'Хо Ши Мин',
+    'дублин':'Дублин', 'dublin':'Дублин',
+    'стамбул':'Истанбул', 'istanbul':'Истанбул',
+    'пхукет':'Пукет', 'phuket':'Пукет',
   };
 
   // ── Хотын нэр таних: fuzzy matching (хатуу alias жагсаалтгүйгээр) ──
@@ -1467,10 +1536,32 @@
     var ql = q.toLowerCase();
 
     var country = null, carrier = null, city = null, month = null, dayFrom = null, dayTo = null, dir = null, ou = null;
+    var region = null, continent = null, alliance = null, acManufacturer = null, acCategory = null;
 
     for (var k in SYN) {
       if (Object.prototype.hasOwnProperty.call(SYN, k) && ql.indexOf(k) !== -1) { country = SYN[k]; break; }
     }
+
+    // Онтологийн иерархи (бvс нутаг/тив/альянс) — flights.json-ий мөр бvр дээр
+    // scripts/ontology.js-ээр урьдчилан баяжуулагдсан region/continent/alliance
+    // баганатай тул энд зөвхөн хэрэглэгчийн бичсэн синонимыг тэдгээрийн БОДИТ утгатай
+    // тааруулна. Тив (жишээ "Ази") дурдагдвал доорх filter шатанд шууд
+    // `r.continent === continent`-ээр шvvгдэх тул тухайн тивд харьяалагдах БVХ
+    // бvс/улс/хотын датаг нэмэлт join логикгvйгээр автоматаар нэгтгэнэ.
+    for (var kr in REGION_SYN) {
+      if (Object.prototype.hasOwnProperty.call(REGION_SYN, kr) && ql.indexOf(kr) !== -1) { region = REGION_SYN[kr]; break; }
+    }
+    for (var kc in CONTINENT_SYN) {
+      if (Object.prototype.hasOwnProperty.call(CONTINENT_SYN, kc) && ql.indexOf(kc) !== -1) { continent = CONTINENT_SYN[kc]; break; }
+    }
+    for (var ka in ALLIANCE_SYN) {
+      if (Object.prototype.hasOwnProperty.call(ALLIANCE_SYN, ka) && ql.indexOf(ka) !== -1) { alliance = ALLIANCE_SYN[ka]; break; }
+    }
+    if (/boeing|боинг/.test(ql)) acManufacturer = 'Boeing';
+    else if (/airbus|эйрбас/.test(ql)) acManufacturer = 'Airbus';
+    else if (/embraer|эмбраер/.test(ql)) acManufacturer = 'Embraer';
+    if (/narrow.?body|нарийн фюзеляж/.test(ql)) acCategory = 'narrow-body';
+    else if (/wide.?body|өргөн фюзеляж/.test(ql)) acCategory = 'wide-body';
 
     var allCarriers = Array.from(new Set(D.map(function (r) { return r.carr; }).filter(Boolean)))
       .sort(function (a, b) { return b.length - a.length; });
@@ -1494,6 +1585,14 @@
     var sortedCityBases = cityBases.slice().sort(function (a, b) { return b.length - a.length; });
     for (var ci = 0; ci < sortedCityBases.length; ci++) {
       if (ql.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
+    }
+    // Гар аргаар цэгцэлсэн alias (Токёо/Инчон/Пекин г.м) — vг сан/зохион бичлэгээрээ
+    // өгөгдлийн бодит нэрнээс тэс өөр тул fuzzy match-аас ӨМНӨ шалгаж, тодорхой,
+    // найдвартай хариулт өгнө (fuzzy бол магадлалын тооцоо л хийдэг).
+    if (!city) {
+      for (var al in CITY_ALIASES) {
+        if (Object.prototype.hasOwnProperty.call(CITY_ALIASES, al) && ql.indexOf(al) !== -1) { city = CITY_ALIASES[al]; break; }
+      }
     }
     if (!city) {
       var fuzzy = fuzzyFindCity(ql, cityBases);
@@ -1525,6 +1624,11 @@
     if (country) rows = rows.filter(function (r) { return r.cntry === country; });
     if (city) rows = rows.filter(function (r) { return matchesCity(r.city, city); });
     if (carrier) rows = rows.filter(function (r) { return r.carr === carrier; });
+    if (region) rows = rows.filter(function (r) { return r.region === region; });
+    if (continent) rows = rows.filter(function (r) { return r.continent === continent; });
+    if (alliance) rows = rows.filter(function (r) { return r.alliance === alliance; });
+    if (acManufacturer) rows = rows.filter(function (r) { return r.acManufacturer === acManufacturer; });
+    if (acCategory) rows = rows.filter(function (r) { return r.acCategory === acCategory; });
     if (month) rows = rows.filter(function (r) { return r.month === month; });
     if (dayFrom) rows = rows.filter(function (r) { return r.day >= dayFrom && r.day <= dayTo; });
     if (dir) rows = rows.filter(function (r) { return r.dir === dir; });
@@ -1555,7 +1659,10 @@
       wFlights ? 'Нислэгийн тоо (удаа)' : 'Нийт зорчигч (хүн)';
     function sum(arr) { return arr.reduce(function (s, r) { return s + getVal(r); }, 0); }
 
-    var filtersUsed = { country: country, city: city, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou };
+    var filtersUsed = {
+      country: country, city: city, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou,
+      region: region, continent: continent, alliance: alliance, acManufacturer: acManufacturer, acCategory: acCategory,
+    };
 
     if (/өссөн дүн|хуримтлагдсан|нэмэгдсэн дүн/.test(ql)) {
       var byM = {};
@@ -1590,16 +1697,23 @@
     var grpD = /өдөр бүр|өдрөөр/.test(ql) || (dayFrom && dayTo);
     var grpOU = hasIntl && hasDom;
     var grpDr = /явсан.*ирсэн|ирсэн.*явсан|харьцуул.*чиглэл/.test(ql) && !dir;
+    var grpRegion = /бүс нутгаар|бүс тус бүр/.test(ql) && !region;
+    var grpContinent = /тивээр|тив тус бүр/.test(ql) && !continent;
+    var grpAlliance = /альянсаар|альянс тус бүр/.test(ql) && !alliance;
 
-    if (grpC || grpN || grpCt || grpM || grpD || grpOU || grpDr) {
+    if (grpC || grpN || grpCt || grpM || grpD || grpOU || grpDr || grpRegion || grpContinent || grpAlliance) {
       var keyFn = grpC ? function (r) { return r.carr; }
         : grpN ? function (r) { return r.cntry; }
         : grpCt ? function (r) { return r.city; }
         : grpM ? function (r) { return monthLabel(r.month); }
         : grpD ? function (r) { return pad2(r.month) + '/' + pad2(r.day); }
         : grpDr ? function (r) { return r.dir === '1' ? 'Явсан' : 'Ирсэн'; }
+        : grpRegion ? function (r) { return r.region; }
+        : grpContinent ? function (r) { return r.continent; }
+        : grpAlliance ? function (r) { return r.alliance; }
         : function (r) { return r.ou === 'ОУ' ? 'Олон улсын' : 'Дотоодын'; };
-      var label = grpC ? 'Тээвэрлэгч' : grpN ? 'Улс' : grpCt ? 'Хот' : grpM ? 'Сар' : grpD ? 'Өдөр' : grpDr ? 'Чиглэл' : 'Нислэгийн төрөл';
+      var label = grpC ? 'Тээвэрлэгч' : grpN ? 'Улс' : grpCt ? 'Хот' : grpM ? 'Сар' : grpD ? 'Өдөр' : grpDr ? 'Чиглэл'
+        : grpRegion ? 'Бүс нутаг' : grpContinent ? 'Тив' : grpAlliance ? 'Альянс' : 'Нислэгийн төрөл';
 
       var grps = {};
       rows.forEach(function (r) {
@@ -1618,7 +1732,7 @@
     // country/city/carrier ямар нь ч тохироогүй бөгөөд асуулт дотор танигдаагүй
     // 3+ үсэгтэй үг үлдсэн бол — чимээгүйгээр бүх датагийн нийт дүнг буцаах
     // оронд тайлбар нэмж хэрэглэгчийг төөрөгдүүлэхгүй байхаар анхааруулна
-    var unmatched = !country && !city && !carrier && hasUnrecognizedWord(ql);
+    var unmatched = !country && !city && !carrier && !region && !continent && !alliance && !acManufacturer && !acCategory && hasUnrecognizedWord(ql);
     return { type: 'single', value: sum(rows), count: rows.length, mLabel: mLabel, filters: filtersUsed, unmatched: unmatched, cityClarify: cityClarify };
   }
 
@@ -1636,7 +1750,7 @@
     } else {
       var f = result.filters || {};
       var scopeParts = [
-        f.country, f.city, f.carrier,
+        f.country, f.city, f.carrier, f.region, f.continent, f.alliance, f.acManufacturer, f.acCategory,
         f.month && (f.month + '-р сар'),
         f.dayFrom && f.dayTo && (f.dayFrom + '-' + f.dayTo + '-ны өдөр'),
         f.dir && (f.dir === '1' ? 'Явсан' : 'Ирсэн'),

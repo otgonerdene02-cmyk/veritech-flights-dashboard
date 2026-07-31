@@ -10,9 +10,18 @@ MRTD Veritech API (`kpiIndicatorDataList`)-с 20 минут тутам нисл�
 .github/workflows/fetch-flights.yml   20 минут тутам ажилладаг Action
 scripts/fetchFlights.js               API-г дуудаж, mapVeritechRow-оор хувиргаад бичдэг
 scripts/mapVeritechRow.js             мөр бүрийг dashboard-д ээлтэй хэлбэрт хувиргадаг
-scripts/city_country_map.js           хот -> улс лавлах хүснэгт
+scripts/ontology.js                   data/ontology/*.json-г ашиглаж region/continent/
+                                       alliance/category баганыг flight мөр бvрт шингээдэг
+scripts/applyOntology.js              одоо байгаа docs/flights.json-ыг ontology-гоор дахин
+                                       баяжуулах (API дуудахгvй, `npm run apply-ontology`)
+data/ontology/city-country-region.json  хот -> улс/бvс нутаг/тив/alias лавлах хvснэгт
+data/ontology/airline-alliance.json      тээвэрлэгч -> альянс/харьяа улс лавлах хvснэгт
+data/ontology/aircraft-category.json     онгоцны загвар -> vйлдвэрлэгч/ангилал/суудал,
+                                       БОЛОН бvртгэлийн код -> БVРТГЭЛИЙН улс (чиглэлийн
+                                       улстай ХОЛИХГVЙ) лавлах хvснэгт
 docs/index.html                       GitHub Pages dashboard (статик, зөвхон fetch('./flights.json'))
-docs/flights.json                     Action-аар автоматаар шинэчлэгддэг өгөгдөл
+docs/flights.json                     Action-аар автоматаар шинэчлэгддэг өгөгдөл (region/
+                                       continent/alliance/category багануудтай)
 ```
 
 `docs/index.html` нь дэлхийн газрын зургийн визуалчлалд [ECharts](https://echarts.apache.org/)-г

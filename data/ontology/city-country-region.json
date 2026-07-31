@@ -1,0 +1,756 @@
+{
+  "Fukushima Airport": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Guilin Liangjiang Intl Airport": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Kadala Airport": {
+    "country": "Орос",
+    "region": "Сибирь",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "King Fahd Intl Airport": {
+    "country": "Саудын Араб",
+    "region": "Ойрхи Дорнод",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Kobe Airport": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Lijiang Airport": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "NUBIA": {
+    "country": "Тодорхойгүй",
+    "region": "Тодорхойгүй",
+    "continent": "Тодорхойгүй",
+    "aliases": []
+  },
+  "Naha Airport": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Seoul Ab": {
+    "country": "Өмнөд Солонгос",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Актау/Казакстан": {
+    "country": "Казахстан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Алматы": {
+    "country": "Казахстан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Алтай": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Аль Батин/Абу Даби": {
+    "country": "АНАУ",
+    "region": "Ойрхи Дорнод",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Аль Мактум/Дубай": {
+    "country": "АНАУ",
+    "region": "Ойрхи Дорнод",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Амритсар": {
+    "country": "Энэтхэг",
+    "region": "Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Анкара/Эсенбога": {
+    "country": "Турк",
+    "region": "Ойрхи Дорнод",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Астана": {
+    "country": "Казахстан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Афин": {
+    "country": "Грек",
+    "region": "Өмнөд Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Баку": {
+    "country": "Азербайжан",
+    "region": "Кавказ",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Бангкок": {
+    "country": "Тайланд",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Бангкок/Дон Мыанг": {
+    "country": "Тайланд",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Баянхонгор": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Берлин": {
+    "country": "Герман",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Бишкек": {
+    "country": "Киргизстан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Богд хан": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Будапешт/Ферен": {
+    "country": "Унгар",
+    "region": "Төв Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Бусан": {
+    "country": "Өмнөд Солонгос",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Буянт-Ухаа": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Бээжин/Дашин": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "бээжин",
+      "пекин",
+      "дашин"
+    ]
+  },
+  "Бээжин/Капитал": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "бээжин",
+      "пекин",
+      "beijing"
+    ]
+  },
+  "Внуково/Москва": {
+    "country": "Орос",
+    "region": "Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Вухан": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Вьентьян": {
+    "country": "Лаос",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Гуанжоу": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Гурван тэмээт": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Гүвахати": {
+    "country": "Энэтхэг",
+    "region": "Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Гүйлин": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Даланзадгад": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Далянь": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Дамаск": {
+    "country": "Сири",
+    "region": "Ойрхи Дорнод",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Датун": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Дели": {
+    "country": "Энэтхэг",
+    "region": "Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": [
+      "delhi"
+    ]
+  },
+  "Дублин/Ирланд": {
+    "country": "Ирланд",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": [
+      "дублин",
+      "dublin"
+    ]
+  },
+  "Душанбе": {
+    "country": "Тажикистан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Екатеринбург": {
+    "country": "Орос",
+    "region": "Сибирь",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Жанжиажэ Хэхуа": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Истанбул": {
+    "country": "Турк",
+    "region": "Ойрхи Дорнод",
+    "continent": "Ази",
+    "aliases": [
+      "стамбул",
+      "istanbul"
+    ]
+  },
+  "Истанбул Ататурк": {
+    "country": "Турк",
+    "region": "Ойрхи Дорнод",
+    "continent": "Ази",
+    "aliases": [
+      "стамбул",
+      "истанбул"
+    ]
+  },
+  "Йогякартай": {
+    "country": "Индонез",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Кобэ": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Красноярск": {
+    "country": "Орос",
+    "region": "Сибирь",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Кызыл": {
+    "country": "Орос",
+    "region": "Сибирь",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Лондон/Хитроу": {
+    "country": "Их Британи",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Льеж": {
+    "country": "Белги",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Мальдив": {
+    "country": "Мальдив",
+    "region": "Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Манжуур": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Манила": {
+    "country": "Филиппин",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Мөрөн": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "На Транг": {
+    "country": "Вьетнам",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Нагано/Мацумото": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Ницца/Франц": {
+    "country": "Франц",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Нур-Султан": {
+    "country": "Казахстан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Ордос": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Осака/Кансай": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Прага": {
+    "country": "Чех",
+    "region": "Төв Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Пукет": {
+    "country": "Тайланд",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": [
+      "пхукет",
+      "phuket"
+    ]
+  },
+  "Пулково/Санкт-Петербург": {
+    "country": "Орос",
+    "region": "Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Санья/Хайнань": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Семей": {
+    "country": "Казахстан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Сингапур/Чанги": {
+    "country": "Сингапур",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Станстед/Лондон": {
+    "country": "Их Британи",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Сүгакава": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Сөүл/Гимпо": {
+    "country": "Өмнөд Солонгос",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "сеул",
+      "сөвл",
+      "гимпо"
+    ]
+  },
+  "Сөүл/Инчеон": {
+    "country": "Өмнөд Солонгос",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "сеул",
+      "сөвл",
+      "инчон",
+      "инчеон"
+    ]
+  },
+  "Ташкент": {
+    "country": "Узбекистан",
+    "region": "Төв Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Тбилис": {
+    "country": "Гүрж",
+    "region": "Кавказ",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Токио/Нарита": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "токио",
+      "токёо",
+      "нарита",
+      "tokyo"
+    ]
+  },
+  "Токио/Ханеда": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "токио",
+      "токёо",
+      "ханеда",
+      "haneda"
+    ]
+  },
+  "Токонаме": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Тэгү": {
+    "country": "Өмнөд Солонгос",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Тяньжин": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Улаан-Үд": {
+    "country": "Орос",
+    "region": "Сибирь",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Улаангом": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Улиастай": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Уфа/Уфа": {
+    "country": "Орос",
+    "region": "Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Фарнбороу": {
+    "country": "Их Британи",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Франкфурт": {
+    "country": "Герман",
+    "region": "Баруун Европ",
+    "continent": "Европ",
+    "aliases": []
+  },
+  "Фукуок": {
+    "country": "Вьетнам",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Фукуока": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Хайкоу/Хайнань": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Хайлаар/Хөлөнбуйр": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Ханбумбат": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Ханой": {
+    "country": "Вьетнам",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Хирошима": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Хо Ши Мин": {
+    "country": "Вьетнам",
+    "region": "Зүүн Өмнөд Ази",
+    "continent": "Ази",
+    "aliases": [
+      "хошимин",
+      "сайгон",
+      "saigon"
+    ]
+  },
+  "Ховд": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Хоккайдо": {
+    "country": "Япон",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "ХонгКонг": {
+    "country": "Хонг Конг",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "хонгконг",
+      "хонг конг",
+      "hong kong"
+    ]
+  },
+  "Хунцяо/Шанхай": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "шанхай",
+      "хунцяо"
+    ]
+  },
+  "Хөх хот": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Чингис хаан": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Чита": {
+    "country": "Орос",
+    "region": "Сибирь",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Чойбалсан": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Чонжү": {
+    "country": "Өмнөд Солонгос",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Чэжү": {
+    "country": "Өмнөд Солонгос",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Шанхай/Пудон": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "шанхай",
+      "пудон"
+    ]
+  },
+  "Шанхай/Хунцяо": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": [
+      "шанхай",
+      "хунцяо"
+    ]
+  },
+  "Ши'Ань/Шяньян": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Шиамень": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Шинжен/Женжоу": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Энши Шюжяпин": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Эрхүү": {
+    "country": "Орос",
+    "region": "Сибирь",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Эрээн": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Яоцян/Жинань": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Өлгий": {
+    "country": "Монгол",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  },
+  "Өрөмч/Дивопу": {
+    "country": "Хятад",
+    "region": "Зүүн Ази",
+    "continent": "Ази",
+    "aliases": []
+  }
+}

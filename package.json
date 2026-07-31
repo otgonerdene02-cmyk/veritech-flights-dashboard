@@ -8,6 +8,7 @@
   },
   "scripts": {
     "fetch": "node scripts/fetchFlights.js",
+    "apply-ontology": "node scripts/applyOntology.js",
     "test": "node scripts/test-chatbot-accuracy.js",
     "test:visibility": "node test-visibility.js",
     "test:visual": "playwright test",

@@ -1,8 +1,8 @@
-const { CITY_TO_COUNTRY } = require('./city_country_map');
+const { lookupCityInfo } = require('./ontology');
 
 function mapVeritechRow(row) {
   const city = (row.CITY || '').trim();
-  const cntry = CITY_TO_COUNTRY[city] || 'Тодорхойгүй';
+  const cntry = lookupCityInfo(city).country;
 
   const dateStr = (row.OGNOO || '').trim();
   const [datePart] = dateStr.split(' ');

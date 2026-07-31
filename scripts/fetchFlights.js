@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const { mapVeritechRow } = require('./mapVeritechRow');
+const { enrichAll } = require('./ontology');
 
 const API_URL = process.env.MRTD_API_URL || 'https://platform.mrtd.gov.mn/restapi';
 const USERNAME = process.env.MRTD_USERNAME;
@@ -134,6 +135,12 @@ async function main() {
 
   merged.sort((a, b) => toDateKey(b).localeCompare(toDateKey(a)) || (b.id - a.id));
   if (merged.length > MAX_RECORDS) merged = merged.slice(0, MAX_RECORDS);
+
+  // Хуучин (өмнө нь бичигдсэн) БОЛОН шинээр орж ирсэн мөр бvгдийг ontology
+  // lookup-аар дахин боловсруулж region/continent/alliance/category баганыг
+  // шингээнэ -- ингэснээр data/ontology/-д хожим нэмэлт орж ирэхэд өмнөх
+  // "Тодорхойгvй" мөрvvд ч дараагийн ажиллах vед автоматаар засагдана.
+  merged = enrichAll(merged);
 
   const output = {
     meta: {
