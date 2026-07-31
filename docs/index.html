@@ -497,8 +497,8 @@
 
     <div class="card">
       <h2>Бүс нутаг тус бүрийн зорчигч</h2>
-      <p class="desc">Онтологид суурилсан бүс нутгаар (Зүүн Ази, Зүүн Өмнөд Ази, Ойрхи Дорнод г.м) нэгтгэсэн, нийт зорчигчоор эрэмбэлсэн жагсаалт</p>
-      <div id="region-wrap"></div>
+      <p class="desc">Онтологийн бүс нутгийн шатлал (Зүүн Ази, Зүүн Өмнөд Ази, Ойрхи Дорнод г.м) — талбайн хэмжээ зорчигчийн тоонд пропорциональ. Бүс нутаг дээр дарж улс тус бүрийн задаргаа руу шилжинэ vv (буцахын тулд дээд зvvн буланд гарах зам ашиглана уу).</p>
+      <div id="region-treemap" style="height:420px"></div>
     </div>
 
     <div class="card" id="chat-card">
@@ -777,6 +777,7 @@
 
   var mapChart = null;
   var worldMapReady = null;
+  var regionTreemapChart = null;
 
   function ensureWorldMap() {
     if (worldMapReady) return worldMapReady;
@@ -1066,11 +1067,202 @@
   function renderCountryChart(rows) {
     renderBreakdownTable('country-wrap', topGroups(rows, function (r) { return r.cntry; }, ['Монгол', 'Тодорхойгүй']));
   }
-  // scripts/ontology.js-ээр урьдчилан баяжуулагдсан `region` баганаар (онтологийн
-  // бүс нутгийн шатлал) нэгтгэнэ — country-chart-тай ижил pattern, зөвхөн
-  // "Тодорхойгүй" (lookup-д ороогүй хот) ангиллыг эс тооцно.
-  function renderRegionChart(rows) {
-    renderBreakdownTable('region-wrap', topGroups(rows, function (r) { return r.region; }, ['Тодорхойгүй']));
+  // ---------- Бvс нутгийн Treemap (онтологийн region → country шатлал) ----------
+  var TREEMAP_TOP_REGIONS = 7;
+  var REGION_OTHER_COLOR = '#9aa0a6';
+
+  // scripts/ontology.js-ээр урьдчилан баяжуулагдсан `region`/`cntry`/`carr`
+  // баганаар 2 давхар (бvс нутаг → улс) шаталсан treemap дата бэлтгэнэ, улс
+  // бvрийн дотор топ-3 тээвэрлэгчийг tooltip-д зориулж тооцно. "Тодорхойгvй"
+  // (lookup-д ороогvй хот) region-ийг эс тооцно. ROW_COLORS-ийн 8 hue-ийн
+  // хязгаараас хэтрvvлэхгvйн тулд хамгийн жижиг бvсvvдийг "Бусад бvс нутаг"
+  // нэг node болгож нэгтгэнэ (dataviz-ийн "fold the tail into Other" зарчим).
+  function buildRegionTreemapData(rows) {
+    var byRegion = {};
+    var grandTotal = 0;
+    rows.forEach(function (r) {
+      var region = r.region;
+      if (!region || region === 'Тодорхойгүй') return;
+      var country = r.cntry || 'Тодорхойгүй';
+      var carr = r.carr || 'Тодорхойгүй';
+      var pax = r.pax || 0;
+      grandTotal += pax;
+      if (!byRegion[region]) byRegion[region] = { pax: 0, fl: 0, countries: {} };
+      byRegion[region].pax += pax; byRegion[region].fl++;
+      var rc = byRegion[region].countries;
+      if (!rc[country]) rc[country] = { pax: 0, fl: 0, carriers: {} };
+      rc[country].pax += pax; rc[country].fl++;
+      if (!rc[country].carriers[carr]) rc[country].carriers[carr] = { pax: 0, fl: 0 };
+      rc[country].carriers[carr].pax += pax; rc[country].carriers[carr].fl++;
+    });
+
+    function topCarriers(carriers) {
+      return Object.keys(carriers).map(function (c) { return { name: c, pax: carriers[c].pax, fl: carriers[c].fl }; })
+        .sort(function (a, b) { return b.pax - a.pax; }).slice(0, 3);
+    }
+
+    // country node-уудад itemStyle.color-ыг ЗОРИУДААР олгохгvй -- ECharts
+    // treemap-ийн levels[2].colorSaturation тохиргоо эцэг (region) node-ийн
+    // өнгөнөөс автоматаар цайруулсан хувилбарыг vvсгэнэ.
+    function countryNodes(countries, regionTotal) {
+      return Object.keys(countries).map(function (c) {
+        var d = countries[c];
+        return {
+          name: c, value: d.pax,
+          _flights: d.fl, _parentTotal: regionTotal,
+          _topCarriers: topCarriers(d.carriers),
+        };
+      }).sort(function (a, b) { return b.value - a.value; });
+    }
+
+    function mergeCountries(entries) {
+      var merged = {};
+      entries.forEach(function (e) {
+        Object.keys(e.data.countries).forEach(function (c) {
+          var src = e.data.countries[c];
+          if (!merged[c]) merged[c] = { pax: 0, fl: 0, carriers: {} };
+          merged[c].pax += src.pax; merged[c].fl += src.fl;
+          Object.keys(src.carriers).forEach(function (carr) {
+            if (!merged[c].carriers[carr]) merged[c].carriers[carr] = { pax: 0, fl: 0 };
+            merged[c].carriers[carr].pax += src.carriers[carr].pax;
+            merged[c].carriers[carr].fl += src.carriers[carr].fl;
+          });
+        });
+      });
+      return merged;
+    }
+
+    var regionEntries = Object.keys(byRegion).map(function (name) { return { name: name, data: byRegion[name] }; })
+      .sort(function (a, b) { return b.data.pax - a.data.pax; });
+
+    var topEntries = regionEntries.slice(0, TREEMAP_TOP_REGIONS);
+    var restEntries = regionEntries.slice(TREEMAP_TOP_REGIONS);
+
+    var nodes = topEntries.map(function (e, i) {
+      var children = countryNodes(e.data.countries, e.data.pax);
+      return {
+        name: e.name, value: e.data.pax,
+        _flights: e.data.fl, _parentTotal: grandTotal, _topCountries: children.slice(0, 3),
+        itemStyle: { color: ROW_COLORS[i % ROW_COLORS.length] },
+        children: children,
+      };
+    });
+
+    if (restEntries.length) {
+      var restPax = restEntries.reduce(function (s, e) { return s + e.data.pax; }, 0);
+      var restFl = restEntries.reduce(function (s, e) { return s + e.data.fl; }, 0);
+      var mergedCountries = mergeCountries(restEntries);
+      var children = countryNodes(mergedCountries, restPax);
+      nodes.push({
+        name: 'Бусад бүс нутаг', value: restPax,
+        _flights: restFl, _parentTotal: grandTotal, _topCountries: children.slice(0, 3),
+        itemStyle: { color: REGION_OTHER_COLOR },
+        children: children,
+      });
+    }
+
+    return { nodes: nodes, grandTotal: grandTotal };
+  }
+
+  // ECharts treemap tooltip formatter -- info.treePathInfo арга нь [root, ..., self]
+  // хэлбэртэй тул урт нь 2 бол region-level (root+region), 3 бол drill-down хийсэн
+  // country-level (root+region+country) гэдгийг ялгана.
+  function regionTreemapTooltip(info) {
+    var d = info.data || {};
+    var depth = (info.treePathInfo || []).length;
+    var pct = d._parentTotal > 0 ? (info.value / d._parentTotal * 100) : 0;
+    var lines = [];
+
+    if (depth <= 2) {
+      lines.push('<b>' + escHtml(info.name) + '</b>');
+      lines.push('Нийт зорчигч: ' + fmtNum(info.value) + ' (' + pct.toFixed(1) + '%)');
+      lines.push('Нислэгийн тоо: ' + fmtNum(d._flights || 0));
+      if (d._topCountries && d._topCountries.length) {
+        lines.push('<div style="margin-top:6px;font-weight:600">Улс:</div>');
+        d._topCountries.forEach(function (c) {
+          var cpct = info.value > 0 ? (c.value / info.value * 100) : 0;
+          lines.push(escHtml(c.name) + ': ' + fmtNum(c.value) + ' (' + cpct.toFixed(1) + '%)');
+        });
+      }
+    } else {
+      var regionName = info.treePathInfo[1] ? info.treePathInfo[1].name : '';
+      lines.push('<b>' + escHtml(info.name) + '</b> · ' + escHtml(regionName));
+      lines.push('Нийт зорчигч: ' + fmtNum(info.value) + ' (' + escHtml(regionName) + '-ийн ' + pct.toFixed(1) + '%)');
+      lines.push('Нислэгийн тоо: ' + fmtNum(d._flights || 0));
+      if (d._topCarriers && d._topCarriers.length) {
+        lines.push('<div style="margin-top:6px;font-weight:600">Тээвэрлэгч:</div>');
+        d._topCarriers.forEach(function (c) {
+          var carrPct = info.value > 0 ? (c.pax / info.value * 100) : 0;
+          lines.push(escHtml(c.name) + ': ' + fmtNum(c.pax) + ' (' + carrPct.toFixed(1) + '%)');
+        });
+      }
+    }
+    return lines.join('<br/>');
+  }
+
+  function renderRegionTreemap(rows) {
+    var dom = document.getElementById('region-treemap');
+    if (typeof echarts === 'undefined') {
+      dom.innerHTML = '<div class="empty-state">ECharts номын сан ачаалагдсангүй</div>';
+      return;
+    }
+
+    var built = buildRegionTreemapData(rows);
+    if (!built.grandTotal || !built.nodes.length) {
+      if (regionTreemapChart) { regionTreemapChart.dispose(); regionTreemapChart = null; }
+      dom.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>';
+      return;
+    }
+
+    if (!regionTreemapChart) {
+      dom.innerHTML = '';
+      // svg renderer: Playwright-аар drill-down/layout-ыг DOM-оор шалгах боломжтой
+      // болгоно (canvas renderer дотоод элементvvдийг DOM-оор шалгах боломжгvй).
+      regionTreemapChart = echarts.init(dom, null, { renderer: 'svg' });
+      window.addEventListener('resize', function () { regionTreemapChart.resize(); });
+    }
+
+    var surface = getVar('--surface-1');
+    var border = getVar('--border');
+    var textPrimary = getVar('--text-primary');
+    var textSecondary = getVar('--text-secondary');
+
+    regionTreemapChart.setOption({
+      tooltip: {
+        backgroundColor: surface, borderColor: border, borderWidth: 1,
+        textStyle: { color: textPrimary, fontSize: 13 },
+        formatter: regionTreemapTooltip,
+      },
+      series: [{
+        type: 'treemap',
+        roam: false,
+        nodeClick: 'zoomToNode',
+        // leafDepth:1 -- эхлээд ЗӨВХӨН region-level box-уудыг (тэдгээрийн улс
+        // задаргааг нуруулж) харуулна; region дээр дарахад л country-level
+        // "навч"-ийг илрvvлж бvтэн дэлгэц дvvргэнэ (жинхэнэ drill-down).
+        // Vvнгvйгээр бvх түвшин НЭГ дор нэгэн зэрэг харагдаж, харагдах байдал
+        // холилдож, дарахад дvрслэл өөрчлөгддөггvй байсан.
+        leafDepth: 1,
+        breadcrumb: {
+          show: true,
+          itemStyle: { color: surface, borderColor: border, borderWidth: 1, textStyle: { color: textSecondary } },
+        },
+        label: { show: true, color: '#fff', fontSize: 13, overflow: 'truncate', textShadowColor: 'rgba(0,0,0,0.35)', textShadowBlur: 2 },
+        // Zoom хийж drill-down хийсний дараа эцэг node-ийн өөрийн upperLabel
+        // мөр default-оор цагаан дэвсгэр дээр vзvvлдэг тул (харанхуй горимд ч
+        // адилхан цагаан) текстийг theme-ийн үндсэн ink өнгөөр (--text-primary)
+        // зурж, `backgroundColor`-ыг card-ийн surface-тэй тохируулна.
+        upperLabel: { show: true, height: 26, color: textPrimary },
+        backgroundColor: surface,
+        itemStyle: { borderColor: surface, gapWidth: 2 },
+        levels: [
+          {},
+          { itemStyle: { borderWidth: 0, gapWidth: 3 } },
+          { colorSaturation: [0.35, 0.55], itemStyle: { borderWidth: 1, borderColorSaturation: 0.4, gapWidth: 1 } },
+        ],
+        data: built.nodes,
+      }],
+    }, true);
   }
 
   // ---------- Өдөр тутмын trend (SVG) ----------
@@ -1262,7 +1454,7 @@
     renderOUChart(rows);
     renderCarrierChart(rows);
     renderCountryChart(rows);
-    renderRegionChart(rows);
+    renderRegionTreemap(rows);
     renderLineChart(rows);
     renderTable();
   }

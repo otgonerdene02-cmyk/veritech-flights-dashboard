@@ -51,5 +51,14 @@ test.describe('dashboard visual regression', () => {
 
       await expect(page.locator('table.flights').locator('xpath=ancestor::*[contains(@class,"card")][1]')).toHaveScreenshot(`flights-table-${theme}.png`);
     });
+
+    test(`region treemap — ${theme} mode`, async ({ page }) => {
+      await gotoDashboard(page);
+      await setTheme(page, theme);
+      await page.waitForTimeout(500); // echarts treemap render/animation бvрэн дуусахыг хvлээнэ
+
+      const card = page.locator('#region-treemap').locator('xpath=ancestor::*[contains(@class,"card")][1]');
+      await expect(card).toHaveScreenshot(`region-treemap-${theme}.png`);
+    });
   }
 });
