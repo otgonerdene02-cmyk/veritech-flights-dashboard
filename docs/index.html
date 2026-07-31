@@ -966,7 +966,7 @@
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '58%',
         plugins: {
-          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 12, padding: 10 } },
+          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 10, padding: 8 } },
           tooltip: {
             backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: accent, bodyColor: textSecondary,
             padding: 10, cornerRadius: 8, displayColors: false,
@@ -1716,7 +1716,7 @@
           responsive: true, interaction: { mode: 'index', intersect: false },
           plugins: {
             title: Object.assign({}, baseTitle, { text: 'Сарын ' + mNameLC + ' ба хуримтлагдсан дүнгийн хандлага' }),
-            legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12 } },
+            legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 10, padding: 8 } },
             tooltip: Object.assign({}, baseTooltip, {
               callbacks: {
                 label: function (c) {
@@ -1755,7 +1755,7 @@
           responsive: true, interaction: { mode: 'index', intersect: false },
           plugins: {
             title: Object.assign({}, baseTitle, { text: gm.period + ' ' + mNameLC + ' ба өсөлтийн хандлага' }),
-            legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12 } },
+            legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 10, padding: 8 } },
             tooltip: Object.assign({}, baseTooltip, {
               callbacks: {
                 label: function (c) {
@@ -1786,7 +1786,7 @@
           responsive: true, cutout: '60%',
           plugins: {
             title: Object.assign({}, baseTitle, { text: (result.label || '') + ' — ' + mName + ' харьцуулалт' }),
-            legend: { position: 'bottom', labels: { color: textSecondary, boxWidth: 12, padding: 16 } },
+            legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 10, padding: 8 } },
             tooltip: Object.assign({}, baseTooltip, { callbacks: { label: function (c) { return ' ' + mName + ': ' + fmtWithUnit(c.raw) + '  (нийт дүнгийн ' + (c.raw / Math.max(totalV, 1) * 100).toFixed(1) + '%)'; } } }),
           },
         },
