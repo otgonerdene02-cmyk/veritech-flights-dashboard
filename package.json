@@ -9,9 +9,12 @@
   "scripts": {
     "fetch": "node scripts/fetchFlights.js",
     "test": "node scripts/test-chatbot-accuracy.js",
-    "test:visibility": "node test-visibility.js"
+    "test:visibility": "node test-visibility.js",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "playwright": "^1.62.0"
   }
 }
