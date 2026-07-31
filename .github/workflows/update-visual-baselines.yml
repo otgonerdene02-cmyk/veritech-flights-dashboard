@@ -1,0 +1,48 @@
+name: Update Visual Baselines
+
+# Гараар л ажиллуулна (workflow_dispatch). Локал дээр vvсгэсэн snapshot нь
+# OS-specific нэртэй тул (жишээ: *-win32.png), ubuntu-latest дээр ажилладаг
+# visual-tests.yml нь эхний удаад өөрийн орчны (Linux) baseline-гvй байх
+# болно. Энэ workflow-г нэг удаа гараар ажиллуулж CI-ийн орчинд зориулсан
+# баримт (ground truth) snapshot vvсгэж commit хийнэ — дараа нь
+# visual-tests.yml тэрхvv Linux baseline-тай харьцуулна.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update-baselines:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Regenerate snapshots
+        run: npm run test:visual:update
+
+      - name: Commit updated baselines if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tests/**/*-snapshots/**
+          if git diff --cached --quiet; then
+            echo "No baseline changes"
+          else
+            git commit -m "chore: update visual regression baselines [skip ci]"
+            git push
+          fi

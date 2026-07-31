@@ -70,11 +70,56 @@ CDN-ээс (`cdn.jsdelivr.net`) ачаалдаг, мөн газрын зурги
 
 ## Локал тест
 
+Нэвтрэх мэдээллийг эх кодод/README-д plaintext-ээр бичихгvй, локал `.env`-д хадгал
+(`.gitignore`-д аль хэдийн `.env.local` орсон байгаа):
+
 ```
-$env:MRTD_USERNAME="v_integration"
-$env:MRTD_PASSWORD="@Integr@ti0n@123"
+# .env.local (commit хийгдэхгvй)
+MRTD_USERNAME=<таны хэрэглэгчийн нэр>
+MRTD_PASSWORD=<таны нууц vг>
+```
+
+Дараа нь тухайн орчны хувьсагчаар ачаалж ажиллуул:
+
+```
+$env:MRTD_USERNAME=(Get-Content .env.local | Select-String MRTD_USERNAME).ToString().Split('=')[1]
+$env:MRTD_PASSWORD=(Get-Content .env.local | Select-String MRTD_PASSWORD).ToString().Split('=')[1]
 node scripts/fetchFlights.js
 ```
 
 Ажилласны дараа `docs/flights.json`-г шинэчилнэ; үүнийг `docs/index.html`-тэй хамт
 локал static server-ээр (`npx serve docs` гм) нээж шалгаж болно.
+
+> **Аюулгvй байдал:** Git түvхэнд өмнө нь турших (`v_integration`) бодит нэвтрэх
+> мэдээлэл plaintext-ээр commit хийгдэж байсан. Хэрэв энэ эрх одоо ч идэвхтэй бол
+> API нэвтрэх vгийг эргvvлж (rotate) солихыг зөвлөж байна — README-ээс устгасан ч
+> хуучин commit-vvдэд vлдсэн хэвээр.
+
+## Style/font өөрчлөлт хийх vед
+
+Хvснэгт, KPI карт зэрэг элементvvдийн font-size/line-height/height-той холбоотой
+CSS засвар хийх бvрт **заавал** дараах тестийг ажиллуулж, элементvvд хоорондоо
+давхцаж (overlap) эсвэл overflow болоогvйг баталгаажуул:
+
+```
+npm run test:visual
+```
+
+Энэ нь:
+- `tests/visual.spec.js` — dashboard-ын гол хэсгvvдийн screenshot-ыг baseline-тай
+  харьцуулна (`maxDiffPixelRatio: 0.01`)
+- `tests/overlap.spec.js` — KPI карт, задаргааны хvснэгт (тээвэрлэгч/улс), нислэгийн
+  жагсаалтын хvснэгтийн чухал элементvvд (тоон утга vs толгой мөр гэх мэт) хоорондын
+  bounding rect давхцаж байгаа эсэхийг автоматаар шалгана
+
+Санаатайгаар дизайн өөрчилсний дараа screenshot baseline-г шинэчлэх бол:
+
+```
+npm run test:visual:update
+```
+
+CI дээр `docs/index.html` эсвэл `tests/**`-д өөрчлөлт орох бvрд
+(`.github/workflows/visual-tests.yml`) энэ тестvvд автоматаар ажиллаж, davхцал/
+overflow илэрвэл PR/push-ыг FAIL болгоно. Linux (ubuntu-latest) CI-д зориулсан
+baseline screenshot-г эхний удаа vvсгэх/шинэчлэх бол **Actions → Update Visual
+Baselines → Run workflow** товч дээр дар.
