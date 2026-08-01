@@ -248,6 +248,13 @@
     border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
     flex: 1 1 220px;
   }
+  .btn-export {
+    font: inherit; font-size: 0.875rem; font-weight: 600; padding: 7px 14px; border-radius: 6px;
+    border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-export:hover { filter: brightness(1.08); }
+  .btn-export:disabled { opacity: 0.5; cursor: default; }
   .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 340px; }
   table.flights { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
   table.flights th, table.flights td {
@@ -257,10 +264,23 @@
   table.flights td.num, table.flights th.num { text-align: right; font-variant-numeric: tabular-nums; }
   table.flights th {
     color: var(--text-secondary); font-weight: 600; cursor: pointer; user-select: none;
-    position: sticky; top: 0; background: var(--surface-1);
+    position: sticky; top: 0; background: var(--surface-1); z-index: 1;
   }
   table.flights th:hover { color: var(--text-primary); }
   table.flights tbody tr:hover { background: var(--accent-wash); }
+  /* Огноо/Компани баганыг хажуу scroll хийхэд ч харагдуулна */
+  table.flights th:nth-child(1), table.flights td:nth-child(1) {
+    position: sticky; left: 0; z-index: 2; background: var(--surface-1);
+    min-width: 100px; max-width: 100px; overflow: hidden; text-overflow: ellipsis;
+  }
+  table.flights th:nth-child(2), table.flights td:nth-child(2) {
+    position: sticky; left: 100px; z-index: 2; background: var(--surface-1);
+    min-width: 170px; max-width: 170px; overflow: hidden; text-overflow: ellipsis;
+    border-right: 1px solid var(--border);
+  }
+  table.flights thead th:nth-child(1), table.flights thead th:nth-child(2) { z-index: 3; }
+  table.flights tbody tr:hover td:nth-child(1),
+  table.flights tbody tr:hover td:nth-child(2) { background: var(--accent-wash); }
   .pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.875rem; color: var(--text-secondary); }
   .pager button {
     font: inherit; font-size: 0.875rem; background: var(--page); border: 1px solid var(--border);
@@ -402,6 +422,11 @@
 
     <div class="card filter-bar">
       <div class="frow">
+        <span class="flabel">Жил</span>
+        <select id="year-select" class="region-select"><option value="all">Бүгд</option></select>
+      </div>
+      <div class="divider"></div>
+      <div class="frow">
         <span class="flabel">Сар</span>
         <div class="range-wrap">
           <input type="text" id="mFrom" placeholder="1" maxlength="2" />
@@ -480,6 +505,7 @@
       <p class="desc">Багана дээр дарж эрэмбэлнэ; хайлтын талбараар нислэг/компани/хот/улсаар шүүнэ</p>
       <div class="table-controls">
         <input class="search" id="search" type="text" placeholder="Хайх… (компани, нислэгийн дугаар, хот, улс)" />
+        <button class="btn-export" id="export-xlsx" type="button">⬇ Excel татах</button>
       </div>
       <div class="table-scroll">
         <table class="flights">
@@ -525,6 +551,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 (function () {
   // ---------- helpers ----------
@@ -561,7 +588,10 @@
 
   // ---------- state ----------
   var allRows = [];
-  var filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
+  // Dashboard анх ачаалахад "Жил" шvvлт автоматаар одоогийн жилээр идэвхжинэ —
+  // хэрэглэгч тусад нь өөрчлөх (эсвэл "Бvгд" сонгох) хvртэл иймэрхvv хэвээр vлдэнэ.
+  var CURRENT_YEAR = new Date().getFullYear();
+  var filters = { year: CURRENT_YEAR, mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
   var COLUMNS = [
     { key: 'date', label: 'Огноо', num: false },
     { key: 'carr', label: 'Компани', num: false },
@@ -572,16 +602,42 @@
     { key: 'category', label: 'Ангилал', num: false },
     { key: 'pax', label: 'Зорчигч', num: true },
     { key: 'cargoKg', label: 'Ачаа (кг)', num: true },
+    // ---- Нэмэлт MRTD баганууд ----
+    { key: 'id', label: 'Аяллын дугаар', num: false },
+    { key: 'weekday', label: 'Гараг', num: false },
+    { key: 'ouLabel', label: 'ОУ/Дотоод', num: false },
+    { key: 'flightType', label: 'Нислэгийн төрөл', num: false },
+    { key: 'aircraft', label: 'Агаарын хөлгийн маяг', num: false },
+    { key: 'acManufacturer', label: 'Үйлдвэрлэгч', num: false },
+    { key: 'acSeatCap', label: 'Суудлын багтаамж', num: true },
+    { key: 'acRegCountry', label: 'Бүртгэлийн улс', num: false },
+    { key: 'adult', label: 'Том хүн', num: true },
+    { key: 'child', label: 'Хүүхэд', num: true },
+    { key: 'infant', label: 'Нялх', num: true },
+    { key: 'transit', label: 'Транзит', num: true },
+    { key: 'vip', label: 'ВИП', num: true },
+    { key: 'diplomat', label: 'Дипломат', num: true },
+    { key: 'crew', label: 'Нисэх баг', num: true },
+    { key: 'seated', label: 'Суудал эзэлсэн зорчигч', num: true },
+    { key: 'cargo', label: 'Ачаа (тонн)', num: true, dec: 3 },
+    { key: 'mailKg', label: 'Шуудан (кг)', num: true },
+    { key: 'mailTon', label: 'Шуудан /тонн/', num: true, dec: 3 },
+    // ---- Онтологи баганууд ----
+    { key: 'region', label: 'Бүс нутаг', num: false },
+    { key: 'continent', label: 'Тив', num: false },
+    { key: 'alliance', label: 'Альянс', num: false },
+    { key: 'acCategory', label: 'Онгоцны ангилал', num: false },
   ];
   var state = { rows: [], filtered: [], sortKey: 'date', sortDir: 'desc', page: 0, pageSize: 25 };
 
   // ---------- filter bar ----------
   function isFiltered() {
-    return filters.mFrom !== null || filters.mTo !== null || filters.ou !== 'all' || filters.dir !== 'all' || filters.region !== 'all';
+    return filters.year !== 'all' || filters.mFrom !== null || filters.mTo !== null || filters.ou !== 'all' || filters.dir !== 'all' || filters.region !== 'all';
   }
 
   function applyFilters(rows) {
     return rows.filter(function (r) {
+      if (filters.year !== 'all' && r.year !== filters.year) return false;
       if (filters.mFrom !== null && r.month < filters.mFrom) return false;
       if (filters.mTo !== null && r.month > filters.mTo) return false;
       if (filters.ou !== 'all' && r.ou !== filters.ou) return false;
@@ -602,6 +658,23 @@
   }
   document.getElementById('region-select').addEventListener('change', function (e) {
     filters.region = e.target.value;
+    rerender();
+  });
+
+  function populateYearSelect(rows) {
+    var sel = document.getElementById('year-select');
+    var years = Array.from(new Set(rows.map(function (r) { return r.year; }).filter(Boolean)));
+    if (years.indexOf(CURRENT_YEAR) === -1) years.push(CURRENT_YEAR);
+    years.sort(function (a, b) { return b - a; });
+    years.forEach(function (y) {
+      var opt = document.createElement('option');
+      opt.value = String(y); opt.textContent = String(y);
+      sel.appendChild(opt);
+    });
+    sel.value = String(filters.year);
+  }
+  document.getElementById('year-select').addEventListener('change', function (e) {
+    filters.year = e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10);
     rerender();
   });
 
@@ -656,11 +729,14 @@
     document.getElementById('mTo').value = '';
     document.getElementById('mFrom').classList.remove('err');
     document.getElementById('mTo').classList.remove('err');
-    filters = { mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
+    // "Бvгд арилгах" нь бусад бvх шvvлтийг цэвэрлэдэг ч Жил шvvлтийг
+    // dashboard-ийн анхны төлөв рvv (одоогийн жил) буцаана, "Бvгд" рvv биш.
+    filters = { year: CURRENT_YEAR, mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
     document.querySelectorAll('.fchip').forEach(function (c) { c.classList.remove('active'); });
     document.querySelector('[data-ou="all"]').classList.add('active');
     document.querySelector('[data-dir="all"]').classList.add('active');
     document.getElementById('region-select').value = 'all';
+    document.getElementById('year-select').value = String(CURRENT_YEAR);
     rerender();
   }
 
@@ -678,6 +754,7 @@
   function updateFilterTags() {
     var wrap = document.getElementById('atags');
     var tags = [];
+    if (filters.year !== 'all') tags.push({ l: 'Жил: ' + filters.year, k: 'year' });
     if (filters.mFrom !== null || filters.mTo !== null) {
       var f = filters.mFrom, t = filters.mTo;
       var lbl = f === t ? monthLabel(f) : (monthLabel(f) + ' – ' + monthLabel(t));
@@ -696,6 +773,7 @@
         var key = x.parentElement.getAttribute('data-key');
         if (key === 'month') { clearMonthFilter(); return; }
         if (key === 'region') { filters.region = 'all'; document.getElementById('region-select').value = 'all'; rerender(); return; }
+        if (key === 'year') { filters.year = 'all'; document.getElementById('year-select').value = 'all'; rerender(); return; }
         filters[key] = 'all';
         document.querySelectorAll('[data-' + key + ']').forEach(function (c) { c.classList.remove('active'); });
         document.querySelector('[data-' + key + '="all"]').classList.add('active');
@@ -1394,6 +1472,31 @@
     renderTable();
   });
 
+  // ---------- Excel татах (SheetJS) ----------
+  // state.filtered нь идэвхтэй шvvлт (filter chip/сар) + хvснэгтийн хайлтын
+  // vр дvнг агуулдаг (renderTable-ийн эцэст тохируулагдана) — хуудаслалт
+  // хамаарахгvйгээр БVХ тохирсон мөрийг татна.
+  document.getElementById('export-xlsx').addEventListener('click', function () {
+    if (typeof XLSX === 'undefined') {
+      alert('Excel сан ачаалагдсангүй. Дахин оролдоно уу.');
+      return;
+    }
+    var rows = state.filtered.length ? state.filtered : state.rows;
+    var header = COLUMNS.map(function (c) { return c.label; });
+    var body = rows.map(function (r) {
+      return COLUMNS.map(function (c) {
+        var v = r[c.key];
+        return v == null ? '' : v;
+      });
+    });
+    var ws = XLSX.utils.aoa_to_sheet([header].concat(body));
+    ws['!cols'] = COLUMNS.map(function (c) { return { wch: Math.max(c.label.length + 2, c.num ? 10 : 14) }; });
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Нислэгүүд');
+    var today = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, 'niislegvvdiin_jagsaalt_' + today + '.xlsx');
+  });
+
   function renderTable() {
     var q = searchEl.value.trim().toLowerCase();
     var filtered = state.rows.filter(function (r) {
@@ -1421,9 +1524,15 @@
 
     tbodyEl.innerHTML = pageRows.map(function (r) {
       return '<tr>' + COLUMNS.map(function (c) {
-        var v = r[c.key];
-        if (c.num) v = fmtNum(v || 0);
-        return '<td class="' + (c.num ? 'num' : '') + '">' + (v == null ? '' : v) + '</td>';
+        var raw = r[c.key];
+        var v = raw;
+        if (c.num) {
+          v = c.dec != null
+            ? (Number(v) || 0).toLocaleString('mn-MN', { minimumFractionDigits: c.dec, maximumFractionDigits: c.dec })
+            : fmtNum(v || 0);
+        }
+        var title = raw == null ? '' : escHtml(String(raw));
+        return '<td class="' + (c.num ? 'num' : '') + '" title="' + title + '">' + (v == null ? '' : escHtml(String(v))) + '</td>';
       }).join('') + '</tr>';
     }).join('');
 
@@ -1434,13 +1543,19 @@
   }
 
   // ---------- data ingest + master render ----------
+  var WEEKDAY_LABELS = ['Ням', 'Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба'];
   function enrichRow(f) {
     var date = (f.year && f.month && f.day)
       ? f.year + '-' + pad2(f.month) + '-' + pad2(f.day)
       : '';
+    var weekday = (f.year && f.month && f.day)
+      ? WEEKDAY_LABELS[new Date(f.year, f.month - 1, f.day).getDay()]
+      : '';
     return Object.assign({}, f, {
       date: date,
+      weekday: weekday,
       dirLabel: f.dir === '0' ? 'Ирсэн' : (f.dir === '1' ? 'Явсан' : f.dir),
+      ouLabel: f.ou === 'ОУ' ? 'Олон улсын' : (f.ou === 'ОН' ? 'Дотоодын' : f.ou),
     });
   }
 
@@ -1469,6 +1584,7 @@
         : '';
       allRows = flights.map(enrichRow);
       populateRegionSelect(allRows);
+      populateYearSelect(allRows);
       rerender();
     })
     .catch(function (err) {
