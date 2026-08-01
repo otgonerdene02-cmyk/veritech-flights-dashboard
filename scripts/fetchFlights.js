@@ -32,26 +32,24 @@ const EARLIEST_YEAR = 2005; // аюулгvйн доод хязгаар — бо�
 // ажиллуулахад зориулсан) хийгдэнэ.
 const BACKFILL_ALL_YEARS = /^(1|true)$/i.test(process.env.FETCH_ALL_YEARS || '');
 
-// 2026-08-01: "offset vл харгалзан сvvлийн ~50 мөрийг л буцаадаг" гэсэн
-// өмнөх (2026-07-29) дvгнэлт буруу шалтгаантай байсан нь тогтоогдов —
-// script нь offset/pageSize-ийг parameters дор шууд бичиж байсан бол,
-// бодит API нь эдгээрийг parameters.paging.{offset,pageSize} гэсэн дэд
-// объект дотор шаарддаг байсан тул сервер параметрvvдийг vл тоож дефолт
-// (сvvлийн ~50 мөр) хариу буцаадаг байжээ. Зассны дараа шалгахад offset нь
-// 1-ээс эхэлдэг хуудасны дугаар (page number) бөгөөд offset=1..11 тус бvр
-// 1000 мөр, offset=12 сvvлийн 979 мөр (нийт 11,979 нь paging.totalcount-тай
-// яг тэнцэнэ), offset=13 хоосон буцаана гэдгийг баталгаажуулсан. Иймд одоо
-// API-г хуудаслан (offset=1, 2, 3, ...) бvх мөрийг татдаг болгосон.
-//
-// 2026-08-01 (2): Мөр бvрийн UPDATED талбарыг ("Unixtimestamp") тогтмол
-// (immutable) бvртгэлийн түлхvvр болгон ашиглана — тухайн ID vvсэх vедээ
-// vvсдэг бөгөөд агуулга нь хожим засварлагдсан ч энэ утга өөрчлөгддөггvй.
-// Тиймээс шинээр татсан мөр бvрийг өмнөх docs/flights.json дахь ижил
-// unixtimestamp-тай мөртэй харьцуулж шинэ/шинэчлэгдсэн/өөрчлөгдөөгvй гэж
-// ангилдаг (fetchAllRows нь vргэлж бvх мөрийг дахин татдаг тул бичигдэх
-// эцсийн жагсаалт нь vргэлж сvvлд татсан бvрэн дата байдаг — ангилал зөвхөн
-// логд харуулах статистикийн зориулалттай).
-const OUT_FILE = path.join(__dirname, '..', 'docs', 'flights.json');
+// 2026-08-01 (4): docs/flights.json нэг файлдаа 71MB хvрч GitHub-ийн 50MB
+// зөвлөмжит хязгаараас давсан тул жил бvрээр тусад нь файлд (flights-YYYY.json)
+// хуваасан. Энэ нь хоёр давуу талтай:
+//   1) Файл бvрийн хэмжээ хамгийн том жилд ч (~20 мянган мөр) 50MB-аас хол
+//      доогуур vлддэг.
+//   2) Өдөр тутмын (анхдагч) горим зөвхөн ОДООГИЙН ЖИЛИЙН файлыг л дахин
+//      бичдэг болсон тул өмнөх жилvvдийн файлд огт хvрдэггvй (өмнө нь
+//      бvх жилийн дата НЭГ файлд байсан тул анхдагч горимоор дахин бичихэд
+//      бусад жилvvдийн дата устдаг байсан нөхцөл байдлыг бvтцийн хувьд
+//      арилгасан).
+// docs/flights-index.json нь dashboard-д "ямар жилvvд бэлэн байгааг" том
+// файлуудыг татахгvйгээр мэдэх боломж олгодог жижиг индекс файл.
+const OUT_DIR = path.join(__dirname, '..', 'docs');
+const INDEX_FILE = path.join(OUT_DIR, 'flights-index.json');
+
+function yearFile(year) {
+  return path.join(OUT_DIR, `flights-${year}.json`);
+}
 
 if (!USERNAME || !PASSWORD) {
   console.error('MRTD_USERNAME / MRTD_PASSWORD орчны хувьсагч тохируулаагvй байна.');
@@ -167,64 +165,34 @@ async function fetchYearRows(year) {
   return { rows, requestCount };
 }
 
-// ӨДӨР ТУТМЫН (анхдагч) горим: зөвхөн одоогийн жилийг татна. Хямд бөгөөд
-// шинэ/өөрчлөгдсөн бараг бvх мөр (upsert-ийн Unixtimestamp харьцуулалтаар
-// илэрдэг) энэ дотор байдаг.
-async function fetchCurrentYearOnly() {
-  const currentYear = new Date().getFullYear();
-  const { rows, requestCount } = await fetchYearRows(currentYear);
-  console.log(`${currentYear} он: ${rows.length} мөр татагдлаа`);
-  return { rows, requestCount, yearSummaries: [{ year: currentYear, count: rows.length }] };
-}
-
-// НЭГ УДААГИЙН BACKFILL горим (зөвхөн FETCH_ALL_YEARS=1 vед): одоогийн
-// жилээс эхэлж ухрах чиглэлд, жил бvрийг дараалан (C26 шvvлтээр) бvрэн
-// татна. Аль нэг жил хоосон массив буцаавал, тэр жилээс цаашид дата
-// байхгvй гэж vзэж, татахаа тvvнд зогсооно (EARLIEST_YEAR бол аюулгvйн
-// доод хязгаар — бодит дата vvнээс өмнө дуусна гэж таамаглаж болзошгvй ч
-// endless loop-оос сэргийлдэг цэвэр аюулгvйн хамгаалалт).
-async function fetchAllYearsBackfill() {
-  const currentYear = new Date().getFullYear();
-  const allRows = [];
-  const yearSummaries = [];
-  let requestCount = 0;
-
-  for (let year = currentYear; year >= EARLIEST_YEAR; year--) {
-    const { rows, requestCount: yearRequestCount } = await fetchYearRows(year);
-    requestCount += yearRequestCount;
-
-    if (rows.length === 0) {
-      console.log(`${year} он: 0 мөр — дата эндээс цаашид байхгvй гэж vзэж татахаа зогсоов.`);
-      break;
-    }
-
-    allRows.push(...rows);
-    yearSummaries.push({ year, count: rows.length });
-    console.log(`${year} он: ${rows.length} мөр татагдлаа`);
-
-    await sleep(REQUEST_DELAY_MS);
-  }
-
-  return { rows: allRows, requestCount, yearSummaries };
-}
-
-function fetchAllRows() {
-  return BACKFILL_ALL_YEARS ? fetchAllYearsBackfill() : fetchCurrentYearOnly();
-}
-
 function toDateKey(f) {
   if (!f.year || !f.month || !f.day) return '';
   return `${f.year}-${String(f.month).padStart(2, '0')}-${String(f.day).padStart(2, '0')}`;
 }
 
-function loadExisting() {
+function loadYearFile(year) {
   try {
-    const raw = fs.readFileSync(OUT_FILE, 'utf8');
+    const raw = fs.readFileSync(yearFile(year), 'utf8');
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed.flights) ? parsed.flights : [];
   } catch {
     return [];
   }
+}
+
+function loadIndex() {
+  try {
+    const raw = fs.readFileSync(INDEX_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.years) ? parsed.years : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeIndex(entriesByYear) {
+  const years = Array.from(entriesByYear.values()).sort((a, b) => b.year - a.year);
+  fs.writeFileSync(INDEX_FILE, JSON.stringify({ years }, null, 2), 'utf8');
 }
 
 // Мөрийн агуулгыг харьцуулахад ашиглах талбарууд — mapVeritechRow-ийн гаралт.
@@ -241,22 +209,20 @@ function rowsEqual(a, b) {
   return COMPARE_FIELDS.every((k) => a[k] === b[k]);
 }
 
-async function main() {
-  console.log(BACKFILL_ALL_YEARS
-    ? `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, БVХ ЖИЛЭЭР (${new Date().getFullYear()}-аас ухран, FETCH_ALL_YEARS=1)...`
-    : `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, зөвхөн одоогийн жил (${new Date().getFullYear()})...`);
-  const { rows: rawRows, requestCount, yearSummaries } = await fetchAllRows();
-
+// Тухайн жилийн raw мөрvvдийг боловсруулж, ЗӨВХӨН ТvvНИЙ flights-YYYY.json
+// файлд бичнэ (бусад жилийн файлд огт хvрэхгvй). Өмнөх агуулгатай нь
+// Unixtimestamp-аар харьцуулж added/updated/unchanged тоологоо буцаана.
+function processYear(year, rawRows) {
   const fresh = rawRows.map((row) => Object.assign(
     { id: row.ID, unixtimestamp: Number(row.UPDATED) || null },
     mapVeritechRow(row)
   ));
   const uniqueTs = new Set(fresh.map((f) => f.unixtimestamp));
   if (uniqueTs.size !== fresh.length) {
-    console.warn(`Анхаар: ${fresh.length - uniqueTs.size} давхардсан Unixtimestamp илэрлээ (хуудаслалт давхцсан байж болзошгvй).`);
+    console.warn(`  Анхаар (${year}): ${fresh.length - uniqueTs.size} давхардсан Unixtimestamp илэрлээ (хуудаслалт давхцсан байж болзошгvй).`);
   }
 
-  const existing = loadExisting();
+  const existing = loadYearFile(year);
   const existingByTs = new Map(existing.map((f) => [f.unixtimestamp, f]));
 
   let added = 0;
@@ -273,37 +239,78 @@ async function main() {
     }
   }
 
-  let merged = enrichAll(fresh);
+  const merged = enrichAll(fresh);
   merged.sort((a, b) => toDateKey(b).localeCompare(toDateKey(a)) || (b.id - a.id));
 
+  const fetchedAt = new Date().toISOString();
   const output = {
-    meta: {
-      fetchedAt: new Date().toISOString(),
-      indicatorId: INDICATOR_ID,
-      count: merged.length,
-    },
+    meta: { fetchedAt, indicatorId: INDICATOR_ID, year, count: merged.length },
     flights: merged,
   };
 
-  fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
-  fs.writeFileSync(OUT_FILE, JSON.stringify(output, null, 2), 'utf8');
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+  // Compact (indent-гvй) JSON — целlofile хэмжээг бууруулах зорилготой
+  // (GitHub-ийн 50MB зөвлөмжит хязгаараас зайлсхийхэд тус нэмэр болно).
+  fs.writeFileSync(yearFile(year), JSON.stringify(output), 'utf8');
+
+  return { year, count: merged.length, fetchedAt, added, updated, unchanged };
+}
+
+async function main() {
+  const currentYear = new Date().getFullYear();
+  console.log(BACKFILL_ALL_YEARS
+    ? `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, БVХ ЖИЛЭЭР (${currentYear}-аас ухран, FETCH_ALL_YEARS=1)...`
+    : `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, зөвхөн одоогийн жил (${currentYear})...`);
+
+  const index = loadIndex();
+  const indexByYear = new Map(index.map((e) => [e.year, e]));
+
+  let requestCount = 0;
+  const results = [];
+
+  for (let year = currentYear; year >= EARLIEST_YEAR; year--) {
+    const { rows, requestCount: yearRequestCount } = await fetchYearRows(year);
+    requestCount += yearRequestCount;
+
+    if (rows.length === 0) {
+      if (BACKFILL_ALL_YEARS) {
+        console.log(`${year} он: 0 мөр — дата эндээс цаашид байхгvй гэж vзэж татахаа зогсоов.`);
+      }
+      break;
+    }
+
+    const result = processYear(year, rows);
+    results.push(result);
+    indexByYear.set(year, { year, count: result.count, fetchedAt: result.fetchedAt });
+    console.log(`${year} он: ${result.count} мөр татагдлаа (шинэ: ${result.added}, шинэчлэгдсэн: ${result.updated}, өөрчлөгдөөгvй: ${result.unchanged})`);
+
+    if (!BACKFILL_ALL_YEARS) break; // анхдагч горим: зөвхөн currentYear нэг л давталт
+    await sleep(REQUEST_DELAY_MS);
+  }
+
+  writeIndex(indexByYear);
+
+  const totalCount = results.reduce((s, r) => s + r.count, 0);
+  const totalAdded = results.reduce((s, r) => s + r.added, 0);
+  const totalUpdated = results.reduce((s, r) => s + r.updated, 0);
+  const totalUnchanged = results.reduce((s, r) => s + r.unchanged, 0);
 
   console.log('');
   console.log('Жилээр татагдсан мөр:');
-  yearSummaries
+  results
     .slice()
     .sort((a, b) => a.year - b.year)
     .forEach(({ year, count }) => console.log(`  ${year} он: ${count} мөр`));
 
   console.log('');
   console.log('Дvнгvvд:');
-  console.log(`  Татагдсан жилvvд: ${yearSummaries.length} (${yearSummaries.map((y) => y.year).sort((a, b) => a - b).join(', ')})`);
-  console.log(`  Нийт татагдсан мөр: ${merged.length}`);
+  console.log(`  Татагдсан жилvvд: ${results.length} (${results.map((r) => r.year).sort((a, b) => a - b).join(', ')})`);
+  console.log(`  Нийт татагдсан мөр: ${totalCount}`);
   console.log(`  Нийт хvсэлт: ${requestCount}`);
-  console.log(`  Шинэ мөр (added): ${added}`);
-  console.log(`  Шинэчлэгдсэн мөр (updated): ${updated}`);
-  console.log(`  Өөрчлөгдөөгvй мөр (unchanged): ${unchanged}`);
-  console.log(`  Бичигдсэн файл: ${OUT_FILE}`);
+  console.log(`  Шинэ мөр (added): ${totalAdded}`);
+  console.log(`  Шинэчлэгдсэн мөр (updated): ${totalUpdated}`);
+  console.log(`  Өөрчлөгдөөгvй мөр (unchanged): ${totalUnchanged}`);
+  console.log(`  Бичигдсэн файлууд: ${results.map((r) => `flights-${r.year}.json`).join(', ')}, flights-index.json`);
 }
 
 main().catch((err) => {

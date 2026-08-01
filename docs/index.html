@@ -412,9 +412,10 @@
     <header class="top">
       <div>
         <h1>Нислэгийн хяналтын самбар</h1>
-        <div class="subtitle">MRTD Veritech KPI өгөгдөл — 20 минут тутамд автоматаар шинэчлэгдэнэ</div>
+        <div class="subtitle">MRTD Veritech KPI өгөгдөл — өдөр бүр автоматаар шинэчлэгдэнэ</div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
+        <span class="updated" id="history-status"></span>
         <span class="updated" id="updated-at">Ачааллаж байна…</span>
         <button class="theme-toggle" id="theme-toggle" type="button">Харанхуй горим</button>
       </div>
@@ -647,25 +648,33 @@
     });
   }
 
+  // Жил бvр lazy ачаалагдах vед регионы жагсаалт улам бvрдэж болох тул
+  // (арын прожес vvргvй жилvvдийг ачаалах тусам) энэ функцийг дахин дахин
+  // дуудаж болохоор idempotent болгосон — сонголтуудыг vргэлж 0-ээс
+  // барьж, идэвхтэй утгыг хадгална.
   function populateRegionSelect(rows) {
     var sel = document.getElementById('region-select');
+    var current = sel.value || 'all';
     var regions = Array.from(new Set(rows.map(function (r) { return r.region; }).filter(Boolean))).sort();
+    sel.innerHTML = '<option value="all">Бүгд</option>';
     regions.forEach(function (r) {
       var opt = document.createElement('option');
       opt.value = r; opt.textContent = r;
       sel.appendChild(opt);
     });
+    sel.value = (current === 'all' || regions.indexOf(current) !== -1) ? current : 'all';
   }
   document.getElementById('region-select').addEventListener('change', function (e) {
     filters.region = e.target.value;
     rerender();
   });
 
-  function populateYearSelect(rows) {
+  // Индекс файлаас олдсон жилvvдийн жагсаалтаар (өгөгдлийн мөр биш) бөглөнө —
+  // ингэснээр жилийн dropdown-г том flights-YYYY.json файлуудыг татахаас
+  // өмнө шууд харуулж болно.
+  function populateYearSelect(years) {
     var sel = document.getElementById('year-select');
-    var years = Array.from(new Set(rows.map(function (r) { return r.year; }).filter(Boolean)));
-    if (years.indexOf(CURRENT_YEAR) === -1) years.push(CURRENT_YEAR);
-    years.sort(function (a, b) { return b - a; });
+    sel.innerHTML = '<option value="all">Бүгд</option>';
     years.forEach(function (y) {
       var opt = document.createElement('option');
       opt.value = String(y); opt.textContent = String(y);
@@ -674,8 +683,13 @@
     sel.value = String(filters.year);
   }
   document.getElementById('year-select').addEventListener('change', function (e) {
-    filters.year = e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10);
-    rerender();
+    var val = e.target.value;
+    filters.year = val === 'all' ? 'all' : parseInt(val, 10);
+    if (filters.year === 'all') {
+      rerender();
+    } else {
+      loadYearData(filters.year).then(rerender);
+    }
   });
 
   var rangeDebounce = null;
@@ -1560,6 +1574,7 @@
   }
 
   function rerender() {
+    allRows = getVisibleRows();
     var rows = applyFilters(allRows);
     state.rows = rows;
     updateFilterTags();
@@ -1574,18 +1589,104 @@
     renderTable();
   }
 
-  fetch('./flights.json', { cache: 'no-store' })
+  // ---------- жил бvрээр lazy ачаалалт (docs/flights-YYYY.json) ----------
+  // 71MB нэг flights.json файл GitHub-ийн 50MB зөвлөмжит хязгаараас давсан
+  // тул жил бvрээр тусад нь файлд хуваасан. Dashboard эхлээд зөвхөн
+  // ОДООГИЙН ЖИЛИЙН файлыг л ачаалж хурдан анхны зураг vзvvлээд, бусад
+  // жилvvдийг арын прожесээр (background) аажмаар нэмж татна.
+  var AVAILABLE_YEARS = []; // [{year,count,fetchedAt}], индексээс
+  var yearCache = {};       // year -> enriched rows[]
+  var yearLoadPromises = {};// year -> Promise<rows[]> (давхар татахаас сэргийлнэ)
+  var allYearsLoaded = false;
+
+  function loadYearData(year) {
+    if (yearCache[year]) return Promise.resolve(yearCache[year]);
+    if (yearLoadPromises[year]) return yearLoadPromises[year];
+    var p = fetch('./flights-' + year + '.json', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status + ' flights-' + year + '.json');
+        return r.json();
+      })
+      .then(function (data) {
+        var flights = (data && data.flights) || [];
+        var rows = flights.map(enrichRow);
+        yearCache[year] = rows;
+        return rows;
+      })
+      .catch(function (err) {
+        console.error('Жилийн дата ачаалахад алдаа гарлаа (' + year + '):', err);
+        yearCache[year] = [];
+        return [];
+      });
+    yearLoadPromises[year] = p;
+    return p;
+  }
+
+  function getFullHistoryRows() {
+    return AVAILABLE_YEARS.reduce(function (acc, y) { return acc.concat(yearCache[y.year] || []); }, []);
+  }
+
+  function getVisibleRows() {
+    if (filters.year === 'all') return getFullHistoryRows();
+    return yearCache[filters.year] || [];
+  }
+
+  function setHistoryStatus(text) {
+    document.getElementById('history-status').textContent = text;
+  }
+
+  // Одоогийн жилийг ачаалсны дараа vлдсэн жилvvдийг дараалан (нэг нэгээр)
+  // арын прожесээр татна. Жил бvр орж ирэх тусам: (1) Бvс нутгийн шvvлтийн
+  // сонголтыг өргөжvvлнэ, (2) хэрэв хэрэглэгч "Бvгд" сонгосон бол шууд дахин
+  // зурна (аажмаар бvрдэж буй мэдээллийг харуулна).
+  function prefetchRemainingYears() {
+    var others = AVAILABLE_YEARS.filter(function (y) { return y.year !== CURRENT_YEAR; });
+    if (!others.length) { allYearsLoaded = true; setHistoryStatus(''); return Promise.resolve(); }
+
+    var loadedCount = 0;
+    setHistoryStatus('Түүхэн дата ачаалж байна… (' + loadedCount + '/' + others.length + ')');
+
+    var chain = Promise.resolve();
+    others.forEach(function (y) {
+      chain = chain.then(function () {
+        return loadYearData(y.year).then(function () {
+          loadedCount += 1;
+          setHistoryStatus(loadedCount < others.length
+            ? 'Түүхэн дата ачаалж байна… (' + loadedCount + '/' + others.length + ')'
+            : '');
+          populateRegionSelect(getFullHistoryRows());
+          if (filters.year === 'all') rerender();
+        });
+      });
+    });
+    return chain.then(function () {
+      allYearsLoaded = true;
+    });
+  }
+
+  fetch('./flights-index.json', { cache: 'no-store' })
     .then(function (r) { return r.json(); })
-    .then(function (data) {
-      var flights = (data && data.flights) || [];
-      var meta = (data && data.meta) || {};
-      document.getElementById('updated-at').textContent = meta.fetchedAt
-        ? 'Сүүлд шинэчилсэн: ' + new Date(meta.fetchedAt).toLocaleString('mn-MN')
+    .then(function (indexData) {
+      AVAILABLE_YEARS = (indexData && indexData.years) || [];
+      if (!AVAILABLE_YEARS.some(function (y) { return y.year === CURRENT_YEAR; })) {
+        AVAILABLE_YEARS.push({ year: CURRENT_YEAR, count: 0, fetchedAt: null });
+      }
+      AVAILABLE_YEARS.sort(function (a, b) { return b.year - a.year; });
+      populateYearSelect(AVAILABLE_YEARS.map(function (y) { return y.year; }));
+
+      var latestFetchedAt = AVAILABLE_YEARS.reduce(function (max, y) {
+        return (y.fetchedAt && (!max || y.fetchedAt > max)) ? y.fetchedAt : max;
+      }, null);
+      document.getElementById('updated-at').textContent = latestFetchedAt
+        ? 'Сүүлд шинэчилсэн: ' + new Date(latestFetchedAt).toLocaleString('mn-MN')
         : '';
-      allRows = flights.map(enrichRow);
-      populateRegionSelect(allRows);
-      populateYearSelect(allRows);
+
+      return loadYearData(CURRENT_YEAR);
+    })
+    .then(function () {
+      populateRegionSelect(getVisibleRows());
       rerender();
+      return prefetchRemainingYears();
     })
     .catch(function (err) {
       document.getElementById('updated-at').textContent = 'Өгөгдөл ачаалахад алдаа гарлаа';
@@ -1853,7 +1954,11 @@
   // cntry, dir ("1"=явсан,"0"=ирсэн), ou ("ОУ"/"ОН"), pax, cargo, adult, child,
   // infant, transit, vip, diplomat, crew, mailKg гэх мэт — шууд ашигладаг.
   function computeChat(q) {
-    var D = allRows;
+    // Чатбот vргэлж БvХ ачаалагдсан жилийн туршид хайдаг (dashboard-ийн
+    // идэвхтэй "Жил" шvvлтээс vл хамааран) — учир нь хэрэглэгч зөвхөн нэг
+    // жил сонгосон vед ч "нийт хэдэн зорчигч байсан бэ" мэт асуулт асуувал
+    // бvх түvхийг хайх нь зvйтэй.
+    var D = getFullHistoryRows();
     var ql = q.toLowerCase();
 
     var country = null, carrier = null, city = null, month = null, dayFrom = null, dayTo = null, dir = null, ou = null;
