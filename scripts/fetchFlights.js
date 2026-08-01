@@ -10,7 +10,27 @@ const PASSWORD = process.env.MRTD_PASSWORD;
 const INDICATOR_ID = process.env.MRTD_INDICATOR_ID || '14995832';
 const PAGE_SIZE = 1000;
 const REQUEST_DELAY_MS = 250;
-const MAX_PAGES = 50; // аюулгvйн дээд хязгаар — ~11.9k мөр / 1000 хуудас vед ~12 хvсэлт хvлээгдэнэ
+const MAX_PAGES = 50; // аюулгvйн дээд хязгаар (жил бvрт) — ~11.9k мөр / 1000 хуудас vед ~12 хvсэлт хvлээгдэнэ
+const EARLIEST_YEAR = 2005; // аюулгvйн доод хязгаар — бодит дата дуусахаас өмнө (хоосон жил давхар) endless loop vvсэхээс сэргийлнэ
+
+// 2026-08-01 (3): API-г шууд (Postman-той адил, жинхэнэ credential-аар) шалгасны
+// дvнд:
+//   - C26 (жил) талбар дээрх criteria { operator: '=' } НАЙДВАРТАЙ ажилладаг
+//     (жил бvрт зөв totalcount/OGNOO буцаана — жишээ нь C26=2026 → 11979,
+//     C26=2025 → 20272, C26=2019 → 0). Иймд жилээр backfill хийхэд ашиглаж болно.
+//   - Гэвч "UPDATED" (шинэчлэлтийн Unixtimestamp) талбар дээр criteria
+//     ШvvЛТЛЭХ боломжгvй: "UPDATED" гэдэг key-г criteria-д өгвөл vл тоож,
+//     сервер өөр (бvх түvхэн) totalcount буцаадаг. Мөн raw мөрөнд ижил утгыг
+//     агуулдаг "C41" талбар дээр туршихад ч тогтворгvй — operator '>' vед 0
+//     мөр (буруу хоосон), operator '<' vед бvх түvхэн дата (шvvлтгvй мэт)
+//     буцаадаг. Иймд Unixtimestamp-аар "зөвхөн шинэ мөр" гэж шvvх API
+//     түвшинд НАЙДВАРТАЙ БИШ тул ашиглаагvй болно.
+// Дvгнэлт: өдөр тутмын (автомат cron) ажиллагаанд зөвхөн ОДООГИЙН ЖИЛИЙГ
+// (C26=currentYear) татна — хямд (~12-20 хvсэлт) бөгөөд бараг бvх шинэ/
+// өөрчлөгдсөн мөр энэ дотор байна. Бvх түvхэн жилийг дахин бvрэн татах
+// (backfill) зөвхөн FETCH_ALL_YEARS=1 орчны хувьсагчтай vед л (гараар
+// ажиллуулахад зориулсан) хийгдэнэ.
+const BACKFILL_ALL_YEARS = /^(1|true)$/i.test(process.env.FETCH_ALL_YEARS || '');
 
 // 2026-08-01: "offset vл харгалзан сvvлийн ~50 мөрийг л буцаадаг" гэсэн
 // өмнөх (2026-07-29) дvгнэлт буруу шалтгаантай байсан нь тогтоогдов —
@@ -49,19 +69,22 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function fetchPage(offset) {
+function fetchPage(offset, criteria) {
+  const parameters = {
+    indicatorId: INDICATOR_ID,
+    paging: {
+      offset,
+      pageSize: PAGE_SIZE,
+    },
+  };
+  if (criteria) parameters.criteria = criteria;
+
   const body = JSON.stringify({
     request: {
       username: USERNAME,
       password: PASSWORD,
       command: 'kpiIndicatorDataList',
-      parameters: {
-        indicatorId: INDICATOR_ID,
-        paging: {
-          offset,
-          pageSize: PAGE_SIZE,
-        },
-      },
+      parameters,
     },
   });
 
@@ -116,30 +139,77 @@ function fetchPage(offset) {
   });
 }
 
-async function fetchAllRows() {
-  const allRows = [];
+// Тухайн НЭГ жилийн бvх хуудсыг (C26 талбараар шvvж) дараалан татна.
+async function fetchYearRows(year) {
+  const criteria = { C26: [{ operator: '=', operand: String(year) }] };
+  const rows = [];
   let offset = 1; // энэ API-д offset нь 1-ээс эхэлдэг хуудасны дугаар (page number)
   let requestCount = 0;
   let totalcount;
 
   while (offset <= MAX_PAGES) {
     requestCount += 1;
-    const { rows, totalcount: tc } = await fetchPage(offset);
+    const { rows: pageRows, totalcount: tc } = await fetchPage(offset, criteria);
     if (tc !== undefined) totalcount = tc;
 
-    allRows.push(...rows);
-    console.log(`  offset=${offset}: ${rows.length} мөр татагдав (хуримтлагдсан ${allRows.length}${totalcount !== undefined ? ` / ${totalcount}` : ''})`);
+    rows.push(...pageRows);
+    console.log(`  ${year}, offset=${offset}: ${pageRows.length} мөр татагдав (хуримтлагдсан ${rows.length}${totalcount !== undefined ? ` / ${totalcount}` : ''})`);
 
-    const isLastPage = rows.length === 0
-      || rows.length < PAGE_SIZE
-      || (totalcount !== undefined && allRows.length >= totalcount);
+    const isLastPage = pageRows.length === 0
+      || pageRows.length < PAGE_SIZE
+      || (totalcount !== undefined && rows.length >= totalcount);
     if (isLastPage) break;
 
     offset += 1;
     await sleep(REQUEST_DELAY_MS);
   }
 
-  return { rows: allRows, requestCount, totalcount };
+  return { rows, requestCount };
+}
+
+// ӨДӨР ТУТМЫН (анхдагч) горим: зөвхөн одоогийн жилийг татна. Хямд бөгөөд
+// шинэ/өөрчлөгдсөн бараг бvх мөр (upsert-ийн Unixtimestamp харьцуулалтаар
+// илэрдэг) энэ дотор байдаг.
+async function fetchCurrentYearOnly() {
+  const currentYear = new Date().getFullYear();
+  const { rows, requestCount } = await fetchYearRows(currentYear);
+  console.log(`${currentYear} он: ${rows.length} мөр татагдлаа`);
+  return { rows, requestCount, yearSummaries: [{ year: currentYear, count: rows.length }] };
+}
+
+// НЭГ УДААГИЙН BACKFILL горим (зөвхөн FETCH_ALL_YEARS=1 vед): одоогийн
+// жилээс эхэлж ухрах чиглэлд, жил бvрийг дараалан (C26 шvvлтээр) бvрэн
+// татна. Аль нэг жил хоосон массив буцаавал, тэр жилээс цаашид дата
+// байхгvй гэж vзэж, татахаа тvvнд зогсооно (EARLIEST_YEAR бол аюулгvйн
+// доод хязгаар — бодит дата vvнээс өмнө дуусна гэж таамаглаж болзошгvй ч
+// endless loop-оос сэргийлдэг цэвэр аюулгvйн хамгаалалт).
+async function fetchAllYearsBackfill() {
+  const currentYear = new Date().getFullYear();
+  const allRows = [];
+  const yearSummaries = [];
+  let requestCount = 0;
+
+  for (let year = currentYear; year >= EARLIEST_YEAR; year--) {
+    const { rows, requestCount: yearRequestCount } = await fetchYearRows(year);
+    requestCount += yearRequestCount;
+
+    if (rows.length === 0) {
+      console.log(`${year} он: 0 мөр — дата эндээс цаашид байхгvй гэж vзэж татахаа зогсоов.`);
+      break;
+    }
+
+    allRows.push(...rows);
+    yearSummaries.push({ year, count: rows.length });
+    console.log(`${year} он: ${rows.length} мөр татагдлаа`);
+
+    await sleep(REQUEST_DELAY_MS);
+  }
+
+  return { rows: allRows, requestCount, yearSummaries };
+}
+
+function fetchAllRows() {
+  return BACKFILL_ALL_YEARS ? fetchAllYearsBackfill() : fetchCurrentYearOnly();
 }
 
 function toDateKey(f) {
@@ -172,8 +242,10 @@ function rowsEqual(a, b) {
 }
 
 async function main() {
-  console.log(`Татаж эхэлж байна: pageSize=${PAGE_SIZE}, offset=1-ээс...`);
-  const { rows: rawRows, requestCount, totalcount } = await fetchAllRows();
+  console.log(BACKFILL_ALL_YEARS
+    ? `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, БVХ ЖИЛЭЭР (${new Date().getFullYear()}-аас ухран, FETCH_ALL_YEARS=1)...`
+    : `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, зөвхөн одоогийн жил (${new Date().getFullYear()})...`);
+  const { rows: rawRows, requestCount, yearSummaries } = await fetchAllRows();
 
   const fresh = rawRows.map((row) => Object.assign(
     { id: row.ID, unixtimestamp: Number(row.UPDATED) || null },
@@ -217,8 +289,16 @@ async function main() {
   fs.writeFileSync(OUT_FILE, JSON.stringify(output, null, 2), 'utf8');
 
   console.log('');
+  console.log('Жилээр татагдсан мөр:');
+  yearSummaries
+    .slice()
+    .sort((a, b) => a.year - b.year)
+    .forEach(({ year, count }) => console.log(`  ${year} он: ${count} мөр`));
+
+  console.log('');
   console.log('Дvнгvvд:');
-  console.log(`  Нийт татагдсан мөр: ${merged.length}${totalcount !== undefined ? ` (сервер дээрх totalcount: ${totalcount})` : ''}`);
+  console.log(`  Татагдсан жилvvд: ${yearSummaries.length} (${yearSummaries.map((y) => y.year).sort((a, b) => a - b).join(', ')})`);
+  console.log(`  Нийт татагдсан мөр: ${merged.length}`);
   console.log(`  Нийт хvсэлт: ${requestCount}`);
   console.log(`  Шинэ мөр (added): ${added}`);
   console.log(`  Шинэчлэгдсэн мөр (updated): ${updated}`);

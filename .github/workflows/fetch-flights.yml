@@ -2,8 +2,13 @@ name: Fetch Veritech Flights
 
 on:
   schedule:
-    - cron: '*/20 * * * *'
-  workflow_dispatch: {}
+    - cron: '0 22 * * *' # 22:00 UTC = 06:00 Улаанбаатарын цагаар, өдөрт 1 удаа
+  workflow_dispatch:
+    inputs:
+      full_backfill:
+        description: 'Бvх түvхэн жилийг дахин бvрэн татах (нэг удаагийн backfill). Хоосон бол зөвхөн одоогийн жилийг татна.'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -29,6 +34,7 @@ jobs:
           MRTD_USERNAME: ${{ secrets.MRTD_USERNAME }}
           MRTD_PASSWORD: ${{ secrets.MRTD_PASSWORD }}
           MRTD_INDICATOR_ID: ${{ vars.MRTD_INDICATOR_ID }}
+          FETCH_ALL_YEARS: ${{ github.event.inputs.full_backfill == 'true' && '1' || '0' }}
         run: node scripts/fetchFlights.js
 
       - name: Commit and push flights.json if changed
