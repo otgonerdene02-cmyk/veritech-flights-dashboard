@@ -1,7 +1,8 @@
 // data/ontology/*.json lookup хvснэгтvvдийг ашиглан flight мөр бvрт region/continent/
 // alliance/category зэрэг баганыг шингээдэг (enrich) модуль. scripts/fetchFlights.js
-// (шинэ мөр орж ирэх бvрт) болон scripts/applyOntology.js (одоо байгаа flights.json-ыг
-// дахин боловсруулах) хоёулаа энэ модулийг ашигладаг тул логик давхардахгvй.
+// (шинэ мөр орж ирэх бvрт) болон scripts/applyOntology.js (одоо байгаа
+// flights-YYYY.json файлvvдыг дахин боловсруулах) хоёулаа энэ модулийг ашигладаг тул
+// логик давхардахгvй.
 'use strict';
 
 const fs = require('fs');

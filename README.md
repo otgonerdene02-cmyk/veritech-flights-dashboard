@@ -1,27 +1,33 @@
 # Veritech Flights Dashboard
 
-MRTD Veritech API (`kpiIndicatorDataList`)-с 20 минут тутам нислэгийн өгөгдлийг татаж
-`docs/flights.json` болгон commit хийдэг GitHub Actions workflow, мөн тэр өгөгдлийг
-харуулах GitHub Pages dashboard (`docs/index.html`).
+MRTD Veritech API (`kpiIndicatorDataList`)-с өдөр тутам нислэгийн өгөгдлийг татаж
+`docs/flights-YYYY.json` (жил бvрээр тусад нь) болгон commit хийдэг GitHub Actions
+workflow, мөн тэр өгөгдлийг харуулах GitHub Pages dashboard (`docs/index.html`).
 
 ## Бүтэц
 
 ```
-.github/workflows/fetch-flights.yml   20 минут тутам ажилладаг Action
+.github/workflows/fetch-flights.yml   өдөр тутам ажилладаг Action
 scripts/fetchFlights.js               API-г дуудаж, mapVeritechRow-оор хувиргаад бичдэг
 scripts/mapVeritechRow.js             мөр бүрийг dashboard-д ээлтэй хэлбэрт хувиргадаг
 scripts/ontology.js                   data/ontology/*.json-г ашиглаж region/continent/
                                        alliance/category баганыг flight мөр бvрт шингээдэг
-scripts/applyOntology.js              одоо байгаа docs/flights.json-ыг ontology-гоор дахин
-                                       баяжуулах (API дуудахгvй, `npm run apply-ontology`)
+scripts/applyOntology.js              одоо байгаа docs/flights-YYYY.json файлvvдыг
+                                       ontology-гоор дахин баяжуулах (API дуудахгvй,
+                                       `npm run apply-ontology`)
 data/ontology/city-country-region.json  хот -> улс/бvс нутаг/тив/alias лавлах хvснэгт
 data/ontology/airline-alliance.json      тээвэрлэгч -> альянс/харьяа улс лавлах хvснэгт
 data/ontology/aircraft-category.json     онгоцны загвар -> vйлдвэрлэгч/ангилал/суудал,
                                        БОЛОН бvртгэлийн код -> БVРТГЭЛИЙН улс (чиглэлийн
                                        улстай ХОЛИХГVЙ) лавлах хvснэгт
-docs/index.html                       GitHub Pages dashboard (статик, зөвхон fetch('./flights.json'))
-docs/flights.json                     Action-аар автоматаар шинэчлэгддэг өгөгдөл (region/
-                                       continent/alliance/category багануудтай)
+docs/index.html                       GitHub Pages dashboard (статик, эхлээд
+                                       flights-index.json-оос жилvvдийг олж, тухайн
+                                       жилийн flights-YYYY.json-г fetch хийдэг)
+docs/flights-index.json               ямар жилvvд бэлэн байгааг (жил, мөрийн тоо,
+                                       fetchedAt) жагсаасан жижиг индекс файл
+docs/flights-YYYY.json                Action-аар автоматаар шинэчлэгддэг тухайн жилийн
+                                       өгөгдөл (region/continent/alliance/category
+                                       багануудтай)
 ```
 
 `docs/index.html` нь дэлхийн газрын зургийн визуалчлалд [ECharts](https://echarts.apache.org/)-г
@@ -67,15 +73,29 @@ CDN-ээс (`cdn.jsdelivr.net`) ачаалдаг, мөн газрын зурги
 
 ## API-ийн талаар нэг чухал зүйл
 
-`kpiIndicatorDataList` команд `offset`/`pageSize`/`page` параметрүүдийг үл харгалзан
-үргэлж хамгийн сүүлийн ~50 бичлэгийг л буцаадаг нь турших явцад тогтоогдсон (нийт
-бичлэгийн тоо `paging.totalcount` талбарт ажиглагдсан ч энэ endpoint-оор бүгдийг нь
-татаж авах боломжгүй). Тиймээс `fetchFlights.js` нь `docs/flights.json`-г **дарж
-бичихийн оронд ID-аар нэгтгэж (merge/dedupe)** хадгалдаг — ингэснээр 20 минут тутамд
-ажиллах үед сүүлийн 50 мөрөнд орсон шинэ бичлэгүүд хуримтлагдаж, dashboard дээрх
-өдөр тутмын трэнд цаг хугацааны хувьд утга учиртай болно. Хуримтлагдсан файл хэт том
-болохоос сэргийлж `RETENTION_DAYS` (default 180 хоног, `FLIGHTS_RETENTION_DAYS` орчны
-хувьсагчаар өөрчилж болно) болон 20,000 бичлэгийн дээд хязгаараар цэвэрлэдэг.
+`kpiIndicatorDataList` команд offset/pageSize-ийг `parameters` дор шууд бус
+`parameters.paging.{offset,pageSize}` дэд объект дотор шаарддаг — эдгээрийг буруу
+байрлуулбал сервер параметрүүдийг үл тоож дефолт (сүүлийн ~50 мөр) хариу буцаадаг
+байсан нь (2026-08-01) тогтоогдож зассан. `offset` нь 1-ээс эхэлдэг хуудасны
+дугаар; `fetchFlights.js` нь `offset=1`-ээс эхлэн, буцаж ирсэн мөрийн тоо
+`totalcount`-д хүрэх (эсвэл хоосон хуудас ирэх) хүртэл дараалан дуудаж, **бүх
+мөрийг run бүрд бүрэн дахин татдаг**.
+
+Иймээс `docs/flights.json`-г run бүрд **бүхэлд нь дахин бичдэг (overwrite)** —
+энэ нь дата алдахгүй, учир нь бичихээсээ өмнө бүх датаг дахин бүрэн татсан байдаг.
+Хуучин файлтай ID/Unixtimestamp-аар харьцуулах логик зөвхөн лог дээр шинэ/
+шинэчлэгдсэн/өөрчлөгдөөгүй мөрийн тоог хэвлэхэд ашиглагддаг статистик бөгөөд
+бичигдэх эцсийн жагсаалтад нөлөөгүй. `RETENTION_DAYS`-тэй холбоотой хуучин
+хуримтлал/цэвэрлэгээний механизм бүрэн хасагдсан — учир нь хуримтлуулах
+шаардлагагүй, эх сурвалж run бүрдээ бүх түүхээ буцаадаг.
+
+> **Мэдэгдэж буй хязгаарлалт:** `indicatorId=14995832` эх сурвалж (мөн MRTD
+> платформоос гараар татсан Excel экспорт) өнөөдрийг хүртэл зөвхөн **2026 оны**
+> дата агуулж байгааг ажигласан (2026-08-01 шалгалт: paginate хийж бүх 11,979
+> мөрийг татсан ч бүгд 2026 он). Энэ бол скриптийн алдаа биш — эх сурвалжид
+> өмнөх жилүүдийн бичлэг байхгүй буюу тусдаа indicator ID шаардаж магадгүй.
+> Хуучин жилүүдийн дата хэрэгтэй бол MRTD-с тусдаа indicator/тайлан байгаа
+> эсэхийг шалгах хэрэгтэй.
 
 ## Локал тест
 

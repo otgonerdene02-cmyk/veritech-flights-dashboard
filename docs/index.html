@@ -104,6 +104,12 @@
   .card {
     background: var(--surface-1); border: 1px solid var(--border);
     border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;
+    /* grid/flex item-ийн default min-width:auto нь дотор нь flex-shrink:0
+       тогтмол өргөнтэй хvvхэд (жишээ нь .tbl-label/.tbl-val) байвал .card-ийг
+       тэдгээрийн min-content хэмжээнээс нарийсгахыг зөвшөөрдөггvй тул
+       нарийн (мобайл) дэлгэц дээр .row2 grid бvхэлдээ viewport-оос гарч
+       хажуу тийш scroll vvсгэдэг асуудлыг засна. */
+    min-width: 0;
   }
   .card h2 { font-size: 1rem; font-weight: 600; margin: 0 0 2px; }
   .card .desc { font-size: 0.875rem; color: var(--text-muted); margin: 0 0 14px; }

@@ -282,6 +282,14 @@
     "continent": "Ази",
     "aliases": []
   },
+  "Ереван": {
+    "country": "Армен",
+    "region": "Кавказ",
+    "continent": "Ази",
+    "aliases": [
+      "yerevan"
+    ]
+  },
   "Жанжиажэ Хэхуа": {
     "country": "Хятад",
     "region": "Зүүн Ази",
