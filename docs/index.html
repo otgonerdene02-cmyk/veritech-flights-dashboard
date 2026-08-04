@@ -984,6 +984,25 @@
   };
   var MONGOLIA_GEO_VIEW = { center: [103.6, 46.9], zoom: 4.4 };
 
+  // Боомт бvр өөр өнгөтэй байх (олон улсын зураг дээрх CC палитртай ижил зарчмаар):
+  // маркер, УБ хvртэлх шугам, легенд цэг бvгд ижил өнгө ашиглана.
+  var DC = {
+    'Алтай':         '#e15759',
+    'Баянхонгор':    '#4e79a7',
+    'Богд хан':      '#59a14f',
+    'Буянт-Ухаа':    '#f28e2b',
+    'Гурван тэмээт': '#edc948',
+    'Даланзадгад':   '#5254a3',
+    'Мөрөн':         '#3ba272',
+    'Улаангом':      '#b07aa1',
+    'Улиастай':      '#7c5cbf',
+    'Ханбумбат':     '#4fc3d9',
+    'Ховд':          '#8ca252',
+    'Чингис хаан':   '#a55194',
+    'Чойбалсан':     '#76b7b2',
+    'Өлгий':         '#e0607e',
+  };
+
   var mapChart = null;
   var worldMapReady = null;
   var regionTreemapChart = null;
@@ -1060,9 +1079,11 @@
         // УБ (одоогийн шинэ болон хуучин буудал) өөр рvv нь шугам татахгvй.
         var domLinesData = airports.filter(function (c) { return c !== 'Чингис хаан' && c !== 'Буянт-Ухаа'; }).map(function (c) {
           var coord = DOMESTIC_AIRPORT_COORD[c];
+          var dcColor = DC[c] || FALLBACK_DOT_COLOR;
           return {
             coords: [UB, [coord.lng, coord.lat]],
-            lineStyle: { color: accent2, width: 1, curveness: 0.2, opacity: 0.45 },
+            lineStyle: { color: dcColor, width: 1, curveness: 0.2, opacity: 0.55 },
+            effect: { color: dcColor },
           };
         });
 
@@ -1073,7 +1094,7 @@
             value: [coord.lng, coord.lat, dtotals[c].pax],
             aimag: coord.aimag,
             flCount: dtotals[c].fl,
-            itemStyle: { color: accent2 },
+            itemStyle: { color: DC[c] || FALLBACK_DOT_COLOR },
             symbolSize: bubbleSize(dtotals[c].pax, maxDomPax),
           };
         });
@@ -1134,7 +1155,7 @@
           ],
         }, true);
 
-        renderDomesticMapLegend(airports, dtotals, accent2);
+        renderDomesticMapLegend(airports, dtotals);
         return;
       }
 
@@ -1236,13 +1257,13 @@
       .join('');
   }
 
-  function renderDomesticMapLegend(airports, totals, color) {
+  function renderDomesticMapLegend(airports, totals) {
     var legend = document.getElementById('map-legend');
     legend.innerHTML = airports
       .slice()
       .sort(function (a, b) { return totals[b].pax - totals[a].pax; })
       .map(function (c) {
-        return '<div class="item"><span class="dot" style="background:' + color + '"></span>' + c +
+        return '<div class="item"><span class="dot" style="background:' + (DC[c] || FALLBACK_DOT_COLOR) + '"></span>' + c +
           ' (' + DOMESTIC_AIRPORT_COORD[c].aimag + ')</div>';
       })
       .join('');
