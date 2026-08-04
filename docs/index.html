@@ -270,13 +270,14 @@
   /* table-level filter (funnel icon + popover) */
   .table-filter-wrap { position: relative; flex-shrink: 0; }
   .filter-icon-btn {
-    position: relative; width: 34px; height: 34px; border-radius: 6px;
+    position: relative; height: 34px; padding: 0 12px 0 10px; border-radius: 6px;
     border: 1px solid var(--border); background: var(--page); color: var(--text-secondary);
-    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .1s;
+    cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all .1s;
+    font: inherit; font-size: 0.875rem; font-weight: 600; white-space: nowrap;
   }
   .filter-icon-btn:hover { border-color: var(--accent); color: var(--accent); }
   .filter-icon-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
-  .filter-icon-btn svg { width: 16px; height: 16px; }
+  .filter-icon-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
   .filter-badge {
     position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 3px;
     border-radius: 999px; background: #d03b3b; color: #fff; font-size: 0.6875rem; font-weight: 700;
@@ -301,6 +302,9 @@
     color: var(--text-muted); margin-bottom: 6px;
   }
   .fp-row select.region-select { width: 100%; }
+  .fp-row .range-wrap input[type="date"] {
+    width: auto; flex: 1 1 0; min-width: 0; padding: 5px 6px; font-size: 0.8125rem;
+  }
   .fp-actions {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--gridline);
@@ -559,6 +563,7 @@
         <div class="table-filter-wrap">
           <button class="filter-icon-btn" id="tbl-filter-btn" type="button" aria-label="Хvснэгтийн шvvлт" title="Хvснэгтийн шvvлт">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <span>Шvvлт</span>
             <span class="filter-badge" id="tbl-filter-badge" style="display:none;">0</span>
           </button>
           <div class="filter-popover" id="tbl-filter-popover">
@@ -576,6 +581,14 @@
                 <input type="text" id="tbl-f-mFrom" placeholder="1" maxlength="2" />
                 <span class="range-sep">–</span>
                 <input type="text" id="tbl-f-mTo" placeholder="12" maxlength="2" />
+              </div>
+            </div>
+            <div class="fp-row">
+              <label>Өдөр интервал</label>
+              <div class="range-wrap">
+                <input type="date" id="tbl-f-dateFrom" />
+                <span class="range-sep">–</span>
+                <input type="date" id="tbl-f-dateTo" />
               </div>
             </div>
             <div class="fp-row">
@@ -605,7 +618,7 @@
             </div>
             <div class="fp-actions">
               <button type="button" class="clr-btn" id="tbl-filter-clear">× Арилгах</button>
-              <button type="button" class="btn-export" id="tbl-filter-apply">Хэрэглэх</button>
+              <button type="button" class="btn-export" id="tbl-filter-apply">Шvvх</button>
             </div>
           </div>
         </div>
@@ -1927,9 +1940,9 @@
   // Дашбоардын ерөнхий дээд шvvлтээр (Жил/Сар/Төрөл/Бvс) аль хэдийн
   // шvvгдсэн state.rows дээр НЭМЖ (AND logic) хэрэгждэг тул хоёр шvvлт
   // давхардаж ажиллана. tblFiltersDraft нь popover доторх сонголтуудыг
-  // хадгална, зөвхөн "Хэрэглэх" дарахад tblFilters рvv шилжиж бодитоор
+  // хадгална, зөвхөн "Шvvх" дарахад tblFilters рvv шилжиж бодитоор
   // хэрэгждэг — ингэснээр хэрэглэгч сонголт хийж дуустал хvснэгт өөрчлөгдөхгvй.
-  var tblFilters = { year: 'all', mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all', carr: 'all', cntry: 'all' };
+  var tblFilters = { year: 'all', mFrom: null, mTo: null, dateFrom: null, dateTo: null, ou: 'all', dir: 'all', region: 'all', carr: 'all', cntry: 'all' };
   var tblFiltersDraft = Object.assign({}, tblFilters);
 
   var tblFilterBtn = document.getElementById('tbl-filter-btn');
@@ -1941,6 +1954,8 @@
       if (tblFilters.year !== 'all' && r.year !== tblFilters.year) return false;
       if (tblFilters.mFrom !== null && r.month < tblFilters.mFrom) return false;
       if (tblFilters.mTo !== null && r.month > tblFilters.mTo) return false;
+      if (tblFilters.dateFrom !== null && r.date < tblFilters.dateFrom) return false;
+      if (tblFilters.dateTo !== null && r.date > tblFilters.dateTo) return false;
       if (tblFilters.ou !== 'all' && r.ou !== tblFilters.ou) return false;
       if (tblFilters.dir !== 'all' && r.dir !== tblFilters.dir) return false;
       if (tblFilters.region !== 'all' && r.region !== tblFilters.region) return false;
@@ -1954,6 +1969,7 @@
     var n = 0;
     if (tblFilters.year !== 'all') n++;
     if (tblFilters.mFrom !== null || tblFilters.mTo !== null) n++;
+    if (tblFilters.dateFrom !== null || tblFilters.dateTo !== null) n++;
     if (tblFilters.ou !== 'all') n++;
     if (tblFilters.dir !== 'all') n++;
     if (tblFilters.region !== 'all') n++;
@@ -1985,11 +2001,16 @@
     selEl.value = (current === 'all' || opts.indexOf(current) !== -1) ? current : 'all';
   }
 
-  // Popover нээгдэх бvр дуудагдана — сонголтуудыг ОДООГИЙН (дашбоардын
-  // ерөнхий шvvлтээр аль хэдийн шvvгдсэн) state.rows дата дээр vндэслэн шинэчилнэ.
+  // Popover нээгдэх бvр дуудагдана. Жилийн сонголт нь дашбоардын ерөнхий
+  // Жил шvvлтээс ЗОРИУДААР vл хамаарна (index-д бvртгэлтэй БVХ жилийг санал
+  // болгоно) — учир нь дашбоард тодорхой ганц жилээр шvvгдсэн vед state.rows
+  // зөвхөн тэр жилийн мөр агуулдаг тул vvнээс жил гаргаж авбал бусад жилvvд
+  // dropdown-оос алга болдог байсан. Бусад талбарууд (Бvс/Компани/Улс) нь
+  // харин ч ОДООГИЙН (дашбоардаар аль хэдийн шvvгдсэн) state.rows дата дээр
+  // vндэслэсэн хэвээр vлдэнэ — эдгээрийг бvх жилийн хvрээнд тоочих шаардлагагvй.
   function populateTblFilterOptions() {
     var rows = state.rows;
-    var years = Array.from(new Set(rows.map(function (r) { return r.year; }).filter(Boolean))).sort(function (a, b) { return b - a; });
+    var years = AVAILABLE_YEARS.map(function (y) { return y.year; }).sort(function (a, b) { return b - a; });
     var yearSel = document.getElementById('tbl-f-year');
     yearSel.innerHTML = '<option value="all">Бvгд</option>';
     years.forEach(function (y) {
@@ -1997,7 +2018,7 @@
       o.value = String(y); o.textContent = String(y);
       yearSel.appendChild(o);
     });
-    yearSel.value = (tblFiltersDraft.year === 'all' || years.indexOf(tblFiltersDraft.year) !== -1) ? String(tblFiltersDraft.year) : 'all';
+    yearSel.value = tblFiltersDraft.year === 'all' ? 'all' : String(tblFiltersDraft.year);
 
     populateSelectOptions(document.getElementById('tbl-f-region'), rows.map(function (r) { return r.region; }), tblFiltersDraft.region);
     populateSelectOptions(document.getElementById('tbl-f-carr'), rows.map(function (r) { return r.carr; }), tblFiltersDraft.carr);
@@ -2009,6 +2030,8 @@
     document.getElementById('tbl-f-mTo').value = tblFiltersDraft.mTo == null ? '' : tblFiltersDraft.mTo;
     document.getElementById('tbl-f-mFrom').classList.remove('err');
     document.getElementById('tbl-f-mTo').classList.remove('err');
+    document.getElementById('tbl-f-dateFrom').value = tblFiltersDraft.dateFrom || '';
+    document.getElementById('tbl-f-dateTo').value = tblFiltersDraft.dateTo || '';
     document.querySelectorAll('#tbl-chips-ou .fchip').forEach(function (c) {
       c.classList.toggle('active', c.getAttribute('data-ou') === tblFiltersDraft.ou);
     });
@@ -2051,6 +2074,8 @@
   document.getElementById('tbl-f-region').addEventListener('change', function (e) { tblFiltersDraft.region = e.target.value; });
   document.getElementById('tbl-f-carr').addEventListener('change', function (e) { tblFiltersDraft.carr = e.target.value; });
   document.getElementById('tbl-f-cntry').addEventListener('change', function (e) { tblFiltersDraft.cntry = e.target.value; });
+  document.getElementById('tbl-f-dateFrom').addEventListener('change', function (e) { tblFiltersDraft.dateFrom = e.target.value || null; });
+  document.getElementById('tbl-f-dateTo').addEventListener('change', function (e) { tblFiltersDraft.dateTo = e.target.value || null; });
 
   function onTblRangeInput() {
     var fEl = document.getElementById('tbl-f-mFrom'), tEl = document.getElementById('tbl-f-mTo');
@@ -2088,11 +2113,20 @@
     tblFilters = Object.assign({}, tblFiltersDraft);
     state.page = 0;
     updateTblFilterBadge();
-    renderTable();
     closeTblFilterPopover();
+    // Дашбоардын ерөнхий Жил шvvлт "Бvгд" vед л state.rows нь олон жилийн
+    // мөр агуулдаг (getFullHistoryRows). Хvснэгтийн Жил шvvлтээр хараахан
+    // ачаалагдаагvй жил сонгосон бол тухайн жилийг эхлээд татаж аваад
+    // бvтэн rerender хийж, шинэ мөрvvдийг state.rows-д оруулна — эс тэгвэл
+    // dropdown-д харагдаж байгаа ч дата ачаалагдаагvй тул vр дvн хоосон гарна.
+    if (typeof tblFilters.year === 'number' && filters.year === 'all' && !yearCache[tblFilters.year]) {
+      loadYearData(tblFilters.year).then(function () { rerender(); });
+    } else {
+      renderTable();
+    }
   });
   document.getElementById('tbl-filter-clear').addEventListener('click', function () {
-    tblFilters = { year: 'all', mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all', carr: 'all', cntry: 'all' };
+    tblFilters = { year: 'all', mFrom: null, mTo: null, dateFrom: null, dateTo: null, ou: 'all', dir: 'all', region: 'all', carr: 'all', cntry: 'all' };
     tblFiltersDraft = Object.assign({}, tblFilters);
     syncTblControlsFromDraft();
     populateTblFilterOptions();
