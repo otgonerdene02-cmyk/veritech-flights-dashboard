@@ -266,6 +266,45 @@
   }
   .btn-export:hover { filter: brightness(1.08); }
   .btn-export:disabled { opacity: 0.5; cursor: default; }
+
+  /* table-level filter (funnel icon + popover) */
+  .table-filter-wrap { position: relative; flex-shrink: 0; }
+  .filter-icon-btn {
+    position: relative; width: 34px; height: 34px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--page); color: var(--text-secondary);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .1s;
+  }
+  .filter-icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-icon-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+  .filter-icon-btn svg { width: 16px; height: 16px; }
+  .filter-badge {
+    position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 3px;
+    border-radius: 999px; background: #d03b3b; color: #fff; font-size: 0.6875rem; font-weight: 700;
+    line-height: 16px; text-align: center;
+  }
+  .filter-popover {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0; z-index: 20;
+    width: 300px; max-width: calc(100vw - 40px); background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.18); padding: 14px 16px;
+  }
+  .filter-popover.open { display: block; }
+  .fp-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .fp-hdr h3 { margin: 0; font-size: 0.9375rem; font-weight: 700; }
+  .fp-close {
+    border: none; background: transparent; color: var(--text-muted); cursor: pointer;
+    font-size: 0.9375rem; line-height: 1; padding: 2px;
+  }
+  .fp-close:hover { color: var(--text-primary); }
+  .fp-row { margin-bottom: 12px; }
+  .fp-row label {
+    display: block; font-size: 0.75rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 6px;
+  }
+  .fp-row select.region-select { width: 100%; }
+  .fp-actions {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--gridline);
+  }
   .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 340px; }
   table.flights { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
   table.flights th, table.flights td {
@@ -517,6 +556,59 @@
       <p class="desc">Багана дээр дарж эрэмбэлнэ; хайлтын талбараар нислэг/компани/хот/улсаар шүүнэ</p>
       <div class="table-controls">
         <input class="search" id="search" type="text" placeholder="Хайх… (компани, нислэгийн дугаар, хот, улс)" />
+        <div class="table-filter-wrap">
+          <button class="filter-icon-btn" id="tbl-filter-btn" type="button" aria-label="Хvснэгтийн шvvлт" title="Хvснэгтийн шvvлт">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <span class="filter-badge" id="tbl-filter-badge" style="display:none;">0</span>
+          </button>
+          <div class="filter-popover" id="tbl-filter-popover">
+            <div class="fp-hdr">
+              <h3>Хvснэгтийн шvvлт</h3>
+              <button type="button" class="fp-close" id="tbl-filter-close" aria-label="Хаах">✕</button>
+            </div>
+            <div class="fp-row">
+              <label>Жил</label>
+              <select id="tbl-f-year" class="region-select"><option value="all">Бvгд</option></select>
+            </div>
+            <div class="fp-row">
+              <label>Сар интервал</label>
+              <div class="range-wrap">
+                <input type="text" id="tbl-f-mFrom" placeholder="1" maxlength="2" />
+                <span class="range-sep">–</span>
+                <input type="text" id="tbl-f-mTo" placeholder="12" maxlength="2" />
+              </div>
+            </div>
+            <div class="fp-row">
+              <label>Төрөл</label>
+              <div class="fchips" id="tbl-chips-ou">
+                <div class="fchip active" data-ou="all">Бvгд</div>
+                <div class="fchip" data-ou="ОУ">Олон улсын</div>
+                <div class="fchip" data-ou="ОН">Дотоодын</div>
+              </div>
+              <div class="fchips" id="tbl-chips-dir" style="margin-top:5px">
+                <div class="fchip active" data-dir="all">Бvгд</div>
+                <div class="fchip" data-dir="1">Явсан ↗</div>
+                <div class="fchip" data-dir="0">Ирсэн ↙</div>
+              </div>
+            </div>
+            <div class="fp-row">
+              <label>Бvс нутгаар</label>
+              <select id="tbl-f-region" class="region-select"><option value="all">Бvгд</option></select>
+            </div>
+            <div class="fp-row">
+              <label>Компани</label>
+              <select id="tbl-f-carr" class="region-select"><option value="all">Бvгд</option></select>
+            </div>
+            <div class="fp-row" style="margin-bottom:0">
+              <label>Улс</label>
+              <select id="tbl-f-cntry" class="region-select"><option value="all">Бvгд</option></select>
+            </div>
+            <div class="fp-actions">
+              <button type="button" class="clr-btn" id="tbl-filter-clear">× Арилгах</button>
+              <button type="button" class="btn-export" id="tbl-filter-apply">Хэрэглэх</button>
+            </div>
+          </div>
+        </div>
         <button class="btn-export" id="export-xlsx" type="button">⬇ Excel татах</button>
       </div>
       <div class="table-scroll">
@@ -1831,16 +1923,195 @@
     renderTable();
   });
 
+  // ---------- хvснэгтийн шvvлтийн popover ----------
+  // Дашбоардын ерөнхий дээд шvvлтээр (Жил/Сар/Төрөл/Бvс) аль хэдийн
+  // шvvгдсэн state.rows дээр НЭМЖ (AND logic) хэрэгждэг тул хоёр шvvлт
+  // давхардаж ажиллана. tblFiltersDraft нь popover доторх сонголтуудыг
+  // хадгална, зөвхөн "Хэрэглэх" дарахад tblFilters рvv шилжиж бодитоор
+  // хэрэгждэг — ингэснээр хэрэглэгч сонголт хийж дуустал хvснэгт өөрчлөгдөхгvй.
+  var tblFilters = { year: 'all', mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all', carr: 'all', cntry: 'all' };
+  var tblFiltersDraft = Object.assign({}, tblFilters);
+
+  var tblFilterBtn = document.getElementById('tbl-filter-btn');
+  var tblFilterPopover = document.getElementById('tbl-filter-popover');
+  var tblFilterBadge = document.getElementById('tbl-filter-badge');
+
+  function applyTableLevelFilters(rows) {
+    return rows.filter(function (r) {
+      if (tblFilters.year !== 'all' && r.year !== tblFilters.year) return false;
+      if (tblFilters.mFrom !== null && r.month < tblFilters.mFrom) return false;
+      if (tblFilters.mTo !== null && r.month > tblFilters.mTo) return false;
+      if (tblFilters.ou !== 'all' && r.ou !== tblFilters.ou) return false;
+      if (tblFilters.dir !== 'all' && r.dir !== tblFilters.dir) return false;
+      if (tblFilters.region !== 'all' && r.region !== tblFilters.region) return false;
+      if (tblFilters.carr !== 'all' && r.carr !== tblFilters.carr) return false;
+      if (tblFilters.cntry !== 'all' && r.cntry !== tblFilters.cntry) return false;
+      return true;
+    });
+  }
+
+  function tblFilterCount() {
+    var n = 0;
+    if (tblFilters.year !== 'all') n++;
+    if (tblFilters.mFrom !== null || tblFilters.mTo !== null) n++;
+    if (tblFilters.ou !== 'all') n++;
+    if (tblFilters.dir !== 'all') n++;
+    if (tblFilters.region !== 'all') n++;
+    if (tblFilters.carr !== 'all') n++;
+    if (tblFilters.cntry !== 'all') n++;
+    return n;
+  }
+
+  function updateTblFilterBadge() {
+    var n = tblFilterCount();
+    if (n > 0) {
+      tblFilterBadge.style.display = 'block';
+      tblFilterBadge.textContent = String(n);
+      tblFilterBtn.classList.add('active');
+    } else {
+      tblFilterBadge.style.display = 'none';
+      tblFilterBtn.classList.remove('active');
+    }
+  }
+
+  function populateSelectOptions(selEl, values, current) {
+    var opts = Array.from(new Set(values.filter(Boolean))).sort();
+    selEl.innerHTML = '<option value="all">Бvгд</option>';
+    opts.forEach(function (v) {
+      var o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      selEl.appendChild(o);
+    });
+    selEl.value = (current === 'all' || opts.indexOf(current) !== -1) ? current : 'all';
+  }
+
+  // Popover нээгдэх бvр дуудагдана — сонголтуудыг ОДООГИЙН (дашбоардын
+  // ерөнхий шvvлтээр аль хэдийн шvvгдсэн) state.rows дата дээр vндэслэн шинэчилнэ.
+  function populateTblFilterOptions() {
+    var rows = state.rows;
+    var years = Array.from(new Set(rows.map(function (r) { return r.year; }).filter(Boolean))).sort(function (a, b) { return b - a; });
+    var yearSel = document.getElementById('tbl-f-year');
+    yearSel.innerHTML = '<option value="all">Бvгд</option>';
+    years.forEach(function (y) {
+      var o = document.createElement('option');
+      o.value = String(y); o.textContent = String(y);
+      yearSel.appendChild(o);
+    });
+    yearSel.value = (tblFiltersDraft.year === 'all' || years.indexOf(tblFiltersDraft.year) !== -1) ? String(tblFiltersDraft.year) : 'all';
+
+    populateSelectOptions(document.getElementById('tbl-f-region'), rows.map(function (r) { return r.region; }), tblFiltersDraft.region);
+    populateSelectOptions(document.getElementById('tbl-f-carr'), rows.map(function (r) { return r.carr; }), tblFiltersDraft.carr);
+    populateSelectOptions(document.getElementById('tbl-f-cntry'), rows.map(function (r) { return r.cntry; }), tblFiltersDraft.cntry);
+  }
+
+  function syncTblControlsFromDraft() {
+    document.getElementById('tbl-f-mFrom').value = tblFiltersDraft.mFrom == null ? '' : tblFiltersDraft.mFrom;
+    document.getElementById('tbl-f-mTo').value = tblFiltersDraft.mTo == null ? '' : tblFiltersDraft.mTo;
+    document.getElementById('tbl-f-mFrom').classList.remove('err');
+    document.getElementById('tbl-f-mTo').classList.remove('err');
+    document.querySelectorAll('#tbl-chips-ou .fchip').forEach(function (c) {
+      c.classList.toggle('active', c.getAttribute('data-ou') === tblFiltersDraft.ou);
+    });
+    document.querySelectorAll('#tbl-chips-dir .fchip').forEach(function (c) {
+      c.classList.toggle('active', c.getAttribute('data-dir') === tblFiltersDraft.dir);
+    });
+  }
+
+  function onDocClickCloseTblFilter(e) {
+    if (!tblFilterPopover.contains(e.target) && !tblFilterBtn.contains(e.target)) closeTblFilterPopover();
+  }
+  function onEscCloseTblFilter(e) {
+    if (e.key === 'Escape') closeTblFilterPopover();
+  }
+  function openTblFilterPopover() {
+    tblFiltersDraft = Object.assign({}, tblFilters);
+    populateTblFilterOptions();
+    syncTblControlsFromDraft();
+    tblFilterPopover.classList.add('open');
+    document.addEventListener('click', onDocClickCloseTblFilter, true);
+    document.addEventListener('keydown', onEscCloseTblFilter);
+  }
+  function closeTblFilterPopover() {
+    tblFilterPopover.classList.remove('open');
+    document.removeEventListener('click', onDocClickCloseTblFilter, true);
+    document.removeEventListener('keydown', onEscCloseTblFilter);
+  }
+
+  tblFilterBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (tblFilterPopover.classList.contains('open')) closeTblFilterPopover();
+    else openTblFilterPopover();
+  });
+  document.getElementById('tbl-filter-close').addEventListener('click', closeTblFilterPopover);
+  tblFilterPopover.addEventListener('click', function (e) { e.stopPropagation(); });
+
+  document.getElementById('tbl-f-year').addEventListener('change', function (e) {
+    tblFiltersDraft.year = e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10);
+  });
+  document.getElementById('tbl-f-region').addEventListener('change', function (e) { tblFiltersDraft.region = e.target.value; });
+  document.getElementById('tbl-f-carr').addEventListener('change', function (e) { tblFiltersDraft.carr = e.target.value; });
+  document.getElementById('tbl-f-cntry').addEventListener('change', function (e) { tblFiltersDraft.cntry = e.target.value; });
+
+  function onTblRangeInput() {
+    var fEl = document.getElementById('tbl-f-mFrom'), tEl = document.getElementById('tbl-f-mTo');
+    var fv = fEl.value.trim(), tv = tEl.value.trim();
+    var from = fv === '' ? null : parseInt(fv, 10);
+    var to = tv === '' ? null : parseInt(tv, 10);
+    var fErr = fv !== '' && (isNaN(from) || from < 1 || from > 12);
+    var tErr = tv !== '' && (isNaN(to) || to < 1 || to > 12);
+    fEl.classList.toggle('err', fErr);
+    tEl.classList.toggle('err', tErr);
+    if (fErr || tErr) return;
+    if (from !== null && to !== null && from > to) { fEl.classList.add('err'); tEl.classList.add('err'); return; }
+    if (from === null || to === null) { tblFiltersDraft.mFrom = null; tblFiltersDraft.mTo = null; return; }
+    tblFiltersDraft.mFrom = from; tblFiltersDraft.mTo = to;
+  }
+  document.getElementById('tbl-f-mFrom').addEventListener('input', onTblRangeInput);
+  document.getElementById('tbl-f-mTo').addEventListener('input', onTblRangeInput);
+
+  document.querySelectorAll('#tbl-chips-ou .fchip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('#tbl-chips-ou .fchip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      tblFiltersDraft.ou = chip.getAttribute('data-ou');
+    });
+  });
+  document.querySelectorAll('#tbl-chips-dir .fchip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('#tbl-chips-dir .fchip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      tblFiltersDraft.dir = chip.getAttribute('data-dir');
+    });
+  });
+
+  document.getElementById('tbl-filter-apply').addEventListener('click', function () {
+    tblFilters = Object.assign({}, tblFiltersDraft);
+    state.page = 0;
+    updateTblFilterBadge();
+    renderTable();
+    closeTblFilterPopover();
+  });
+  document.getElementById('tbl-filter-clear').addEventListener('click', function () {
+    tblFilters = { year: 'all', mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all', carr: 'all', cntry: 'all' };
+    tblFiltersDraft = Object.assign({}, tblFilters);
+    syncTblControlsFromDraft();
+    populateTblFilterOptions();
+    state.page = 0;
+    updateTblFilterBadge();
+    renderTable();
+  });
+
   // ---------- Excel татах (SheetJS) ----------
-  // state.filtered нь идэвхтэй шvvлт (filter chip/сар) + хvснэгтийн хайлтын
-  // vр дvнг агуулдаг (renderTable-ийн эцэст тохируулагдана) — хуудаслалт
-  // хамаарахгvйгээр БVХ тохирсон мөрийг татна.
+  // state.filtered нь идэвхтэй шvvлт (дашбоардын ерөнхий шvvлт + хvснэгтийн
+  // өөрийн popover шvvлт + хайлтын талбар) бvгдийг нэгтгэсэн vр дvнг агуулдаг
+  // (renderTable-ийн эцэст тохируулагдана) — хуудаслалт хамаарахгvйгээр
+  // ОДООГИЙН ХАРАГДАЖ БУЙ (шvvгдсэн) БVХ мөрийг л татна.
   document.getElementById('export-xlsx').addEventListener('click', function () {
     if (typeof XLSX === 'undefined') {
       alert('Excel сан ачаалагдсангүй. Дахин оролдоно уу.');
       return;
     }
-    var rows = state.filtered.length ? state.filtered : state.rows;
+    var rows = state.filtered;
     var header = COLUMNS.map(function (c) { return c.label; });
     var body = rows.map(function (r) {
       return COLUMNS.map(function (c) {
@@ -1864,6 +2135,7 @@
         return (v || '').toLowerCase().indexOf(q) !== -1;
       });
     });
+    filtered = applyTableLevelFilters(filtered);
 
     var key = state.sortKey, dir = state.sortDir === 'asc' ? 1 : -1;
     filtered.sort(function (a, b) {
