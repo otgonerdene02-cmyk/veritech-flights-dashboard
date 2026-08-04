@@ -1121,7 +1121,7 @@
     var singleYear = (typeof filters.year === 'number') ? filters.year : null;
     var yoy = singleYear ? getYoYContext() : null;
 
-    var labels, paxV, flV, prevPaxV = null, prevFlV = null, prevYearNum = null;
+    var labels, paxV, flV, prevPaxV = null, prevYearNum = null;
 
     if (singleYear) {
       var curByM = {};
@@ -1139,8 +1139,8 @@
         // сараар нэгтгэхэд л хангалттай.
         yoy.prevRows.forEach(function (r) {
           if (!r.month) return;
-          if (!prevByM[r.month]) prevByM[r.month] = { pax: 0, fl: 0 };
-          prevByM[r.month].pax += (r.pax || 0); prevByM[r.month].fl++;
+          if (!prevByM[r.month]) prevByM[r.month] = { pax: 0 };
+          prevByM[r.month].pax += (r.pax || 0);
         });
         Object.keys(prevByM).forEach(function (m) {
           m = Number(m);
@@ -1155,7 +1155,6 @@
       if (yoy) {
         prevYearNum = yoy.prevYear;
         prevPaxV = months.map(function (m) { return (prevByM[m] && prevByM[m].pax) || 0; });
-        prevFlV = months.map(function (m) { return (prevByM[m] && prevByM[m].fl) || 0; });
       }
     } else {
       var byM = {};
@@ -1182,14 +1181,22 @@
     var gridline = getVar('--gridline'), textMuted = getVar('--text-muted'), textSecondary = getVar('--text-secondary');
     var surface = getVar('--surface-1'), border = getVar('--border'), textPrimary = getVar('--text-primary');
 
+    var upColor = '#1baf7a', downColor = '#e84749';
+
     var paxLabel = 'Нийт зорчигч (хүн) — зүүн тэнхлэг';
     var flLabel = 'Нислэгийн тоо (удаа) — баруун тэнхлэг';
-    var prevPaxLabel = '', prevFlLabel = '';
+    var prevPaxLabel = '';
+    var growthV = null;
     if (yoy) {
-      paxLabel = 'Нийт зорчигч — ' + singleYear + ' он';
-      flLabel = 'Нислэгийн тоо — ' + singleYear + ' он';
-      prevPaxLabel = 'Нийт зорчигч — ' + prevYearNum + ' он (өмнөх)';
-      prevFlLabel = 'Нислэгийн тоо — ' + prevYearNum + ' он (өмнөх)';
+      paxLabel = String(singleYear) + ' он';
+      prevPaxLabel = String(prevYearNum) + ' он';
+      // Сар бүрийн зорчигчийн тоог өмнөх онтойгоо харьцуулсан өсөлт/бууралтын
+      // хувь — нислэгийн тооны шугамын оронд энэ л "хэдэн хувиар өссөн бэ"
+      // гэдгийг шууд харуулна. prev=0 үед харьцуулах үндэс үгүй тул цоорхой үлдээнэ.
+      growthV = months.map(function (m, i) {
+        var prev = prevPaxV[i];
+        return prev ? ((paxV[i] - prev) / prev * 100) : null;
+      });
     }
 
     // Prev жилийн "ghost" багана — одоогийн баганатай ижил өнгө, гэхдээ
@@ -1199,17 +1206,19 @@
     ];
     if (yoy) {
       datasets.push({ label: prevPaxLabel, data: prevPaxV, backgroundColor: hexToRgba(accent, 0.28), borderRadius: 4, maxBarThickness: 64, yAxisID: 'y', yoyRole: 'prevPax' });
-    }
-    datasets.push({ label: flLabel, data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1', yoyRole: 'curFl' });
-    if (yoy) {
-      datasets.push({ label: prevFlLabel, data: prevFlV, type: 'line', borderColor: hexToRgba(accent2, 0.65), backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 3, pointStyle: 'rectRot', pointBackgroundColor: hexToRgba(accent2, 0.65), yAxisID: 'y1', yoyRole: 'prevFl' });
-    }
-
-    function pctDiffStr(cur, prev) {
-      if (!prev) return '';
-      var d = (cur - prev) / prev * 100;
-      var sign = d >= 0 ? '+' : '';
-      return ' (' + sign + d.toFixed(1) + '%)';
+      // Өсөлтийн хувийн шугам — сегмент болон цэг бүрийг эерэг (ногоон) /
+      // сөрөг (улаан) гэж өнгөөр нь ялгаж, 0%-ийн эргэн тойронд хэлбэлзэж
+      // байгааг нэг харцаар мэдэгдэхүйц болгоно.
+      datasets.push({
+        label: 'Өсөлт (%)', data: growthV, type: 'line', yAxisID: 'y1',
+        borderColor: upColor, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3,
+        pointRadius: 4, spanGaps: true,
+        pointBackgroundColor: function (ctx) { var v = ctx.raw; return v == null ? textMuted : (v >= 0 ? upColor : downColor); },
+        segment: { borderColor: function (ctx) { return (ctx.p1.parsed.y >= 0) ? upColor : downColor; } },
+        yoyRole: 'growth',
+      });
+    } else {
+      datasets.push({ label: flLabel, data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1', yoyRole: 'curFl' });
     }
 
     monthChart = new Chart(canvas, {
@@ -1225,19 +1234,23 @@
             padding: 10, cornerRadius: 8, displayColors: false,
             callbacks: {
               label: function (c) {
-                var idx = c.dataIndex;
                 var role = c.dataset.yoyRole;
-                if (role === 'prevPax') return 'Нийт зорчигч (' + prevYearNum + ' он): ' + fmtNum(c.raw) + ' хүн' + pctDiffStr(paxV[idx], prevPaxV[idx]);
-                if (role === 'prevFl') return 'Нислэгийн тоо (' + prevYearNum + ' он): ' + fmtNum(c.raw) + ' удаа' + pctDiffStr(flV[idx], prevFlV[idx]);
-                if (role === 'curFl') return (yoy ? ('Нислэгийн тоо (' + singleYear + ' он): ') : 'Нислэгийн тоо: ') + fmtNum(c.raw) + ' удаа';
-                return (yoy ? ('Нийт зорчигч (' + singleYear + ' он): ') : 'Нийт зорчигч: ') + fmtNum(c.raw) + ' хүн';
+                if (role === 'prevPax') return prevYearNum + ' оны зорчигч: ' + fmtNum(c.raw) + ' хүн';
+                if (role === 'growth') {
+                  if (c.raw == null) return 'Өсөлт: мэдээлэл алга';
+                  return 'Өсөлт (өмнөх онтой харьцуулахад): ' + (c.raw >= 0 ? '+' : '') + c.raw.toFixed(1) + '%';
+                }
+                if (role === 'curFl') return 'Нислэгийн тоо: ' + fmtNum(c.raw) + ' удаа';
+                return (yoy ? (singleYear + ' оны зорчигч: ') : 'Нийт зорчигч: ') + fmtNum(c.raw) + ' хүн';
               },
             },
           },
         },
         scales: {
           y: { title: { display: true, text: 'Зорчигчийн тоо (хүн)', color: accent, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 } }, grid: { color: gridline }, border: { display: false } },
-          y1: { position: 'right', title: { display: true, text: 'Нислэгийн тоо (удаа)', color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 } }, grid: { drawOnChartArea: false }, border: { display: false } },
+          y1: yoy
+            ? { position: 'right', title: { display: true, text: 'Өсөлт (%)', color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 }, callback: function (v) { return (v > 0 ? '+' : '') + v + '%'; } }, grid: { drawOnChartArea: false }, border: { display: false } }
+            : { position: 'right', title: { display: true, text: 'Нислэгийн тоо (удаа)', color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 } }, grid: { drawOnChartArea: false }, border: { display: false } },
           x: { title: { display: true, text: 'Сар', color: textSecondary, font: { size: 12 } }, ticks: { color: textSecondary, font: { size: 13 } }, grid: { display: false }, border: { display: false } },
         },
       },
