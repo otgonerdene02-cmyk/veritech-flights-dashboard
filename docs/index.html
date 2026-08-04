@@ -194,6 +194,11 @@
   .kpi .v { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); letter-spacing: -.3px; font-variant-numeric: proportional-nums; }
   .kpi .l { font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
   .kpi .sub { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 2px; }
+  /* Өмнөх оны мөн үетэй харьцуулсан (YoY) бага заавар — картын өндрийг
+     хэвээр барихын тулд боломжийн хамгийн жижиг font-size, нягт мөр өндөр. */
+  .kpi .yoy { font-size: 0.6875rem; line-height: 1.25; margin-top: 2px; font-weight: 600; }
+  .kpi .yoy.up   { color: #1baf7a; }
+  .kpi .yoy.down { color: #e84749; }
 
   /* Chart.js canvases */
   .cjs-chart { position: relative; height: 220px; }
@@ -575,6 +580,12 @@
   function getVar(name) {
     return getComputedStyle(document.querySelector('.viz-root')).getPropertyValue(name).trim();
   }
+  function hexToRgba(hex, alpha) {
+    var h = String(hex).replace('#', '');
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
 
   // ---------- theme toggle ----------
   var root = document.documentElement;
@@ -694,7 +705,18 @@
     if (filters.year === 'all') {
       rerender();
     } else {
-      loadYearData(filters.year).then(rerender);
+      var y = filters.year;
+      loadYearData(y).then(function () {
+        rerender();
+        // YoY харьцуулалтад зориулж өмнөх жилийг (жишээ 2025) давхар ачаална —
+        // AVAILABLE_YEARS-д байхгүй бол (жишээ хамгийн эртний 2020) хүсэлт
+        // явуулахгүй, дуусмагц сонголт өөрчлөгдөөгүй л бол дахин зурна.
+        if (AVAILABLE_YEARS.some(function (av) { return av.year === y - 1; })) {
+          loadYearData(y - 1).then(function () {
+            if (filters.year === y) rerender();
+          });
+        }
+      });
     }
   });
 
@@ -803,6 +825,51 @@
     wrap.querySelector('.atags-clear').addEventListener('click', resetFilters);
   }
 
+  // ---------- Өмнөх оны мөн үетэй харьцуулах (Year-over-Year) ----------
+  // Зөвхөн тодорхой нэг жил сонгосон үед (filters.year тоо, "Бүгд" биш) харьцуулалт
+  // хийнэ — олон жилийг зэрэг харуулж байхад "өмнөх жил" гэдэг нэг утгагүй болно.
+  // Сонгосон жил бол ОДООГИЙН бодит хуанлийн жил үед л (жишээ 8-р сарын 4) тухайн
+  // сар "үргэлжилж байгаа" гэж үзэж, өмнөх оны ижил өдрүүдээр таслана — эс тэгвэл
+  // бүтэн сартай харьцуулж шударга бус үр дүн гарна. Хэрэгтэй өгөгдөл (flights-YYYY.json)
+  // аль хэдийн yearCache-д ачаалагдсан бол шууд ашиглана, нэмэлт API дуудалт хийхгүй.
+  function getYoYContext() {
+    if (typeof filters.year !== 'number') return null;
+    var prevYear = filters.year - 1;
+    if (!AVAILABLE_YEARS.some(function (y) { return y.year === prevYear; })) return null;
+    var prevRaw = yearCache[prevYear];
+    if (!prevRaw) return null;
+
+    var today = new Date();
+    var isOngoingYear = filters.year === today.getFullYear();
+    var todayMonth = today.getMonth() + 1;
+    var todayDay = today.getDate();
+
+    var prevRows = prevRaw.filter(function (r) {
+      if (filters.mFrom !== null && r.month < filters.mFrom) return false;
+      if (filters.mTo !== null && r.month > filters.mTo) return false;
+      if (filters.ou !== 'all' && r.ou !== filters.ou) return false;
+      if (filters.dir !== 'all' && r.dir !== filters.dir) return false;
+      if (filters.region !== 'all' && r.region !== filters.region) return false;
+      if (isOngoingYear) {
+        if (r.month > todayMonth) return false;
+        if (r.month === todayMonth && r.day > todayDay) return false;
+      }
+      return true;
+    });
+
+    return { prevYear: prevYear, prevRows: prevRows, isOngoingYear: isOngoingYear, todayMonth: todayMonth, todayDay: todayDay };
+  }
+
+  // Жижиг YoY badge (өсөлт/бууралтын хувь) — картын өндрийг эвдэхгүйн тулд
+  // маш жижиг мөр байдлаар нэмэгддэг тул зөвхөн боломжтой үед (prev > 0) харуулна.
+  function yoyBadgeHtml(cur, prev) {
+    if (!prev) return '';
+    var d = (cur - prev) / prev * 100;
+    var cls = d >= 0 ? 'up' : 'down';
+    var arrow = d >= 0 ? '↑' : '↓';
+    return '<div class="yoy ' + cls + '">' + arrow + ' ' + Math.abs(d).toFixed(1) + '% өмнөх оны мөн үетэй харьцуулахад</div>';
+  }
+
   // ---------- KPI ----------
   var KPI_ICON_SVG = {
     plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
@@ -834,21 +901,43 @@
     var filtered = isFiltered();
     function pct(v, t) { return t > 0 ? ((v / t * 100).toFixed(1) + '%') : ''; }
 
+    // Тоон үнэмлэхүй үзүүлэлт бүрийг (эзлэх хувь БИШ) өмнөх оны мөн үетэй
+    // харьцуулах YoY badge — зөвхөн тодорхой нэг жил сонгосон бөгөөд өмнөх
+    // жилийн дата аль хэдийн ачаалагдсан үед л тооцогдоно (getYoYContext).
+    var yoy = getYoYContext();
+    var prevAgg = null;
+    if (yoy) {
+      var pRows = yoy.prevRows;
+      var pIntl = pRows.filter(function (r) { return r.ou === 'ОУ'; });
+      var pDom = pRows.filter(function (r) { return r.ou === 'ОН'; });
+      prevAgg = {
+        n: pRows.length,
+        p: pRows.reduce(function (s, r) { return s + (r.pax || 0); }, 0),
+        cargo: pRows.reduce(function (s, r) { return s + (r.cargo || 0); }, 0),
+        intlF: pIntl.length,
+        intlP: pIntl.reduce(function (s, r) { return s + (r.pax || 0); }, 0),
+        domP: pDom.reduce(function (s, r) { return s + (r.pax || 0); }, 0),
+        carriers: new Set(pRows.map(function (r) { return r.carr; }).filter(Boolean)).size,
+        cities: new Set(pRows.map(function (r) { return r.city; }).filter(Boolean)).size,
+      };
+    }
+
     var tiles = [
-      { l: 'Нийт нислэг', v: fmtNum(n), s: filtered ? pct(n, totalAll) : '', c: 'blue', icon: 'plane' },
-      { l: 'Нийт зорчигч', v: compact(p), s: filtered ? pct(p, totalPaxAll) : '', c: 'green', icon: 'users' },
-      { l: 'ОУ нислэг', v: fmtNum(intlF), s: n > 0 ? pct(intlF, n) : '', c: 'amber', icon: 'globe' },
-      { l: 'ОУ зорчигч', v: compact(intlP), s: p > 0 ? pct(intlP, p) : '', c: 'purple', icon: 'globe' },
-      { l: 'Дотоодын зорчигч', v: compact(domP), s: p > 0 ? pct(domP, p) : '', c: 'teal', icon: 'home' },
-      { l: 'Нийт ачаа (кг)', v: compact(cargo), s: '', c: 'red', icon: 'package' },
-      { l: 'Тээвэрлэгч', v: fmtNum(carriers), s: '', c: 'blue', icon: 'briefcase' },
-      { l: 'Хот', v: fmtNum(cities), s: '', c: 'green', icon: 'map-pin' },
+      { l: 'Нийт нислэг', v: fmtNum(n), s: filtered ? pct(n, totalAll) : '', c: 'blue', icon: 'plane', cur: n, prevKey: 'n' },
+      { l: 'Нийт зорчигч', v: compact(p), s: filtered ? pct(p, totalPaxAll) : '', c: 'green', icon: 'users', cur: p, prevKey: 'p' },
+      { l: 'ОУ нислэг', v: fmtNum(intlF), s: n > 0 ? pct(intlF, n) : '', c: 'amber', icon: 'globe', cur: intlF, prevKey: 'intlF' },
+      { l: 'ОУ зорчигч', v: compact(intlP), s: p > 0 ? pct(intlP, p) : '', c: 'purple', icon: 'globe', cur: intlP, prevKey: 'intlP' },
+      { l: 'Дотоодын зорчигч', v: compact(domP), s: p > 0 ? pct(domP, p) : '', c: 'teal', icon: 'home', cur: domP, prevKey: 'domP' },
+      { l: 'Нийт ачаа (кг)', v: compact(cargo), s: '', c: 'red', icon: 'package', cur: cargo, prevKey: 'cargo' },
+      { l: 'Тээвэрлэгч', v: fmtNum(carriers), s: '', c: 'blue', icon: 'briefcase', cur: carriers, prevKey: 'carriers' },
+      { l: 'Хот', v: fmtNum(cities), s: '', c: 'green', icon: 'map-pin', cur: cities, prevKey: 'cities' },
     ];
     document.getElementById('kpi-grid').innerHTML = tiles.map(function (t) {
       return '<div class="kpi kpi-' + t.c + '">' +
         '<div class="kpi-icon">' + kpiIcon(t.icon) + '</div>' +
         '<div class="v">' + t.v + '</div><div class="l">' + t.l + '</div>' +
-        (t.s ? '<div class="sub">' + t.s + '</div>' : '') + '</div>';
+        (t.s ? '<div class="sub">' + t.s + '</div>' : '') +
+        (prevAgg ? yoyBadgeHtml(t.cur, prevAgg[t.prevKey]) : '') + '</div>';
     }).join('');
   }
 
@@ -1024,39 +1113,107 @@
   var monthChart = null;
   function renderMonthChart(rows) {
     var wrap = document.getElementById('month-wrap');
-    var byM = {};
-    rows.forEach(function (r) {
-      if (!r.month) return;
-      var key = (r.year || 0) + '-' + r.month;
-      if (!byM[key]) byM[key] = { month: r.month, year: r.year || 0, pax: 0, fl: 0 };
-      byM[key].pax += (r.pax || 0); byM[key].fl++;
-    });
-    var keys = Object.keys(byM).sort(function (a, b) {
-      return (byM[a].year - byM[b].year) || (byM[a].month - byM[b].month);
-    });
+    // Зөвхөн тодорхой нэг жил сонгосон үед (жишээ 2026) сарын цуврал
+    // тухайн жилийн 1-12 сарыг илэрхийлнэ — ингэж байж л өмнөх ондоо (2025)
+    // мөн үетэй нь зэрэгцүүлж болно. "Бүгд" сонгогдсон үед (олон жил зэрэг)
+    // хуучин timeline харагдацыг хэвээр үлдээж, YoY давхарга нэмэхгүй.
+    var singleYear = (typeof filters.year === 'number') ? filters.year : null;
+    var yoy = singleYear ? getYoYContext() : null;
+
+    var labels, paxV, flV, prevPaxV = null, prevFlV = null, prevYearNum = null;
+
+    if (singleYear) {
+      var curByM = {};
+      rows.forEach(function (r) {
+        if (!r.month) return;
+        if (!curByM[r.month]) curByM[r.month] = { pax: 0, fl: 0 };
+        curByM[r.month].pax += (r.pax || 0); curByM[r.month].fl++;
+      });
+      var months = Object.keys(curByM).map(Number);
+
+      var prevByM = {};
+      if (yoy) {
+        // getYoYContext() аль хэдийн "мөн үе" (тухайн сар үргэлжилж байгаа
+        // бол зөвхөн өнөөдөр хүртэлх өдрүүд) шүүлтийг хийсэн тул энд зүгээр
+        // сараар нэгтгэхэд л хангалттай.
+        yoy.prevRows.forEach(function (r) {
+          if (!r.month) return;
+          if (!prevByM[r.month]) prevByM[r.month] = { pax: 0, fl: 0 };
+          prevByM[r.month].pax += (r.pax || 0); prevByM[r.month].fl++;
+        });
+        Object.keys(prevByM).forEach(function (m) {
+          m = Number(m);
+          if (months.indexOf(m) === -1) months.push(m);
+        });
+      }
+      months.sort(function (a, b) { return a - b; });
+
+      labels = months.map(monthLabel);
+      paxV = months.map(function (m) { return (curByM[m] && curByM[m].pax) || 0; });
+      flV = months.map(function (m) { return (curByM[m] && curByM[m].fl) || 0; });
+      if (yoy) {
+        prevYearNum = yoy.prevYear;
+        prevPaxV = months.map(function (m) { return (prevByM[m] && prevByM[m].pax) || 0; });
+        prevFlV = months.map(function (m) { return (prevByM[m] && prevByM[m].fl) || 0; });
+      }
+    } else {
+      var byM = {};
+      rows.forEach(function (r) {
+        if (!r.month) return;
+        var key = (r.year || 0) + '-' + r.month;
+        if (!byM[key]) byM[key] = { month: r.month, year: r.year || 0, pax: 0, fl: 0 };
+        byM[key].pax += (r.pax || 0); byM[key].fl++;
+      });
+      var keys = Object.keys(byM).sort(function (a, b) {
+        return (byM[a].year - byM[b].year) || (byM[a].month - byM[b].month);
+      });
+      labels = keys.map(function (k) { return monthLabel(byM[k].month); });
+      paxV = keys.map(function (k) { return byM[k].pax; });
+      flV = keys.map(function (k) { return byM[k].fl; });
+    }
 
     if (monthChart) { monthChart.destroy(); monthChart = null; }
     wrap.innerHTML = '<canvas id="cMonth"></canvas>';
-    if (!keys.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return; }
+    if (!labels.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return; }
     var canvas = document.getElementById('cMonth');
-
-    var labels = keys.map(function (k) { return monthLabel(byM[k].month); });
-    var paxV = keys.map(function (k) { return byM[k].pax; });
-    var flV = keys.map(function (k) { return byM[k].fl; });
 
     var accent = getVar('--accent'), accent2 = getVar('--accent-2');
     var gridline = getVar('--gridline'), textMuted = getVar('--text-muted'), textSecondary = getVar('--text-secondary');
     var surface = getVar('--surface-1'), border = getVar('--border'), textPrimary = getVar('--text-primary');
 
+    var paxLabel = 'Нийт зорчигч (хүн) — зүүн тэнхлэг';
+    var flLabel = 'Нислэгийн тоо (удаа) — баруун тэнхлэг';
+    var prevPaxLabel = '', prevFlLabel = '';
+    if (yoy) {
+      paxLabel = 'Нийт зорчигч — ' + singleYear + ' он';
+      flLabel = 'Нислэгийн тоо — ' + singleYear + ' он';
+      prevPaxLabel = 'Нийт зорчигч — ' + prevYearNum + ' он (өмнөх)';
+      prevFlLabel = 'Нислэгийн тоо — ' + prevYearNum + ' он (өмнөх)';
+    }
+
+    // Prev жилийн "ghost" багана — одоогийн баганатай ижил өнгө, гэхдээ
+    // тунгалаг (0.28 alpha) тул хажууд нь бага зэрэг бүдэг харагдана.
+    var datasets = [
+      { label: paxLabel, data: paxV, backgroundColor: accent, borderRadius: 4, maxBarThickness: 64, yAxisID: 'y', yoyRole: 'curPax' },
+    ];
+    if (yoy) {
+      datasets.push({ label: prevPaxLabel, data: prevPaxV, backgroundColor: hexToRgba(accent, 0.28), borderRadius: 4, maxBarThickness: 64, yAxisID: 'y', yoyRole: 'prevPax' });
+    }
+    datasets.push({ label: flLabel, data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1', yoyRole: 'curFl' });
+    if (yoy) {
+      datasets.push({ label: prevFlLabel, data: prevFlV, type: 'line', borderColor: hexToRgba(accent2, 0.65), backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 3, pointStyle: 'rectRot', pointBackgroundColor: hexToRgba(accent2, 0.65), yAxisID: 'y1', yoyRole: 'prevFl' });
+    }
+
+    function pctDiffStr(cur, prev) {
+      if (!prev) return '';
+      var d = (cur - prev) / prev * 100;
+      var sign = d >= 0 ? '+' : '';
+      return ' (' + sign + d.toFixed(1) + '%)';
+    }
+
     monthChart = new Chart(canvas, {
       type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [
-          { label: 'Нийт зорчигч (хүн) — зүүн тэнхлэг', data: paxV, backgroundColor: accent, borderRadius: 4, maxBarThickness: 64, yAxisID: 'y' },
-          { label: 'Нислэгийн тоо (удаа) — баруун тэнхлэг', data: flV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1' },
-        ],
-      },
+      data: { labels: labels, datasets: datasets },
       options: {
         responsive: true, maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
@@ -1065,7 +1222,16 @@
           tooltip: {
             backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary,
             padding: 10, cornerRadius: 8, displayColors: false,
-            callbacks: { label: function (c) { return c.datasetIndex === 1 ? ('Нислэгийн тоо: ' + fmtNum(c.raw) + ' удаа') : ('Нийт зорчигч: ' + fmtNum(c.raw) + ' хүн'); } },
+            callbacks: {
+              label: function (c) {
+                var idx = c.dataIndex;
+                var role = c.dataset.yoyRole;
+                if (role === 'prevPax') return 'Нийт зорчигч (' + prevYearNum + ' он): ' + fmtNum(c.raw) + ' хүн' + pctDiffStr(paxV[idx], prevPaxV[idx]);
+                if (role === 'prevFl') return 'Нислэгийн тоо (' + prevYearNum + ' он): ' + fmtNum(c.raw) + ' удаа' + pctDiffStr(flV[idx], prevFlV[idx]);
+                if (role === 'curFl') return (yoy ? ('Нислэгийн тоо (' + singleYear + ' он): ') : 'Нислэгийн тоо: ') + fmtNum(c.raw) + ' удаа';
+                return (yoy ? ('Нийт зорчигч (' + singleYear + ' он): ') : 'Нийт зорчигч: ') + fmtNum(c.raw) + ' хүн';
+              },
+            },
           },
         },
         scales: {
@@ -1661,7 +1827,10 @@
             ? 'Түүхэн дата ачаалж байна… (' + loadedCount + '/' + others.length + ')'
             : '');
           populateRegionSelect(getFullHistoryRows());
-          if (filters.year === 'all') rerender();
+          // "Бүгд" сонгосон үед шинэ жил бүрт дахин зурна — мөн YoY харьцуулалтад
+          // яг хэрэгтэй өмнөх жил (filters.year - 1) ирж дуусмагц (тодорхой нэг жил
+          // сонгосон үед ч) дахин зурж, харьцуулалтыг шууд гаргаж ирнэ.
+          if (filters.year === 'all' || (typeof filters.year === 'number' && y.year === filters.year - 1)) rerender();
         });
       });
     });
