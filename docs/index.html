@@ -885,9 +885,7 @@
       (KPI_ICON_SVG[name] || '') + '</svg>';
   }
 
-  function renderKPI(rows, all) {
-    var totalAll = all.length;
-    var totalPaxAll = all.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+  function renderKPI(rows) {
     var n = rows.length;
     var p = rows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
     var cargo = rows.reduce(function (s, r) { return s + (r.cargo || 0); }, 0);
@@ -898,8 +896,11 @@
     var domP = domRows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
     var carriers = new Set(rows.map(function (r) { return r.carr; }).filter(Boolean)).size;
     var cities = new Set(rows.map(function (r) { return r.city; }).filter(Boolean)).size;
-    var filtered = isFiltered();
-    function pct(v, t) { return t > 0 ? ((v / t * 100).toFixed(1) + '%') : ''; }
+    // suffix: тухайн хувь юуны эзлэх хувь болохыг тодруулна (жишээ "нийт нислэгийн").
+    function pct(v, t, suffix) {
+      if (t <= 0) return '';
+      return (v / t * 100).toFixed(1) + '%' + (suffix ? ' (' + suffix + ')' : '');
+    }
 
     // Тоон үнэмлэхүй үзүүлэлт бүрийг (эзлэх хувь БИШ) өмнөх оны мөн үетэй
     // харьцуулах YoY badge — зөвхөн тодорхой нэг жил сонгосон бөгөөд өмнөх
@@ -923,11 +924,11 @@
     }
 
     var tiles = [
-      { l: 'Нийт нислэг', v: fmtNum(n), s: filtered ? pct(n, totalAll) : '', c: 'blue', icon: 'plane', cur: n, prevKey: 'n' },
-      { l: 'Нийт зорчигч', v: compact(p), s: filtered ? pct(p, totalPaxAll) : '', c: 'green', icon: 'users', cur: p, prevKey: 'p' },
-      { l: 'ОУ нислэг', v: fmtNum(intlF), s: n > 0 ? pct(intlF, n) : '', c: 'amber', icon: 'globe', cur: intlF, prevKey: 'intlF' },
-      { l: 'ОУ зорчигч', v: compact(intlP), s: p > 0 ? pct(intlP, p) : '', c: 'purple', icon: 'globe', cur: intlP, prevKey: 'intlP' },
-      { l: 'Дотоодын зорчигч', v: compact(domP), s: p > 0 ? pct(domP, p) : '', c: 'teal', icon: 'home', cur: domP, prevKey: 'domP' },
+      { l: 'Нийт нислэг', v: fmtNum(n), s: '', c: 'blue', icon: 'plane', cur: n, prevKey: 'n' },
+      { l: 'Нийт зорчигч', v: compact(p), s: '', c: 'green', icon: 'users', cur: p, prevKey: 'p' },
+      { l: 'ОУ нислэг', v: fmtNum(intlF), s: pct(intlF, n, 'нийт нислэгийн'), c: 'amber', icon: 'globe', cur: intlF, prevKey: 'intlF' },
+      { l: 'ОУ зорчигч', v: compact(intlP), s: pct(intlP, p, 'нийт зорчигчийн'), c: 'purple', icon: 'globe', cur: intlP, prevKey: 'intlP' },
+      { l: 'Дотоодын зорчигч', v: compact(domP), s: pct(domP, p, 'нийт зорчигчийн'), c: 'teal', icon: 'home', cur: domP, prevKey: 'domP' },
       { l: 'Нийт ачаа (кг)', v: compact(cargo), s: '', c: 'red', icon: 'package', cur: cargo, prevKey: 'cargo' },
       { l: 'Тээвэрлэгч', v: fmtNum(carriers), s: '', c: 'blue', icon: 'briefcase', cur: carriers, prevKey: 'carriers' },
       { l: 'Хот', v: fmtNum(cities), s: '', c: 'green', icon: 'map-pin', cur: cities, prevKey: 'cities' },
@@ -1750,7 +1751,7 @@
     var rows = applyFilters(allRows);
     state.rows = rows;
     updateFilterTags();
-    renderKPI(rows, allRows);
+    renderKPI(rows);
     renderWorldMap(rows);
     renderMonthChart(rows);
     renderOUChart(rows);
@@ -1770,6 +1771,7 @@
   var yearCache = {};       // year -> enriched rows[]
   var yearLoadPromises = {};// year -> Promise<rows[]> (давхар татахаас сэргийлнэ)
   var allYearsLoaded = false;
+  var chatIndexCache = null; // getChatIndex()-ийн кэшлэгдсэн vр дvн (rowCount-оор хvчингvй болно)
 
   function loadYearData(year) {
     if (yearCache[year]) return Promise.resolve(yearCache[year]);
@@ -1796,6 +1798,37 @@
 
   function getFullHistoryRows() {
     return AVAILABLE_YEARS.reduce(function (acc, y) { return acc.concat(yearCache[y.year] || []); }, []);
+  }
+
+  // computeChat() query бvр дээр D (12,222+ мөр)-ийг дахин бvрэн скан хийж хотын/
+  // тээвэрлэгчийн жагсаалт vvсгэдэг байсан нь (O(n) скан өөрөө хямд ч гэсэн, урьд нь
+  // reduce+concat ашигласан хэсэг нь бодитоор O(n²) байсан — доор тайлбарласан)
+  // chatbot-ийн ХАРИУ vзvvлэх БVР main thread-ийг секундын түвшинд блоклож,
+  // UI-г (quick-reply товч, input) "гацсан/ажиллахгvй" мэт харагдуулж байсан гол
+  // шалтгаан байв. Эдгээр жагсаалт нь ачаалагдсан жилvvдийн мөрийн тоо
+  // өөрчлөгдөхөөс (шинэ жил ачаалагдах) бусад vед өөрчлөгддөггvй тул query бvрд
+  // дахин тооцоолохын оронд нэг л удаа vvсгэж кэшлэнэ.
+  function getChatIndex(D) {
+    if (chatIndexCache && chatIndexCache.rowCount === D.length) return chatIndexCache;
+    var citySet = new Set();
+    var carrierSet = new Set();
+    for (var i = 0; i < D.length; i++) {
+      var r = D[i];
+      if (r.city) {
+        var parts = cityParts(r.city);
+        for (var j = 0; j < parts.length; j++) citySet.add(parts[j]);
+      }
+      if (r.carr) carrierSet.add(r.carr);
+    }
+    var cityBases = Array.from(citySet);
+    var sortedCityBases = cityBases.slice().sort(function (a, b) { return b.length - a.length; });
+    var normCities = cityBases.map(function (c) { return { display: c, norm: normalizeForMatch(c) }; });
+    var allCarriers = Array.from(carrierSet).sort(function (a, b) { return b.length - a.length; });
+    chatIndexCache = {
+      rowCount: D.length, cityBases: cityBases, sortedCityBases: sortedCityBases,
+      normCities: normCities, allCarriers: allCarriers,
+    };
+    return chatIndexCache;
   }
 
   function getVisibleRows() {
@@ -2031,10 +2064,9 @@
   // cityBases (flights.json-оос гаргасан бодит хотын нэрс) дундаас asуултад хамгийн
   // ойр тохирохыг олно. Буцаах: { city, score, alt } — alt нь score-той маш ойрхон
   // хоёр дахь өөр хот байвал тодруулах мессежид ашиглагдана (сонголтоор).
-  function fuzzyFindCity(ql, cityBases) {
+  function fuzzyFindCity(ql, normCities) {
     var candidates = fuzzyCandidateTokens(ql);
     if (!candidates.length) return null;
-    var normCities = cityBases.map(function (c) { return { display: c, norm: normalizeForMatch(c) }; });
     var best = null, second = null;
     for (var i = 0; i < candidates.length; i++) {
       var tok = normalizeForMatch(candidates[i]);
@@ -2164,26 +2196,24 @@
     if (/narrow.?body|нарийн фюзеляж/.test(ql)) acCategory = 'narrow-body';
     else if (/wide.?body|өргөн фюзеляж/.test(ql)) acCategory = 'wide-body';
 
-    var allCarriers = Array.from(new Set(D.map(function (r) { return r.carr; }).filter(Boolean)))
-      .sort(function (a, b) { return b.length - a.length; });
+    // Хот/тээвэрлэгчийн жагсаалт, normalize хийсэн хувилбарууд query бvрд дахин
+    // тооцоологдохгvй, D өөрчлөгдөөгvй л бол кэшээс ирнэ (getChatIndex тайлбарыг vз)
+    var idx = getChatIndex(D);
+    var allCarriers = idx.allCarriers;
     for (var i = 0; i < allCarriers.length; i++) {
       if (ql.indexOf(allCarriers[i].toLowerCase()) !== -1) { carrier = allCarriers[i]; break; }
     }
 
-    // 1. flights.json-оос давхардуулгаагүй хотуудын жагсаалт — нийлмэл утгын хоёр
-    // талыг (жишээ нь "Сөүл" ба "Инчеон") тус тусад нь тааруулж болохоор задална
-    var cityBases = Array.from(new Set(
-      D.map(function (r) { return r.city; }).filter(Boolean).reduce(function (acc, c) {
-        return acc.concat(cityParts(c));
-      }, [])
-    ));
+    // 1. flights.json-оос давхардуулгаагvй хотуудын жагсаалт — нийлмэл утгын хоёр
+    // талыг (жишээ нь "Сөvл" ба "Инчеон") тус тусад нь тааруулж болохоор задална
+    var cityBases = idx.cityBases;
 
     // 2. Эхлээд яг таарсан бодит хотын нэрсээр шалгана (урт нэр эхэлж таарч
-    // богино нэрийн санамсаргүй давхцлаас сэргийлнэ), 3. олдоогүй бол fuzzy
+    // богино нэрийн санамсаргvй давхцлаас сэргийлнэ), 3. олдоогvй бол fuzzy
     // matching-ээр (латин/өөр бичлэг, дутуу vсэг, залгасан төгсгөлийн нөхцөл
     // зэргийг тэвчих) хамгийн ойрхон хотыг олно — хатуу alias жагсаалт хэрэггvй
     var cityClarify = null;
-    var sortedCityBases = cityBases.slice().sort(function (a, b) { return b.length - a.length; });
+    var sortedCityBases = idx.sortedCityBases;
     for (var ci = 0; ci < sortedCityBases.length; ci++) {
       if (ql.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
     }
@@ -2196,7 +2226,7 @@
       }
     }
     if (!city) {
-      var fuzzy = fuzzyFindCity(ql, cityBases);
+      var fuzzy = fuzzyFindCity(ql, idx.normCities);
       if (fuzzy) { city = fuzzy.city; cityClarify = fuzzy.alt; }
     }
 
