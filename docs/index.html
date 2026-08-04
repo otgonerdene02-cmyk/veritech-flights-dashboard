@@ -963,6 +963,27 @@
   var UB = [106.9, 47.9];
   var FALLBACK_DOT_COLOR = '#8a8a86';
 
+  // Монголын дотоод боомт/нисэх буудлуудын байршил (data/ontology/domestic-airports.json-той
+  // синхрон байлгах). "Богд хан" болон "Гурван тэмээт" нь GEOSAN компанийн жижиг Cessna/
+  // нисдэг тэрэгний тусгай зориулалтын буудал тул тэдгээрийн координат ойролцоо утга юм.
+  var DOMESTIC_AIRPORT_COORD = {
+    'Алтай':         { lat: 46.37583, lng: 96.21917,  aimag: 'Говь-Алтай' },
+    'Баянхонгор':    { lat: 46.17056, lng: 100.70000, aimag: 'Баянхонгор' },
+    'Богд хан':      { lat: 47.75000, lng: 106.85000, aimag: 'Төв (Богдхан уулын бүс)' },
+    'Буянт-Ухаа':    { lat: 47.84306, lng: 106.76639, aimag: 'Улаанбаатар' },
+    'Гурван тэмээт': { lat: 43.30000, lng: 104.60000, aimag: 'Өмнөговь' },
+    'Даланзадгад':   { lat: 43.60861, lng: 104.36694, aimag: 'Өмнөговь' },
+    'Мөрөн':         { lat: 49.66306, lng: 100.09917, aimag: 'Хөвсгөл' },
+    'Улаангом':      { lat: 50.06722, lng: 91.93778,  aimag: 'Увс' },
+    'Улиастай':      { lat: 47.71280, lng: 96.52420,  aimag: 'Завхан' },
+    'Ханбумбат':     { lat: 43.13472, lng: 106.84639, aimag: 'Өмнөговь' },
+    'Ховд':          { lat: 47.96139, lng: 91.62583,  aimag: 'Ховд' },
+    'Чингис хаан':   { lat: 47.65139, lng: 106.82139, aimag: 'Улаанбаатар' },
+    'Чойбалсан':     { lat: 48.13556, lng: 114.64611, aimag: 'Дорнод' },
+    'Өлгий':         { lat: 48.99167, lng: 89.91972,  aimag: 'Баян-Өлгий' },
+  };
+  var MONGOLIA_GEO_VIEW = { center: [103.6, 46.9], zoom: 4.4 };
+
   var mapChart = null;
   var worldMapReady = null;
   var regionTreemapChart = null;
@@ -991,11 +1012,136 @@
       return;
     }
 
+    // "Дотоодын" шvvлт идэвхтэй vед (ou === 'ОН') Монголын дотоод боомтуудыг харуулж,
+    // газрын зургийг Монгол улс руу төвлөрvvлнэ ("Бvгд"/"Олон улсын" vед дэлхийн зураг руу буцна).
+    var isDomestic = filters.ou === 'ОН';
+
     ensureWorldMap().then(function () {
+      if (!mapChart) {
+        mapChart = echarts.init(mapDom);
+        window.addEventListener('resize', function () { mapChart.resize(); });
+      }
+
+      var areaColor = getVar('--gridline');
+      var surface = getVar('--surface-1');
+      var border = getVar('--border');
+      var textPrimary = getVar('--text-primary');
+      var textSecondary = getVar('--text-secondary');
+      var accent = getVar('--accent');
+      var accent2 = getVar('--accent-2');
+
+      var geoOption = {
+        map: 'world',
+        roam: true,
+        left: 10, right: 10, top: 10, bottom: 10,
+        silent: true,
+        label: { show: false },
+        itemStyle: { areaColor: areaColor, borderColor: surface, borderWidth: 0.5 },
+        emphasis: { itemStyle: { areaColor: areaColor }, label: { show: false } },
+      };
+      if (isDomestic) {
+        geoOption.center = MONGOLIA_GEO_VIEW.center;
+        geoOption.zoom = MONGOLIA_GEO_VIEW.zoom;
+      }
+
+      if (isDomestic) {
+        var dtotals = {};
+        rows.forEach(function (r) {
+          var c = r.city;
+          if (!c || !DOMESTIC_AIRPORT_COORD[c]) return; // lookup хvснэгтэд байхгvй боомтыг алгасана
+          if (!dtotals[c]) dtotals[c] = { pax: 0, fl: 0 };
+          dtotals[c].pax += (r.pax || 0);
+          dtotals[c].fl += 1;
+        });
+
+        var airports = Object.keys(dtotals);
+        var maxDomPax = airports.reduce(function (m, c) { return Math.max(m, dtotals[c].pax); }, 0);
+
+        // УБ (одоогийн шинэ болон хуучин буудал) өөр рvv нь шугам татахгvй.
+        var domLinesData = airports.filter(function (c) { return c !== 'Чингис хаан' && c !== 'Буянт-Ухаа'; }).map(function (c) {
+          var coord = DOMESTIC_AIRPORT_COORD[c];
+          return {
+            coords: [UB, [coord.lng, coord.lat]],
+            lineStyle: { color: accent2, width: 1, curveness: 0.2, opacity: 0.45 },
+          };
+        });
+
+        var domScatterData = airports.map(function (c) {
+          var coord = DOMESTIC_AIRPORT_COORD[c];
+          return {
+            name: c,
+            value: [coord.lng, coord.lat, dtotals[c].pax],
+            aimag: coord.aimag,
+            flCount: dtotals[c].fl,
+            itemStyle: { color: accent2 },
+            symbolSize: bubbleSize(dtotals[c].pax, maxDomPax),
+          };
+        });
+
+        mapChart.setOption({
+          backgroundColor: 'transparent',
+          tooltip: {
+            trigger: 'item',
+            backgroundColor: surface,
+            borderColor: border,
+            borderWidth: 1,
+            textStyle: { color: textPrimary, fontSize: 14 },
+            formatter: function (params) {
+              if (params.data && params.data.isUB) return 'Улаанбаатар (эх цэг)';
+              if (params.seriesType === 'effectScatter') {
+                return '<b>' + params.name + '</b><br/>Аймаг: ' + params.data.aimag +
+                  '<br/>Нийт зорчигч: ' + fmtNum(params.value[2]) +
+                  '<br/>Нислэгийн тоо: ' + fmtNum(params.data.flCount);
+              }
+              return params.name || '';
+            },
+          },
+          geo: geoOption,
+          series: [
+            {
+              type: 'lines',
+              coordinateSystem: 'geo',
+              zlevel: 1,
+              silent: true,
+              effect: { show: true, period: 5, trailLength: 0.3, symbol: 'arrow', symbolSize: 4, color: accent2 },
+              lineStyle: { curveness: 0.2 },
+              data: domLinesData,
+            },
+            {
+              name: 'Дотоод боомт',
+              type: 'effectScatter',
+              coordinateSystem: 'geo',
+              zlevel: 2,
+              rippleEffect: { brushType: 'stroke', scale: 2.2, period: 3 },
+              showEffectOn: 'render',
+              hoverAnimation: true,
+              label: { show: false },
+              itemStyle: { shadowBlur: 6, shadowColor: 'rgba(0,0,0,0.25)' },
+              data: domScatterData,
+            },
+            {
+              name: 'Улаанбаатар',
+              type: 'effectScatter',
+              coordinateSystem: 'geo',
+              zlevel: 3,
+              symbolSize: 12,
+              rippleEffect: { brushType: 'stroke', scale: 2.5 },
+              showEffectOn: 'render',
+              itemStyle: { color: accent, shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' },
+              label: { show: true, formatter: 'УБ', position: 'top', color: textSecondary, fontSize: 12 },
+              data: [{ name: 'Улаанбаатар', value: [UB[0], UB[1], null], isUB: true }],
+            },
+          ],
+        }, true);
+
+        renderDomesticMapLegend(airports, dtotals, accent2);
+        return;
+      }
+
       var totals = {};
       rows.forEach(function (r) {
         var c = r.cntry;
-        if (!c || !COUNTRY_COORD[c]) return; // lookup хүснэгтэд байхгүй улсыг алгасана
+        if (!c || !COUNTRY_COORD[c]) return; // lookup хvснэгтэд байхгvй улсыг алгасана
         totals[c] = (totals[c] || 0) + (r.pax || 0);
       });
 
@@ -1018,18 +1164,6 @@
         };
       });
 
-      if (!mapChart) {
-        mapChart = echarts.init(mapDom);
-        window.addEventListener('resize', function () { mapChart.resize(); });
-      }
-
-      var areaColor = getVar('--gridline');
-      var surface = getVar('--surface-1');
-      var border = getVar('--border');
-      var textPrimary = getVar('--text-primary');
-      var textSecondary = getVar('--text-secondary');
-      var accent = getVar('--accent');
-
       mapChart.setOption({
         backgroundColor: 'transparent',
         tooltip: {
@@ -1046,15 +1180,7 @@
             return params.name || '';
           },
         },
-        geo: {
-          map: 'world',
-          roam: true,
-          left: 10, right: 10, top: 10, bottom: 10,
-          silent: true,
-          label: { show: false },
-          itemStyle: { areaColor: areaColor, borderColor: surface, borderWidth: 0.5 },
-          emphasis: { itemStyle: { areaColor: areaColor }, label: { show: false } },
-        },
+        geo: geoOption,
         series: [
           {
             type: 'lines',
@@ -1106,6 +1232,18 @@
       .sort(function (a, b) { return a.localeCompare(b); })
       .map(function (c) {
         return '<div class="item"><span class="dot" style="background:' + (CC[c] || FALLBACK_DOT_COLOR) + '"></span>' + c + '</div>';
+      })
+      .join('');
+  }
+
+  function renderDomesticMapLegend(airports, totals, color) {
+    var legend = document.getElementById('map-legend');
+    legend.innerHTML = airports
+      .slice()
+      .sort(function (a, b) { return totals[b].pax - totals[a].pax; })
+      .map(function (c) {
+        return '<div class="item"><span class="dot" style="background:' + color + '"></span>' + c +
+          ' (' + DOMESTIC_AIRPORT_COORD[c].aimag + ')</div>';
       })
       .join('');
   }
