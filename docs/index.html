@@ -358,6 +358,8 @@
   .map-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
   .map-legend .item { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--text-secondary); }
   .map-legend .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+  .map-scale-legend { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.8125rem; color: var(--text-secondary); }
+  .map-scale-legend .scale-bar { width: 120px; height: 8px; border-radius: 4px; flex: 0 0 auto; border: 1px solid var(--border); }
 
   /* AI chatbot */
   .chat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
@@ -528,6 +530,7 @@
       <h2>Улаанбаатараас чиглэсэн зорчигчийн урсгал</h2>
       <p class="desc">Бөмбөлгийн хэмжээ = тухайн улс руу/-аас нийт зорчигчийн тоо. Улс дээр hover/дарахад дэлгэрэнгүй харагдана</p>
       <div id="world-map"></div>
+      <div class="map-scale-legend" id="map-scale-legend"></div>
       <div class="map-legend" id="map-legend"></div>
     </div>
 
@@ -698,6 +701,15 @@
     if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
     var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
     return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
+  function lerpHexColor(hexFrom, hexTo, t) {
+    var from = String(hexFrom).replace('#', ''), to = String(hexTo).replace('#', '');
+    if (from.length === 3) from = from.split('').map(function (c) { return c + c; }).join('');
+    if (to.length === 3) to = to.split('').map(function (c) { return c + c; }).join('');
+    var rf = parseInt(from.substring(0, 2), 16), gf = parseInt(from.substring(2, 4), 16), bf = parseInt(from.substring(4, 6), 16);
+    var rt = parseInt(to.substring(0, 2), 16), gt = parseInt(to.substring(2, 4), 16), bt = parseInt(to.substring(4, 6), 16);
+    function ch(v) { return Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0'); }
+    return '#' + ch(rf + (rt - rf) * t) + ch(gf + (gt - gf) * t) + ch(bf + (bt - bf) * t);
   }
 
   // ---------- theme toggle ----------
@@ -1095,7 +1107,22 @@
     'Чойбалсан':     { lat: 48.13556, lng: 114.64611, aimag: 'Дорнод' },
     'Өлгий':         { lat: 48.99167, lng: 89.91972,  aimag: 'Баян-Өлгий' },
   };
-  var MONGOLIA_GEO_VIEW = { center: [103.6, 46.9], zoom: 4.4 };
+  // Bilgee/mongolia-geojson-ийн "prefecture" талбарын англи нэрийг (аймгийн хилийн
+  // GeoJSON-д ашиглагдсан) дээрхи DOMESTIC_AIRPORT_COORD-ийн монгол "aimag" нэртэй
+  // тааруулах зориулалттай. "Богд хан" гэх мэт нисэх буудлын aimag талбарт байгаа
+  // хаалтан доторх тайлбарыг (жиш: "Төв (Богдхан уулын бүс)") aimagKey() тайрч авна.
+  var AIMAG_NAME_MAP = {
+    'Arkhangai': 'Архангай', 'Bagakhangai': 'Багахангай', 'Baganuur': 'Багануур',
+    'Bayankhongor': 'Баянхонгор', 'Bayan-Ulgii': 'Баян-Өлгий', 'Bulgan': 'Булган',
+    'Darkhan-Uul': 'Дархан-Уул', 'Dornod': 'Дорнод', 'Dornogovi': 'Дорноговь',
+    'Dundgovi': 'Дундговь', 'GoviAltai': 'Говь-Алтай', 'Govisumber': 'Говьсүмбэр',
+    'Khentii': 'Хэнтий', 'Khovd': 'Ховд', 'Khuvsgul': 'Хөвсгөл', 'Orkhon': 'Орхон',
+    'Selenge': 'Сэлэнгэ', 'Sukhbaatar': 'Сүхбаатар', 'Tuv': 'Төв', 'Ulaanbaatar': 'Улаанбаатар',
+    'Umnugovi': 'Өмнөговь', 'uvs': 'Увс', 'Uvurkhangai': 'Өвөрхангай', 'Zavkhan': 'Завхан',
+  };
+  function aimagKey(aimagRaw) {
+    return String(aimagRaw).replace(/\s*\(.*\)\s*$/, '').trim();
+  }
 
   // Боомт бvр өөр өнгөтэй байх (олон улсын зураг дээрх CC палитртай ижил зарчмаар):
   // маркер, УБ хvртэлх шугам, легенд цэг бvгд ижил өнгө ашиглана.
@@ -1118,6 +1145,7 @@
 
   var mapChart = null;
   var worldMapReady = null;
+  var mongoliaMapReady = null;
   var regionTreemapChart = null;
 
   function ensureWorldMap() {
@@ -1129,6 +1157,24 @@
         return true;
       });
     return worldMapReady;
+  }
+
+  // Аймгийн (admin-1) хилийн шугам — Bilgee/mongolia-geojson repo-гийн хялбаршуулсан
+  // хувилбар (~225KB, GADM-аас гарган авсан). "prefecture" талбарыг AIMAG_NAME_MAP-аар
+  // монгол нэрэнд буулгаж, region.name-аар ашиглана.
+  function ensureMongoliaMap() {
+    if (mongoliaMapReady) return mongoliaMapReady;
+    mongoliaMapReady = fetch('https://raw.githubusercontent.com/Bilgee/mongolia-geojson/master/mongolia.prefectures.geojson')
+      .then(function (r) { return r.json(); })
+      .then(function (geoJson) {
+        geoJson.features.forEach(function (f) {
+          var mnName = AIMAG_NAME_MAP[f.properties.prefecture] || f.properties.prefecture;
+          f.properties.name = mnName;
+        });
+        echarts.registerMap('mongolia', geoJson);
+        return true;
+      });
+    return mongoliaMapReady;
   }
 
   function bubbleSize(pax, maxPax) {
@@ -1148,7 +1194,8 @@
     // газрын зургийг Монгол улс руу төвлөрvvлнэ ("Бvгд"/"Олон улсын" vед дэлхийн зураг руу буцна).
     var isDomestic = filters.ou === 'ОН';
 
-    ensureWorldMap().then(function () {
+    var mapReady = isDomestic ? ensureMongoliaMap() : ensureWorldMap();
+    mapReady.then(function () {
       if (!mapChart) {
         mapChart = echarts.init(mapDom);
         window.addEventListener('resize', function () { mapChart.resize(); });
@@ -1161,20 +1208,20 @@
       var textSecondary = getVar('--text-secondary');
       var accent = getVar('--accent');
       var accent2 = getVar('--accent-2');
+      var accentStrong = getVar('--accent-strong');
 
+      // "mongolia" бол зөвхөн Монгол улсын аймгуудын хилээс тогтсон GeoJSON тул
+      // roam-гvйгээр ч geo компонент өөрөө layout box-даа (left/right/top/bottom)
+      // автоматаар fit хийж, Монгол улсыг дэлгэцэнд бvрэн, томоор харуулна.
       var geoOption = {
-        map: 'world',
+        map: isDomestic ? 'mongolia' : 'world',
         roam: true,
         left: 10, right: 10, top: 10, bottom: 10,
-        silent: true,
+        silent: !isDomestic,
         label: { show: false },
         itemStyle: { areaColor: areaColor, borderColor: surface, borderWidth: 0.5 },
         emphasis: { itemStyle: { areaColor: areaColor }, label: { show: false } },
       };
-      if (isDomestic) {
-        geoOption.center = MONGOLIA_GEO_VIEW.center;
-        geoOption.zoom = MONGOLIA_GEO_VIEW.zoom;
-      }
 
       if (isDomestic) {
         var dtotals = {};
@@ -1188,6 +1235,44 @@
 
         var airports = Object.keys(dtotals);
         var maxDomPax = airports.reduce(function (m, c) { return Math.max(m, dtotals[c].pax); }, 0);
+
+        // Choropleth: аймаг тус бvрийн нийт зорчигчийг DOMESTIC_AIRPORT_COORD-ийн
+        // "aimag" талбараар нэгтгэж, өнгийн хvчдэлээр (areaColor -> accentStrong) буулгана.
+        var aimagTotals = {};
+        airports.forEach(function (c) {
+          var key = aimagKey(DOMESTIC_AIRPORT_COORD[c].aimag);
+          aimagTotals[key] = (aimagTotals[key] || 0) + dtotals[c].pax;
+        });
+        var maxAimagPax = Object.keys(aimagTotals).reduce(function (m, k) { return Math.max(m, aimagTotals[k]); }, 0);
+
+        geoOption.label = { show: true, color: textSecondary, fontSize: 9 };
+        // geo компонентийн tooltip нь эх (root) tooltip тохиргооноос ӨВЛӨХГvй тул
+        // (formatter, backgroundColor гэх мэтийг тусад нь давхар зааж өгөх ёстой) энд
+        // бvрэн бие даасан байдлаар тодорхойлно.
+        geoOption.tooltip = {
+          show: true,
+          backgroundColor: surface,
+          borderColor: border,
+          borderWidth: 1,
+          textStyle: { color: textPrimary, fontSize: 14 },
+          formatter: function (params) {
+            return '<b>' + params.name + '</b><br/>Аймгийн нийт зорчигч: ' + fmtNum(aimagTotals[params.name] || 0);
+          },
+        };
+        geoOption.regions = Object.keys(AIMAG_NAME_MAP).map(function (enKey) {
+          var mnName = AIMAG_NAME_MAP[enKey];
+          var pax = aimagTotals[mnName] || 0;
+          var t = maxAimagPax ? Math.sqrt(pax / maxAimagPax) : 0;
+          var fillColor = lerpHexColor(areaColor, accentStrong, t);
+          return {
+            name: mnName,
+            // emphasis-ийг тухайн бvсийн өөрийн choropleth өнгөөр тодорхой зааж өгөхгvй бол
+            // ECharts hover vед анхны (palette-аас автоматаар оноогдсон) өнгө рvv шилждэг
+            // тул fillColor-оо ХЭВЭЭР vлдээж зөвхөн хvрээгээр тодруулна.
+            itemStyle: { areaColor: fillColor, borderColor: surface, borderWidth: 1 },
+            emphasis: { itemStyle: { areaColor: fillColor, borderColor: accent, borderWidth: 2 }, label: { show: true, color: textPrimary, fontSize: 9, fontWeight: 600 } },
+          };
+        });
 
         // УБ (одоогийн шинэ болон хуучин буудал) өөр рvv нь шугам татахгvй.
         var domLinesData = airports.filter(function (c) { return c !== 'Чингис хаан' && c !== 'Буянт-Ухаа'; }).map(function (c) {
@@ -1269,8 +1354,11 @@
         }, true);
 
         renderDomesticMapLegend(airports, dtotals);
+        renderAimagScaleLegend(maxAimagPax, areaColor, accentStrong);
         return;
       }
+
+      document.getElementById('map-scale-legend').innerHTML = '';
 
       var totals = {};
       rows.forEach(function (r) {
@@ -1380,6 +1468,15 @@
           ' (' + DOMESTIC_AIRPORT_COORD[c].aimag + ')</div>';
       })
       .join('');
+  }
+
+  function renderAimagScaleLegend(maxPax, lowColor, highColor) {
+    var el = document.getElementById('map-scale-legend');
+    if (!maxPax) { el.innerHTML = ''; return; }
+    el.innerHTML =
+      '<span>Аймгийн choropleth (нийт зорчигч):</span>' +
+      '<span class="scale-bar" style="background:linear-gradient(90deg,' + lowColor + ',' + highColor + ')"></span>' +
+      '<span>0 – ' + compact(maxPax) + '</span>';
   }
 
   // ---------- Сараар зорчигч ба нислэг (Chart.js bar+line) ----------
