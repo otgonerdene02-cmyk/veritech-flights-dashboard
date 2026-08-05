@@ -1,0 +1,69 @@
+name: Check Flight Data Freshness
+
+# fetch-flights.yml өөрөө амжилтгvй болоход issue vvсгэдэг, гэхдээ ТvvНИЙ
+# schedule trigger огт ажиллаагvй бол (job эхлээгvй тул) тэр механизм ажиллах
+# боломжгvй. Энэ watchdog нь тусдаа cron-оор (өөр цагт) ажиллаж, зөвхөн
+# docs/last-sync-status.json-г уншиж хугацаа хэтэрсэн эсэхийг шалгадаг тул
+# fetch-flights бvр мөсөн "чимээгvй" зогсоход ч илрvvлдэг.
+on:
+  schedule:
+    - cron: '30 8 * * *'  # 16:30 UB — fetch-flights-ийн 4 cron цагаас өөр
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check staleness and alert
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const STALE_THRESHOLD_HOURS = 30;
+
+            let status = null;
+            try {
+              status = JSON.parse(fs.readFileSync('docs/last-sync-status.json', 'utf8'));
+            } catch {
+              // файл vvсээгvй байна — эхний удаа буюу маш эрт vе
+            }
+
+            const lastSuccess = status && status.lastSuccessAt ? new Date(status.lastSuccessAt) : null;
+            const hoursSince = lastSuccess ? (Date.now() - lastSuccess.getTime()) / 3600000 : Infinity;
+
+            console.log(`Сvvлийн амжилттай синк: ${status ? status.lastSuccessAt : '(байхгvй)'} (${hoursSince.toFixed(1)} цагийн өмнө)`);
+
+            if (hoursSince <= STALE_THRESHOLD_HOURS) {
+              console.log('Дата шинэ байна, alert vvсгэхгvй.');
+              return;
+            }
+
+            const title = '⚠️ Нислэгийн дата 30+ цагаар шинэчлэгдээгvй байна';
+            const body = [
+              `Сvvлийн амжилттай синк: ${status && status.lastSuccessAt ? status.lastSuccessAt : 'тодорхойгvй (файл байхгvй)'}`,
+              `(${hoursSince === Infinity ? 'хэдэн ч удаа амжилттай ажиллаагvй' : hoursSince.toFixed(1) + ' цагийн өмнө'})`,
+              '',
+              'Vvнийг шалгах зvйлс:',
+              '- "Fetch Veritech Flights" workflow-ийн Actions таб дээрх Run history — schedule эвент огт эхлээгvй vv, эсвэл эхэлсэн ч алдаатай vv?',
+              '- Хэрэв огт эхлээгvй бол GitHub-ийн schedule trigger саатсан/алгассан байж болзошгvй — "Run workflow" (workflow_dispatch)-аар гараар ажиллуулж vзнэ vv.',
+              '- Хэрэв эхэлсэн ч алдаатай бол sync-failure шошготой issue vvссэн байх ёстой, тvvнийг шалгана уу.',
+            ].join('\n');
+
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'data-freshness',
+            });
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.data[0].number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['data-freshness'],
+              });
+            }

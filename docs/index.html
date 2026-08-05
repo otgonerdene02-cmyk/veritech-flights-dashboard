@@ -93,6 +93,7 @@
   h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
   .subtitle { color: var(--text-secondary); font-size: 1rem; margin-top: 4px; }
   .updated { color: var(--text-muted); font-size: 1rem; }
+  .updated.stale { color: #c0392b; font-weight: 600; }
 
   button.theme-toggle {
     font: inherit; font-size: 1rem; color: var(--text-secondary);
@@ -2370,9 +2371,15 @@
       var latestFetchedAt = AVAILABLE_YEARS.reduce(function (max, y) {
         return (y.fetchedAt && (!max || y.fetchedAt > max)) ? y.fetchedAt : max;
       }, null);
-      document.getElementById('updated-at').textContent = latestFetchedAt
-        ? 'Сүүлд шинэчилсэн: ' + new Date(latestFetchedAt).toLocaleString('mn-MN')
-        : '';
+      var updatedEl = document.getElementById('updated-at');
+      if (latestFetchedAt) {
+        var hoursSinceUpdate = (Date.now() - new Date(latestFetchedAt).getTime()) / 3600000;
+        updatedEl.textContent = 'Сүүлд шинэчилсэн: ' + new Date(latestFetchedAt).toLocaleString('mn-MN')
+          + (hoursSinceUpdate > 30 ? ' (хуучирсан)' : '');
+        updatedEl.classList.toggle('stale', hoursSinceUpdate > 30);
+      } else {
+        updatedEl.textContent = '';
+      }
 
       return loadYearData(CURRENT_YEAR);
     })
