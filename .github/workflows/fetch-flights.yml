@@ -30,6 +30,10 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    # full_backfill (~7 жил) хэвийн vед ~8-9 мин vргэлжилдэг; 20 мин нь хангалттай
+    # хуцаа vлдээж, гэвч vнэхээр гацсан ажиллагааг concurrency queue-г мөнхөд
+    # блоклохоос сэргийлнэ.
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4

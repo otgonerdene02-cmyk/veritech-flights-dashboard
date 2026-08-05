@@ -1,6 +1,7 @@
-// Чатботын байгалийн хэлний хариултыг docs/flights.json-оос шууд (chat логикоос
-// ХАМААРАЛГҮЙ, энгийн filter/reduce-ээр) тооцоолсон "expected" утгатай харьцуулдаг
-// регресс тест. Node.js орчинд ажиллуулна: `node scripts/test-chatbot-accuracy.js`
+// Чатботын байгалийн хэлний хариултыг docs/flights-*.json-уудаас шууд (chat
+// логикоос ХАМААРАЛГҮЙ, энгийн filter/reduce-ээр) тооцоолсон "expected"
+// утгатай харьцуулдаг регресс тест. Node.js орчинд ажиллуулна:
+// `node scripts/test-chatbot-accuracy.js`
 //
 // computeChat()-ийг тусад нь хуулж давхардуулахгүйн тулд docs/index.html-ээс
 // эх кодыг нь шууд текстээр зүүж авч vm орчинд ажиллуулна — ингэснээр
@@ -13,7 +14,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const HTML_PATH = path.join(ROOT, 'docs', 'index.html');
-const FLIGHTS_PATH = path.join(ROOT, 'docs', 'flights.json');
+const DOCS_DIR = path.join(ROOT, 'docs');
 
 function extractBlock(src, startMarker, endMarker) {
   const start = src.indexOf(startMarker);
@@ -47,9 +48,16 @@ function loadChatEngine() {
   return sandbox;
 }
 
+// docs/flights-YYYY.json бvр жилийн дата агуулдаг (2026-08-01-ний split-ийн
+// дараа) тул бvгдийг нэгтгэж ижил "бvх жилийн мөр" dataset vvсгэнэ.
 function loadFlights() {
-  const data = JSON.parse(fs.readFileSync(FLIGHTS_PATH, 'utf8'));
-  return Array.isArray(data.flights) ? data.flights : [];
+  const yearFiles = fs.readdirSync(DOCS_DIR).filter((f) => /^flights-\d{4}\.json$/.test(f));
+  const all = [];
+  for (const file of yearFiles) {
+    const data = JSON.parse(fs.readFileSync(path.join(DOCS_DIR, file), 'utf8'));
+    if (Array.isArray(data.flights)) all.push(...data.flights);
+  }
+  return all;
 }
 
 function sumPax(rows) {
@@ -164,7 +172,7 @@ function run() {
   engine.allRows = rows;
 
   if (!rows.length) {
-    console.error('docs/flights.json хоосон байна — тест ажиллуулах өгөгдөл алга.');
+    console.error('docs/flights-*.json хоосон байна — тест ажиллуулах өгөгдөл алга.');
     process.exit(1);
   }
 
