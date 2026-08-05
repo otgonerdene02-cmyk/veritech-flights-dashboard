@@ -120,11 +120,16 @@
   .row2 .card { margin-bottom: 0; }
 
   /* filter bar */
-  .filter-bar { display: flex; flex-direction: column; gap: 10px; }
-  .frow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .filter-bar { display: flex; flex-direction: column; gap: 14px; }
+  /* Мөр бvр хэд хэдэн шvvлтийг хэвтээ эгнvvлж, шаардлагатай vед (нарийн
+     дэлгэц) доош эвхэгддэг (wrap) — label дээрээ, control нь доор гэсэн
+     .ffield багана бvрийг эгнvvлж, доод ирмэгээр нь тэгшилнэ. */
+  .frow { display: flex; align-items: flex-end; column-gap: 22px; row-gap: 12px; flex-wrap: wrap; }
+  .ffield { display: flex; flex-direction: column; gap: 4px; }
+  .ffield-body { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .flabel {
-    font-size: 0.9375rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
-    color: var(--text-muted); min-width: 46px; flex-shrink: 0;
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--text-muted);
   }
   .fchips { display: flex; gap: 5px; flex-wrap: wrap; }
   .fchip {
@@ -154,6 +159,14 @@
   .clr-btn:hover, .reset-btn:hover { color: var(--text-primary); }
   .reset-btn { margin-left: auto; }
   .divider { height: 1px; background: var(--gridline); }
+  /* Нарийн (мобайл) дэлгэц дээр frow дотор .ffield-vvд аль хэдийн
+     flex-wrap-аар доош шилждэг тул нэмэлт зохион байгуулалт хэрэггvй —
+     зөвхөн "Бvгд арилгах" товчийг сvvлчийн эвхэгдсэн мөрөнд бvтэн
+     өргөнөөр харуулж, дарахад хялбар том товч болгоно. */
+  @media (max-width: 768px) {
+    .frow { column-gap: 16px; }
+    .reset-btn { margin-left: 0; width: 100%; text-align: center; }
+  }
 
   .atags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
   .atags-label { font-size: 0.8125rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
@@ -487,38 +500,45 @@
 
     <div class="card filter-bar">
       <div class="frow">
-        <span class="flabel">Жил</span>
-        <select id="year-select" class="region-select"><option value="all">Бүгд</option></select>
+        <div class="ffield">
+          <span class="flabel">Жил</span>
+          <select id="year-select" class="region-select"><option value="all">Бүгд</option></select>
+        </div>
+        <div class="ffield">
+          <span class="flabel">Сар</span>
+          <div class="ffield-body">
+            <div class="range-wrap">
+              <input type="text" id="mFrom" placeholder="1" maxlength="2" />
+              <span class="range-sep">–</span>
+              <input type="text" id="mTo" placeholder="12" maxlength="2" />
+            </div>
+            <button class="clr-btn" id="clr-month" type="button">× Арилгах</button>
+          </div>
+        </div>
+        <div class="ffield">
+          <span class="flabel">Бүс нутгаар</span>
+          <select id="region-select" class="region-select"><option value="all">Бүгд</option></select>
+        </div>
       </div>
       <div class="divider"></div>
       <div class="frow">
-        <span class="flabel">Сар</span>
-        <div class="range-wrap">
-          <input type="text" id="mFrom" placeholder="1" maxlength="2" />
-          <span class="range-sep">–</span>
-          <input type="text" id="mTo" placeholder="12" maxlength="2" />
+        <div class="ffield">
+          <span class="flabel">Төрөл</span>
+          <div class="fchips" id="chips-ou">
+            <div class="fchip active" data-ou="all">Бүгд</div>
+            <div class="fchip" data-ou="ОУ">Олон улсын</div>
+            <div class="fchip" data-ou="ОН">Дотоодын</div>
+          </div>
         </div>
-        <button class="clr-btn" id="clr-month" type="button">× Арилгах</button>
-      </div>
-      <div class="divider"></div>
-      <div class="frow">
-        <span class="flabel">Төрөл</span>
-        <div class="fchips" id="chips-ou">
-          <div class="fchip active" data-ou="all">Бүгд</div>
-          <div class="fchip" data-ou="ОУ">Олон улсын</div>
-          <div class="fchip" data-ou="ОН">Дотоодын</div>
-        </div>
-        <div class="fchips" id="chips-dir" style="margin-left:8px">
-          <div class="fchip active" data-dir="all">Бүгд</div>
-          <div class="fchip" data-dir="1">Явсан ↗</div>
-          <div class="fchip" data-dir="0">Ирсэн ↙</div>
+        <div class="ffield">
+          <span class="flabel">Чиглэл</span>
+          <div class="fchips" id="chips-dir">
+            <div class="fchip active" data-dir="all">Бүгд</div>
+            <div class="fchip" data-dir="1">Явсан ↗</div>
+            <div class="fchip" data-dir="0">Ирсэн ↙</div>
+          </div>
         </div>
         <button class="reset-btn" id="reset-filters" type="button">↺ Бүгд арилгах</button>
-      </div>
-      <div class="divider"></div>
-      <div class="frow">
-        <span class="flabel">Бүс нутгаар</span>
-        <select id="region-select" class="region-select"><option value="all">Бүгд</option></select>
       </div>
     </div>
 
@@ -690,6 +710,9 @@
     if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
     if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
     return String(Math.round(n));
+  }
+  function fmtTon(t) {
+    return (t || 0).toLocaleString('mn-MN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   }
   function pad2(n) { return String(n).padStart(2, '0'); }
   function monthLabel(m) { return m + '-р сар'; }
