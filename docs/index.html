@@ -289,6 +289,13 @@
     border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.18); padding: 14px 16px;
   }
   .filter-popover.open { display: block; }
+  /* Нарийн дэлгэц дээр .table-controls эвхэгдэхэд (flex-wrap) шvvлтийн товч
+     эгнээний зvvн захад ганцаараа vлддэг тул popover-ийг `right:0`-ээр
+     тохируулбал viewport-ийн зvvн ирмэгээс гадагш гардаг байсан — мобайл
+     дээр `left:0`-ээр зvvн ирмэгт нь тулгаж засав. */
+  @media (max-width: 640px) {
+    .filter-popover { left: 0; right: auto; }
+  }
   .fp-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .fp-hdr h3 { margin: 0; font-size: 0.9375rem; font-weight: 700; }
   .fp-close {
