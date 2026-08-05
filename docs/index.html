@@ -2566,7 +2566,7 @@
         }
       }
     }
-    if (!best || best.score > CITY_FUZZY_THRESHOLD) return null;
+    if (!best || best.score >= CITY_FUZZY_THRESHOLD) return null;
     var alt = (second && second.score <= CITY_FUZZY_THRESHOLD && (second.score - best.score) <= 0.08) ? second.display : null;
     return { city: best.display, score: best.score, alt: alt };
   }
@@ -2655,9 +2655,15 @@
 
     var country = null, carrier = null, city = null, month = null, dayFrom = null, dayTo = null, dir = null, ou = null;
     var region = null, continent = null, alliance = null, acManufacturer = null, acCategory = null;
+    // Улс/бvс/тив/альянс/тээвэрлэгчийг аль хэдийн танисан vгсийг (жишээ нь
+    // "солонгос") дараа нь ХОТЫН нэр хайхад дахин ашиглахгvй байхын тулд
+    // бvртгэнэ — эс тэгвээс нэг vг хоёр өөр газарзvйн шvvлт болж давхар
+    // (АND) орж, "Солонгос" гэсэн улсын vг санамсаргvй "Мөрөн" хот мэт
+    // хотын нэртэй fuzzy таарч, зөрчилдсөн шvvлтээс vр дvн 0 гарах эрсдэлтэй.
+    var consumedKeywords = [];
 
     for (var k in SYN) {
-      if (Object.prototype.hasOwnProperty.call(SYN, k) && ql.indexOf(k) !== -1) { country = SYN[k]; break; }
+      if (Object.prototype.hasOwnProperty.call(SYN, k) && ql.indexOf(k) !== -1) { country = SYN[k]; consumedKeywords.push(k); break; }
     }
 
     // Онтологийн иерархи (бvс нутаг/тив/альянс) — flights.json-ий мөр бvр дээр
@@ -2667,13 +2673,13 @@
     // `r.continent === continent`-ээр шvvгдэх тул тухайн тивд харьяалагдах БVХ
     // бvс/улс/хотын датаг нэмэлт join логикгvйгээр автоматаар нэгтгэнэ.
     for (var kr in REGION_SYN) {
-      if (Object.prototype.hasOwnProperty.call(REGION_SYN, kr) && ql.indexOf(kr) !== -1) { region = REGION_SYN[kr]; break; }
+      if (Object.prototype.hasOwnProperty.call(REGION_SYN, kr) && ql.indexOf(kr) !== -1) { region = REGION_SYN[kr]; consumedKeywords.push(kr); break; }
     }
     for (var kc in CONTINENT_SYN) {
-      if (Object.prototype.hasOwnProperty.call(CONTINENT_SYN, kc) && ql.indexOf(kc) !== -1) { continent = CONTINENT_SYN[kc]; break; }
+      if (Object.prototype.hasOwnProperty.call(CONTINENT_SYN, kc) && ql.indexOf(kc) !== -1) { continent = CONTINENT_SYN[kc]; consumedKeywords.push(kc); break; }
     }
     for (var ka in ALLIANCE_SYN) {
-      if (Object.prototype.hasOwnProperty.call(ALLIANCE_SYN, ka) && ql.indexOf(ka) !== -1) { alliance = ALLIANCE_SYN[ka]; break; }
+      if (Object.prototype.hasOwnProperty.call(ALLIANCE_SYN, ka) && ql.indexOf(ka) !== -1) { alliance = ALLIANCE_SYN[ka]; consumedKeywords.push(ka); break; }
     }
     if (/boeing|боинг/.test(ql)) acManufacturer = 'Boeing';
     else if (/airbus|эйрбас/.test(ql)) acManufacturer = 'Airbus';
@@ -2686,12 +2692,17 @@
     var idx = getChatIndex(D);
     var allCarriers = idx.allCarriers;
     for (var i = 0; i < allCarriers.length; i++) {
-      if (ql.indexOf(allCarriers[i].toLowerCase()) !== -1) { carrier = allCarriers[i]; break; }
+      if (ql.indexOf(allCarriers[i].toLowerCase()) !== -1) { carrier = allCarriers[i]; consumedKeywords.push(allCarriers[i].toLowerCase()); break; }
     }
 
     // 1. flights.json-оос давхардуулгаагvй хотуудын жагсаалт — нийлмэл утгын хоёр
     // талыг (жишээ нь "Сөvл" ба "Инчеон") тус тусад нь тааруулж болохоор задална
     var cityBases = idx.cityBases;
+
+    // Улс/бvс/тив/альянс/тээвэрлэгчид аль хэдийн "хэрэглэгдсэн" vгсийг хассан
+    // хувилбар — зөвхөн ХОТ хайхад ашиглана (дээрх тайлбарыг vз)
+    var qlForCity = ql;
+    consumedKeywords.forEach(function (kw) { qlForCity = qlForCity.split(kw).join(' '); });
 
     // 2. Эхлээд яг таарсан бодит хотын нэрсээр шалгана (урт нэр эхэлж таарч
     // богино нэрийн санамсаргvй давхцлаас сэргийлнэ), 3. олдоогvй бол fuzzy
@@ -2700,18 +2711,18 @@
     var cityClarify = null;
     var sortedCityBases = idx.sortedCityBases;
     for (var ci = 0; ci < sortedCityBases.length; ci++) {
-      if (ql.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
+      if (qlForCity.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
     }
     // Гар аргаар цэгцэлсэн alias (Токёо/Инчон/Пекин г.м) — vг сан/зохион бичлэгээрээ
     // өгөгдлийн бодит нэрнээс тэс өөр тул fuzzy match-аас ӨМНӨ шалгаж, тодорхой,
     // найдвартай хариулт өгнө (fuzzy бол магадлалын тооцоо л хийдэг).
     if (!city) {
       for (var al in CITY_ALIASES) {
-        if (Object.prototype.hasOwnProperty.call(CITY_ALIASES, al) && ql.indexOf(al) !== -1) { city = CITY_ALIASES[al]; break; }
+        if (Object.prototype.hasOwnProperty.call(CITY_ALIASES, al) && qlForCity.indexOf(al) !== -1) { city = CITY_ALIASES[al]; break; }
       }
     }
     if (!city) {
-      var fuzzy = fuzzyFindCity(ql, idx.normCities);
+      var fuzzy = fuzzyFindCity(qlForCity, idx.normCities);
       if (fuzzy) { city = fuzzy.city; cityClarify = fuzzy.alt; }
     }
 
@@ -2878,6 +2889,17 @@
       }
       if (result.cityClarify) {
         html += '<div style="font-size: 0.875rem;color:var(--accent-2);margin-bottom:6px">💡 "' + escHtml(f.city) + '" гэж тодорхойлов — "' + escHtml(result.cityClarify) + '" хотыг хэлж байсан бол дахин тодорхой бичнэ үү.</div>';
+      }
+      // vр дvн 0 мөр гарвал ямар ч тайлбаргvй "0" гэж vзvvлэхгvй — учир нь
+      // энэ нь ихэвчлэн бодит "0 зорчигч" биш, харин 2+ газарзvйн шvvлт
+      // (жишээ нь улс + хот) санамсаргvй давхарч зөрчилдсөний илрэл байдаг.
+      // Хэрэглэгчид шvvлт буруу тайлагдсан байж болзошгvйг тодорхой мэдэгдэнэ.
+      if (!result.unmatched && result.count === 0 && scopeParts.length) {
+        var geoFilters = [f.country, f.city, f.carrier, f.region, f.continent, f.alliance].filter(Boolean);
+        var zeroMsg = geoFilters.length > 1
+          ? '⚠ Тохирох дата олдсонгvй. "' + geoFilters.map(escHtml).join(' + ') + '" гэсэн шvvлтvvд хамт (AND) хэрэглэгдсэн тул зөрчилдсөн байж болзошгvй — асуултаа нэг газар (улс/хот/тив) заасан хэлбэрээр дахин бичиж vзнэ vv.'
+          : '⚠ Тохирох дата олдсонгvй.';
+        html += '<div style="font-size: 0.875rem;color:var(--accent-2);margin-bottom:6px">' + zeroMsg + '</div>';
       }
       html += '<div style="font-size: 0.875rem;color:var(--text-muted);margin-bottom:6px">' + escHtml(scope) + '</div>';
       html += '<div style="font-size: 1.875rem;font-weight:700;color:var(--text-primary)">' + fmtNum(result.value) + '</div>';
