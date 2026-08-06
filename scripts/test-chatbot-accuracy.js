@@ -34,13 +34,28 @@ function loadChatEngine() {
     "  function monthLabel(m) { return m + '-р сар'; }"
   ) + "  function monthLabel(m) { return m + '-р сар'; }\n";
 
+  // computeChat() нь D-ээ getFullHistoryRows()-оор (AVAILABLE_YEARS/yearCache-аас
+  // угсарч) авдаг тул эдгээр хоёр функцийг тусад нь зvvж авна — тэдгээр нь
+  // dashboard-ийн лази ачаалалтын код (fetch(...) IIFE) дунд байрладаг тул
+  // бvхэл блокоор биш, зөвхөн ХОЁР функцийг тус тусад нь extract хийнэ.
+  const historyFn = extractBlock(html, '  function getFullHistoryRows() {', '  // computeChat()');
+  const chatIndexFn = extractBlock(html, '  function getChatIndex(D) {', '  function getVisibleRows() {');
+
   // SYN (улс) -оос эхлээд computeChat()-ийн төгсгөл хүртэлх бүх туслах
   // өгөгдөл/функцүүд (fuzzyFindCity, CHAT_STOPWORDS, matchesCity, mkTbl, гэх мэт)
   const chatCore = extractBlock(html, '  var SYN = {', '\n  function renderChatMessage');
 
-  const sandbox = { allRows: [], console };
+  const sandbox = {
+    allRows: [], console,
+    AVAILABLE_YEARS: [], yearCache: {}, chatIndexCache: null,
+    CURRENT_YEAR: new Date().getFullYear(),
+  };
   vm.createContext(sandbox);
-  vm.runInContext(numberHelpers + '\n' + chatCore, sandbox, { filename: 'docs/index.html (extracted chat engine)' });
+  vm.runInContext(
+    numberHelpers + '\n' + historyFn + '\n' + chatIndexFn + '\n' + chatCore,
+    sandbox,
+    { filename: 'docs/index.html (extracted chat engine)' }
+  );
 
   if (typeof sandbox.computeChat !== 'function') {
     throw new Error('computeChat экспортлогдсонгүй — docs/index.html-ийн бүтэц өөрчлөгдсөн байж магадгүй, extraction marker-үүдийг шинэчлэх шаардлагатай.');
@@ -49,15 +64,18 @@ function loadChatEngine() {
 }
 
 // docs/flights-YYYY.json бvр жилийн дата агуулдаг (2026-08-01-ний split-ийн
-// дараа) тул бvгдийг нэгтгэж ижил "бvх жилийн мөр" dataset vvсгэнэ.
-function loadFlights() {
+// дараа) тул жил бvрийг тусад нь (yearCache шиг) буцаана — computeChat() нь
+// жил заагаагvй асуултад ЗӨВХӨН CURRENT_YEAR-ийг ашигладаг тул тестийн
+// "expected" утга ч мөн ижил хамрах хvрээгээр тооцогдох ёстой.
+function loadFlightsByYear() {
   const yearFiles = fs.readdirSync(DOCS_DIR).filter((f) => /^flights-\d{4}\.json$/.test(f));
-  const all = [];
+  const byYear = {};
   for (const file of yearFiles) {
+    const year = parseInt(file.match(/^flights-(\d{4})\.json$/)[1], 10);
     const data = JSON.parse(fs.readFileSync(path.join(DOCS_DIR, file), 'utf8'));
-    if (Array.isArray(data.flights)) all.push(...data.flights);
+    byYear[year] = Array.isArray(data.flights) ? data.flights : [];
   }
-  return all;
+  return byYear;
 }
 
 function sumPax(rows) {
@@ -168,11 +186,17 @@ function buildCases(rows) {
 
 function run() {
   const engine = loadChatEngine();
-  const rows = loadFlights();
-  engine.allRows = rows;
+  const byYear = loadFlightsByYear();
+  const years = Object.keys(byYear).map(Number).sort(function (a, b) { return a - b; });
+  engine.AVAILABLE_YEARS = years.map(function (y) { return { year: y }; });
+  engine.yearCache = byYear;
+
+  // computeChat() нь жил заагаагvй асуултад CURRENT_YEAR-ийг л ашигладаг тул
+  // "expected" утгыг мөн ЗӨВХӨН тухайн жилийн мөрvvдээс тооцно.
+  const rows = byYear[engine.CURRENT_YEAR] || [];
 
   if (!rows.length) {
-    console.error('docs/flights-*.json хоосон байна — тест ажиллуулах өгөгдөл алга.');
+    console.error('docs/flights-' + engine.CURRENT_YEAR + '.json хоосон эсвэл алга байна — тест ажиллуулах өгөгдөл алга.');
     process.exit(1);
   }
 

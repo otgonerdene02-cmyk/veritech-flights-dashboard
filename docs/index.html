@@ -2974,6 +2974,14 @@
       if (a >= 1 && a <= 31 && b >= 1 && b <= 31 && a !== b) { dayFrom = Math.min(a, b); dayTo = Math.max(a, b); }
     }
 
+    // Хэрэглэгч тодорхой жил дурдвал ("2025 онд...") зөвхөн тэр жилээр шvvнэ.
+    // Жил дурдаагvй бол чимээгvйгээр БVХ түvхийг (2020-2026) нэгтгэж хариулдаг
+    // байсан нь хэрэглэгчийг ямар хугацааны дата харж байгаагаа андуурахад хvргэдэг
+    // байсан тул — жил заагаагvй vед ТАЙЛАНТ ОН (CURRENT_YEAR)-оор л хариулна.
+    var yearM = ql.match(/\b(20\d{2})\b/);
+    var explicitYear = yearM ? parseInt(yearM[1], 10) : null;
+    var year = explicitYear || CURRENT_YEAR;
+
     // dir талбар манай өгөгдөлд "1"(явсан)/"0"(ирсэн) — үгийг код руу хөрвүүлнэ.
     // "... руу/рүү" гэсэн чиглэл заасан угтвар нь "-аас" төрлийн эхлэлийн цэг заасан
     // үгтэй хамт орсон бол (жишээ нь "Солонгосоос ... руу") хоёрдмол утгатай тул dir
@@ -2986,7 +2994,8 @@
     if (hasIntl && !hasDom) ou = 'ОУ';
     if (hasDom && !hasIntl) ou = 'ОН';
 
-    var rows = D;
+    var yearRows = D.filter(function (r) { return r.year === year; });
+    var rows = yearRows;
     if (country) rows = rows.filter(function (r) { return r.cntry === country; });
     if (city) rows = rows.filter(function (r) { return matchesCity(r.city, city); });
     if (carrier) rows = rows.filter(function (r) { return r.carr === carrier; });
@@ -3026,7 +3035,7 @@
     function sum(arr) { return arr.reduce(function (s, r) { return s + getVal(r); }, 0); }
 
     var filtersUsed = {
-      country: country, city: city, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou,
+      year: year, country: country, city: city, carrier: carrier, month: month, dayFrom: dayFrom, dayTo: dayTo, dir: dir, ou: ou,
       region: region, continent: continent, alliance: alliance, acManufacturer: acManufacturer, acCategory: acCategory,
     };
 
@@ -3042,7 +3051,7 @@
         cum += byM[m].v;
         return [monthLabel(m), byM[m].v, cum, byM[m].c];
       });
-      return { type: 'cumulative', label: 'Сар', mLabel: mLabel, rows: cumRows, total: cum, count: rows.length, filters: filtersUsed };
+      return { type: 'cumulative', label: 'Сар', mLabel: mLabel, rows: cumRows, total: cum, count: rows.length, filters: filtersUsed, recordCount: yearRows.length };
     }
 
     var topM = ql.match(/топ\s*(\d+)|(\d+)\s*(улс|тээвэрлэгч|хот)/);
@@ -3092,14 +3101,14 @@
       if (grpM) sorted.sort(function (a, b) { return parseInt(a[0], 10) - parseInt(b[0], 10); });
       else if (grpD) sorted.sort(function (a, b) { return a[0].localeCompare(b[0]); });
       var sliced = sorted.slice(0, topN).map(function (e) { return [e[0], e[1].v, e[1].c]; });
-      return { type: 'table', label: label, mLabel: mLabel, topN: topN, rows: sliced, total: sum(rows), count: rows.length, filters: filtersUsed };
+      return { type: 'table', label: label, mLabel: mLabel, topN: topN, rows: sliced, total: sum(rows), count: rows.length, filters: filtersUsed, recordCount: yearRows.length };
     }
 
     // country/city/carrier ямар нь ч тохироогүй бөгөөд асуулт дотор танигдаагүй
     // 3+ үсэгтэй үг үлдсэн бол — чимээгүйгээр бүх датагийн нийт дүнг буцаах
     // оронд тайлбар нэмж хэрэглэгчийг төөрөгдүүлэхгүй байхаар анхааруулна
     var unmatched = !country && !city && !carrier && !region && !continent && !alliance && !acManufacturer && !acCategory && hasUnrecognizedWord(ql);
-    return { type: 'single', value: sum(rows), count: rows.length, mLabel: mLabel, filters: filtersUsed, unmatched: unmatched, cityClarify: cityClarify };
+    return { type: 'single', value: sum(rows), count: rows.length, mLabel: mLabel, filters: filtersUsed, unmatched: unmatched, cityClarify: cityClarify, recordCount: yearRows.length };
   }
 
   function renderChatMessage(result, wantChart, wantGrowth) {
@@ -3121,8 +3130,9 @@
         f.dayFrom && f.dayTo && (f.dayFrom + '-' + f.dayTo + '-ны өдөр'),
         f.dir && (f.dir === '1' ? 'Явсан' : 'Ирсэн'),
         f.ou,
+        f.year && (f.year + ' он'),
       ].filter(Boolean);
-      var scope = scopeParts.length ? scopeParts.join(' · ') : 'Нийт бүртгэгдсэн хугацаа';
+      var scope = scopeParts.join(' · ');
       if (result.unmatched) {
         html += '<div style="font-size: 0.875rem;color:var(--accent-2);margin-bottom:6px">⚠ Тодорхой хот/улс/тээвэрлэгч олдсонгүй тул нийт дүнг харуулж байна:</div>';
       }
@@ -3151,7 +3161,7 @@
       html += '<div class="chat-chart-box"><canvas id="' + cid + '"></canvas></div>';
     }
 
-    html += '<div class="cpill">' + fmtNum(allRows.length) + ' бичлэг · JS тооцоо</div>';
+    html += '<div class="cpill">' + fmtNum(result.recordCount) + ' бичлэг · JS тооцоо</div>';
     b.innerHTML = html;
     w.appendChild(av); w.appendChild(b);
     conv.appendChild(w);
