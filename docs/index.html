@@ -340,6 +340,18 @@
   table.flights thead th:nth-child(1), table.flights thead th:nth-child(2) { z-index: 3; }
   table.flights tbody tr:hover td:nth-child(1),
   table.flights tbody tr:hover td:nth-child(2) { background: var(--accent-wash); }
+  /* Mobile дээр зөвхөн Огноо баганыг sticky үлдээж, Компанийг бусад баганатай хамт scroll хийдэг болгоно */
+  @media (max-width: 768px) {
+    table.flights td:nth-child(2) {
+      position: static;
+      border-right: none;
+    }
+    table.flights th:nth-child(2) {
+      left: auto;
+      z-index: 1;
+      border-right: none;
+    }
+  }
   .pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.875rem; color: var(--text-secondary); }
   .pager button {
     font: inherit; font-size: 0.875rem; background: var(--page); border: 1px solid var(--border);
