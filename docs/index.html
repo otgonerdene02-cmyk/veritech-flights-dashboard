@@ -1260,19 +1260,11 @@
         var maxAimagPax = Object.keys(aimagTotals).reduce(function (m, k) { return Math.max(m, aimagTotals[k]); }, 0);
 
         geoOption.label = { show: true, color: textSecondary, fontSize: 9 };
-        // geo компонентийн tooltip нь эх (root) tooltip тохиргооноос ӨВЛӨХГvй тул
-        // (formatter, backgroundColor гэх мэтийг тусад нь давхар зааж өгөх ёстой) энд
-        // бvрэн бие даасан байдлаар тодорхойлно.
-        geoOption.tooltip = {
-          show: true,
-          backgroundColor: surface,
-          borderColor: border,
-          borderWidth: 1,
-          textStyle: { color: textPrimary, fontSize: 14 },
-          formatter: function (params) {
-            return '<b>' + params.name + '</b><br/>Аймгийн нийт зорчигч: ' + fmtNum(aimagTotals[params.name] || 0);
-          },
-        };
+        // Санамж: geo.tooltip.show = true болгож болохгvй — энэ нь мөн тухайн geo
+        // координатын систем дээр суурилсан ӨӨР series-vvдийн (боомтын effectScatter
+        // маркерууд) hover tooltip-ийг "хулгайлж", буруу (аймгийн) агуулга харуулдаг
+        // болохыг тест vед илрvvлсэн. Тиймээс аймгийн choropleth нь зөвхөн ХАРАГДАХ
+        // өнгө/хvрээ/нэрээр хязгаарлагдана — боомтын hover tooltip хэвээрээ vлдэнэ.
         geoOption.regions = Object.keys(AIMAG_NAME_MAP).map(function (enKey) {
           var mnName = AIMAG_NAME_MAP[enKey];
           var pax = aimagTotals[mnName] || 0;
