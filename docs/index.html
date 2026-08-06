@@ -93,7 +93,7 @@
   h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
   .subtitle { color: var(--text-secondary); font-size: 1rem; margin-top: 4px; }
   .updated { color: var(--text-muted); font-size: 1rem; }
-  .updated.stale { color: #c0392b; font-weight: 600; }
+  .updated.stale { color: var(--accent-2); }
 
   button.theme-toggle {
     font: inherit; font-size: 1rem; color: var(--text-secondary);
@@ -2590,6 +2590,42 @@
     });
   }
 
+  // "Сvvлд шалгасан" (last checked) болон "Сvvлд шинэчилсэн" (last updated) хоёр
+  // тусдаа цаг vзvvлнэ — эх сурвалж нь docs/last-sync-status.json (writeSyncStatus.js-ээр
+  // cron ажиллагаа бvрд бичигддэг). lastAttemptAt нь ажиллагаа БVР (шинэ дата олдсон
+  // эсэхээс vл хамааран) шинэчлэгддэг тул "шалгасан", харин lastUpdatedAt нь ЗӨВХӨН
+  // бодит шинэ/өөрчлөгдсөн мөр орж ирсэн vед л шинэчлэгддэг тул "шинэчилсэн" гэсэн
+  // утгыг зөв илэрхийлнэ. Тэр файл олдохгvй бол (хуучин deploy, локал тест) flights-
+  // index.json-ий хамгийн сvvлийн fetchedAt-руу буцна.
+  var STALE_HOURS = 48;
+
+  function paintUpdatedAt(checkedAt, updatedAt) {
+    var updatedEl = document.getElementById('updated-at');
+    if (!checkedAt && !updatedAt) { updatedEl.textContent = ''; return; }
+    var hoursSinceUpdate = updatedAt ? (Date.now() - new Date(updatedAt).getTime()) / 3600000 : Infinity;
+    var isStale = hoursSinceUpdate > STALE_HOURS;
+    var parts = [];
+    if (checkedAt) parts.push('Сүүлд шалгасан: ' + new Date(checkedAt).toLocaleString('mn-MN'));
+    if (updatedAt) parts.push('Сүүлд шинэчилсэн: ' + new Date(updatedAt).toLocaleString('mn-MN'));
+    updatedEl.textContent = parts.join(' · ') + (isStale ? ' · 48+ цаг шинэчлэгдээгvй' : '');
+    updatedEl.classList.toggle('stale', isStale);
+  }
+
+  function renderUpdatedAt(fallbackFetchedAt) {
+    fetch('./last-sync-status.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (status) {
+        var checkedAt = (status && status.lastAttemptAt) || fallbackFetchedAt;
+        var updatedAt = (status && status.lastUpdatedAt)
+          || (status && status.lastSuccessAt)
+          || fallbackFetchedAt;
+        paintUpdatedAt(checkedAt, updatedAt);
+      })
+      .catch(function () {
+        paintUpdatedAt(fallbackFetchedAt, fallbackFetchedAt);
+      });
+  }
+
   fetch('./flights-index.json', { cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (indexData) {
@@ -2603,15 +2639,7 @@
       var latestFetchedAt = AVAILABLE_YEARS.reduce(function (max, y) {
         return (y.fetchedAt && (!max || y.fetchedAt > max)) ? y.fetchedAt : max;
       }, null);
-      var updatedEl = document.getElementById('updated-at');
-      if (latestFetchedAt) {
-        var hoursSinceUpdate = (Date.now() - new Date(latestFetchedAt).getTime()) / 3600000;
-        updatedEl.textContent = 'Сүүлд шинэчилсэн: ' + new Date(latestFetchedAt).toLocaleString('mn-MN')
-          + (hoursSinceUpdate > 30 ? ' (хуучирсан)' : '');
-        updatedEl.classList.toggle('stale', hoursSinceUpdate > 30);
-      } else {
-        updatedEl.textContent = '';
-      }
+      renderUpdatedAt(latestFetchedAt);
 
       return loadYearData(CURRENT_YEAR);
     })

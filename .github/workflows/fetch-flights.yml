@@ -57,7 +57,7 @@ jobs:
 
       - name: Write sync status
         if: always()
-        run: node scripts/writeSyncStatus.js "${{ steps.fetch.outcome }}" "${{ github.run_id }}" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: node scripts/writeSyncStatus.js "${{ steps.fetch.outcome }}" "${{ github.run_id }}" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" "${{ steps.fetch.outputs.changed }}"
 
       - name: Commit and push if changed
         id: commit

@@ -311,6 +311,14 @@ async function main() {
   console.log(`  Шинэчлэгдсэн мөр (updated): ${totalUpdated}`);
   console.log(`  Өөрчлөгдөөгvй мөр (unchanged): ${totalUnchanged}`);
   console.log(`  Бичигдсэн файлууд: ${results.map((r) => `flights-${r.year}.json`).join(', ')}, flights-index.json`);
+
+  // writeSyncStatus.js-д "бодит шинэ дата олдсон уу" гэдгийг дамжуулна (dashboard
+  // дээрх "Сvvлд шинэчилсэн" нь зөвхөн vvнд vндэслэнэ — "Сvvлд шалгасан"-аас ялгаатай
+  // нь ажиллагаа бvрд биш, зөвхөн бодит өөрчлөлт орсон vед л урагшилна).
+  const hasChanges = totalAdded > 0 || totalUpdated > 0;
+  if (process.env.GITHUB_OUTPUT) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `changed=${hasChanges}\n`, 'utf8');
+  }
 }
 
 main().catch((err) => {

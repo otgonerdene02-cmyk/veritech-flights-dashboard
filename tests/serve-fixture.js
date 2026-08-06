@@ -65,6 +65,21 @@ function indexPayload(year) {
   });
 }
 
+// dashboard-ийн "Сvvлд шалгасан"/"Сvvлд шинэчилсэн" хоёр цагийг унших sync-status
+// fixture — бодит docs/last-sync-status.json (өдөр бvр өөрчлөгддөг) руу унахгvйн тулд.
+function syncStatusPayload() {
+  const fixture = loadFixture();
+  return JSON.stringify({
+    lastAttemptAt: fixture.meta.fetchedAt,
+    lastAttemptStatus: 'success',
+    lastSuccessAt: fixture.meta.fetchedAt,
+    lastFailureAt: null,
+    lastUpdatedAt: fixture.meta.fetchedAt,
+    runId: 'fixture',
+    runUrl: null,
+  });
+}
+
 function createServer() {
   return http.createServer((req, res) => {
     let urlPath = req.url.split('?')[0];
@@ -75,6 +90,12 @@ function createServer() {
     if (urlPath === '/flights-index.json') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(indexPayload(new Date().getFullYear()));
+      return;
+    }
+
+    if (urlPath === '/last-sync-status.json') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(syncStatusPayload());
       return;
     }
 
