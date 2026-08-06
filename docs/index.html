@@ -1027,6 +1027,9 @@
   function renderKPI(rows) {
     var n = rows.length;
     var p = rows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
+    // r.cargo (MRTD-ийн "Ачаа /тонн/" багана, C39) нь ТОННООР — cargoKg
+    // (ACHAA_CARGO, "Ачаа КГ") нь тvvнтэй яг x1000 харьцаатай хос багана.
+    // Файлын шошгыг "(кг)" гэж бичсэн хуучин алдааг давтахгvйн тулд анхаарна уу.
     var cargo = rows.reduce(function (s, r) { return s + (r.cargo || 0); }, 0);
     var intlRows = rows.filter(function (r) { return r.ou === 'ОУ'; });
     var domRows = rows.filter(function (r) { return r.ou === 'ОН'; });
@@ -1068,7 +1071,7 @@
       { l: 'ОУ нислэг', v: fmtNum(intlF), s: pct(intlF, n, 'нийт нислэгийн'), c: 'amber', icon: 'globe', cur: intlF, prevKey: 'intlF' },
       { l: 'ОУ зорчигч', v: compact(intlP), s: pct(intlP, p, 'нийт зорчигчийн'), c: 'purple', icon: 'globe', cur: intlP, prevKey: 'intlP' },
       { l: 'Дотоодын зорчигч', v: compact(domP), s: pct(domP, p, 'нийт зорчигчийн'), c: 'teal', icon: 'home', cur: domP, prevKey: 'domP' },
-      { l: 'Нийт ачаа (кг)', v: compact(cargo), s: '', c: 'red', icon: 'package', cur: cargo, prevKey: 'cargo' },
+      { l: 'Нийт ачаа (тонн)', v: compact(cargo), s: '', c: 'red', icon: 'package', cur: cargo, prevKey: 'cargo' },
       { l: 'Тээвэрлэгч', v: fmtNum(carriers), s: '', c: 'blue', icon: 'briefcase', cur: carriers, prevKey: 'carriers' },
       { l: 'Хот', v: fmtNum(cities), s: '', c: 'green', icon: 'map-pin', cur: cities, prevKey: 'cities' },
     ];
@@ -3017,7 +3020,7 @@
       if (wFlights) return 1;
       return r.pax || 0;
     }
-    var mLabel = wCargo ? 'Ачааны жин (кг)' : wMail ? 'Шуудангийн жин (кг)' : wChild ? 'Хүүхэд зорчигч (хүн)' : wInfant ? 'Нялх зорчигч (хүн)' :
+    var mLabel = wCargo ? 'Ачааны жин (тонн)' : wMail ? 'Шуудангийн жин (кг)' : wChild ? 'Хүүхэд зорчигч (хүн)' : wInfant ? 'Нялх зорчигч (хүн)' :
       wBoth ? 'Хүүхэд + нялх зорчигч (хүн)' : wTransit ? 'Транзит зорчигч (хүн)' : wAdult ? 'Насанд хүрэгч зорчигч (хүн)' :
       wFlights ? 'Нислэгийн тоо (удаа)' : 'Нийт зорчигч (хүн)';
     function sum(arr) { return arr.reduce(function (s, r) { return s + getVal(r); }, 0); }
