@@ -246,25 +246,9 @@
     font-size: 0.8125rem; color: var(--text-primary); font-weight: 700; align-items: center; padding: 4px 0;
   }
   .tbl-more { text-align: center; font-size: 0.75rem; color: var(--text-muted); padding: 4px; border-top: 1px solid var(--gridline); }
-
-  /* line chart (SVG daily trend) */
-  .line-chart-wrap { position: relative; }
-  svg.line-chart { width: 100%; height: 220px; display: block; overflow: visible; }
-  .lc-gridline { stroke: var(--gridline); stroke-width: 1; }
-  .lc-axis-label { fill: var(--text-muted); font-size: 0.75rem; }
-  .lc-area { fill: var(--accent); opacity: 0.10; }
-  .lc-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-  .lc-dot { fill: var(--accent); stroke: var(--surface-1); stroke-width: 2; }
-  .lc-crosshair { stroke: var(--baseline); stroke-width: 1; }
-  .lc-hover-dot { fill: var(--accent); stroke: var(--surface-1); stroke-width: 2; }
-  .lc-tooltip {
-    position: absolute; pointer-events: none; background: var(--surface-1);
-    border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px;
-    font-size: 0.875rem; color: var(--text-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    transform: translate(-50%, -110%); white-space: nowrap; display: none;
-  }
-  .lc-tooltip .t-date { color: var(--text-muted); font-size: 0.8125rem; }
-  .lc-tooltip .t-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tbl-val .p .yoy-badge { font-weight: 600; }
+  .tbl-val .p .yoy-badge.up   { color: #1baf7a; }
+  .tbl-val .p .yoy-badge.down { color: #e84749; }
 
   /* table */
   .table-controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -580,10 +564,17 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2>Өдөр тутмын нийт зорчигчийн урсгал</h2>
-      <p class="desc">Огноогоор нэгтгэсэн нийт зорчигчийн тоо</p>
-      <div class="line-chart-wrap" id="line-chart-wrap"></div>
+    <div class="row2">
+      <div class="card">
+        <h2 id="cargo-month-title">Сараар ачааны хэмжээ</h2>
+        <p class="desc">Багана = сар бүрийн ачааны хэмжээ (тонн), шугам = өмнөх онтой харьцуулсан өсөлт</p>
+        <div class="cjs-chart" id="cargo-month-wrap"><canvas id="cCargoMonth"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Тээвэрлэгч тус бүрийн ачаа</h2>
+        <p class="desc">Ачааны хэмжээгээр (тонн) эрэмбэлсэн Топ 10 тээвэрлэгч, өмнөх онтой харьцуулсан өсөлттэй</p>
+        <div id="cargo-carrier-wrap"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -1649,6 +1640,144 @@
     });
   }
 
+  // ---------- Сараар ачааны хэмжээ (Chart.js bar+line, "Сараар зорчигч ба нислэг"-тэй ижил загвар) ----------
+  var cargoMonthChart = null;
+  function renderCargoMonthChart(rows) {
+    var wrap = document.getElementById('cargo-month-wrap');
+    var titleEl = document.getElementById('cargo-month-title');
+    var singleYear = (typeof filters.year === 'number') ? filters.year : null;
+    var yoy = singleYear ? getYoYContext() : null;
+    if (titleEl) titleEl.textContent = 'Сараар ачааны хэмжээ (' + (singleYear ? singleYear + ' он' : 'бvх жил') + ')';
+
+    var labels, tonV, shV, prevTonV = null, prevYearNum = null;
+
+    if (singleYear) {
+      var curByM = {};
+      rows.forEach(function (r) {
+        if (!r.month) return;
+        if (!curByM[r.month]) curByM[r.month] = { ton: 0, sh: 0 };
+        curByM[r.month].ton += (r.cargo || 0);
+        if (r.cargo) curByM[r.month].sh++;
+      });
+      var months = Object.keys(curByM).map(Number);
+
+      var prevByM = {};
+      if (yoy) {
+        yoy.prevRows.forEach(function (r) {
+          if (!r.month) return;
+          if (!prevByM[r.month]) prevByM[r.month] = { ton: 0 };
+          prevByM[r.month].ton += (r.cargo || 0);
+        });
+        Object.keys(prevByM).forEach(function (m) {
+          m = Number(m);
+          if (months.indexOf(m) === -1) months.push(m);
+        });
+      }
+      months.sort(function (a, b) { return a - b; });
+
+      labels = months.map(monthLabel);
+      tonV = months.map(function (m) { return (curByM[m] && curByM[m].ton) || 0; });
+      shV = months.map(function (m) { return (curByM[m] && curByM[m].sh) || 0; });
+      if (yoy) {
+        prevYearNum = yoy.prevYear;
+        prevTonV = months.map(function (m) { return (prevByM[m] && prevByM[m].ton) || 0; });
+      }
+    } else {
+      var byM = {};
+      rows.forEach(function (r) {
+        if (!r.month) return;
+        var key = (r.year || 0) + '-' + r.month;
+        if (!byM[key]) byM[key] = { month: r.month, year: r.year || 0, ton: 0, sh: 0 };
+        byM[key].ton += (r.cargo || 0);
+        if (r.cargo) byM[key].sh++;
+      });
+      var keys = Object.keys(byM).sort(function (a, b) {
+        return (byM[a].year - byM[b].year) || (byM[a].month - byM[b].month);
+      });
+      labels = keys.map(function (k) { return monthLabel(byM[k].month); });
+      tonV = keys.map(function (k) { return byM[k].ton; });
+      shV = keys.map(function (k) { return byM[k].sh; });
+    }
+
+    if (cargoMonthChart) { cargoMonthChart.destroy(); cargoMonthChart = null; }
+    wrap.innerHTML = '<canvas id="cCargoMonth"></canvas>';
+    if (!labels.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return; }
+    var canvas = document.getElementById('cCargoMonth');
+
+    var accent = getVar('--accent'), accent2 = getVar('--accent-2');
+    var gridline = getVar('--gridline'), textMuted = getVar('--text-muted'), textSecondary = getVar('--text-secondary');
+    var surface = getVar('--surface-1'), border = getVar('--border'), textPrimary = getVar('--text-primary');
+
+    var upColor = '#1baf7a', downColor = '#e84749';
+
+    var tonLabel = 'Нийт ачаа (тонн)';
+    var shLabel = 'Ачаа тээвэрлэсэн нислэг (удаа) — баруун тэнхлэг';
+    var prevTonLabel = '';
+    var growthV = null;
+    if (yoy) {
+      tonLabel = String(singleYear) + ' он';
+      prevTonLabel = String(prevYearNum) + ' он';
+      growthV = months.map(function (m, i) {
+        var prev = prevTonV[i];
+        return prev ? ((tonV[i] - prev) / prev * 100) : null;
+      });
+    }
+
+    // Prev жилийн "ghost" багана — одоогийн баганатай ижил өнгө, гэхдээ
+    // тунгалаг (0.28 alpha) тул хажууд нь бага зэрэг бүдэг харагдана.
+    var datasets = [
+      { label: tonLabel, data: tonV, backgroundColor: accent, borderRadius: 4, maxBarThickness: 64, yAxisID: 'y', yoyRole: 'curTon' },
+    ];
+    if (yoy) {
+      datasets.push({ label: prevTonLabel, data: prevTonV, backgroundColor: hexToRgba(accent, 0.28), borderRadius: 4, maxBarThickness: 64, yAxisID: 'y', yoyRole: 'prevTon' });
+      datasets.push({
+        label: 'Өсөлт (%)', data: growthV, type: 'line', yAxisID: 'y1',
+        borderColor: upColor, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3,
+        pointRadius: 4, spanGaps: true,
+        pointBackgroundColor: function (ctx) { var v = ctx.raw; return v == null ? textMuted : (v >= 0 ? upColor : downColor); },
+        segment: { borderColor: function (ctx) { return (ctx.p1.parsed.y >= 0) ? upColor : downColor; } },
+        yoyRole: 'growth',
+      });
+    } else {
+      datasets.push({ label: shLabel, data: shV, type: 'line', borderColor: accent2, backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 4, pointBackgroundColor: accent2, yAxisID: 'y1', yoyRole: 'curSh' });
+    }
+
+    cargoMonthChart = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: labels, datasets: datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: textSecondary, font: { size: 13 }, boxWidth: 10, padding: 8 } },
+          tooltip: {
+            backgroundColor: surface, borderColor: border, borderWidth: 1, titleColor: textPrimary, bodyColor: textSecondary,
+            padding: 10, cornerRadius: 8, displayColors: false,
+            callbacks: {
+              label: function (c) {
+                var role = c.dataset.yoyRole;
+                if (role === 'prevTon') return prevYearNum + ' оны ачаа: ' + fmtTon(c.raw) + ' тонн';
+                if (role === 'growth') {
+                  if (c.raw == null) return 'Өсөлт: мэдээлэл алга';
+                  return 'Өсөлт (өмнөх онтой харьцуулахад): ' + (c.raw >= 0 ? '+' : '') + c.raw.toFixed(1) + '%';
+                }
+                if (role === 'curSh') return 'Ачаа тээвэрлэсэн нислэг: ' + fmtNum(c.raw) + ' удаа';
+                return (yoy ? (singleYear + ' оны ачаа: ') : 'Нийт ачаа: ') + fmtTon(c.raw) + ' тонн';
+              },
+            },
+          },
+        },
+        scales: {
+          y: { title: { display: true, text: 'Ачааны хэмжээ (тонн)', color: accent, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 } }, grid: { color: gridline }, border: { display: false } },
+          y1: yoy
+            ? { position: 'right', title: { display: true, text: 'Өсөлт (%)', color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 }, callback: function (v) { return (v > 0 ? '+' : '') + v + '%'; } }, grid: { drawOnChartArea: false }, border: { display: false } }
+            : { position: 'right', title: { display: true, text: 'Нислэгийн тоо (удаа)', color: accent2, font: { size: 12, weight: '600' } }, ticks: { color: textMuted, font: { size: 12 } }, grid: { drawOnChartArea: false }, border: { display: false } },
+          x: { title: { display: true, text: 'Сар', color: textSecondary, font: { size: 12 } }, ticks: { color: textSecondary, font: { size: 13 } }, grid: { display: false }, border: { display: false } },
+        },
+      },
+    });
+  }
+
   // ---------- ОУ / Дотоодын харьцаа (doughnut) ----------
   var ouChart = null;
   function renderOUChart(rows) {
@@ -1736,6 +1865,84 @@
   }
   function renderCountryChart(rows) {
     renderBreakdownTable('country-wrap', topGroups(rows, function (r) { return r.cntry; }, ['Монгол', 'Тодорхойгүй']));
+  }
+
+  // ---------- Тээвэрлэгч тус бvрийн ачаа — progress-bar жагсаалт + YoY өсөлт ----------
+  function topGroupsCargo(rows, keyFn, excludeKeys) {
+    var by = {};
+    rows.forEach(function (r) {
+      var k = keyFn(r);
+      if (!k) return;
+      if (excludeKeys && excludeKeys.indexOf(k) !== -1) return;
+      if (!(r.cargo > 0)) return;
+      if (!by[k]) by[k] = { ton: 0, fl: 0 };
+      by[k].ton += (r.cargo || 0); by[k].fl++;
+    });
+    return Object.keys(by).map(function (k) { return { name: k, ton: by[k].ton, fl: by[k].fl }; })
+      .sort(function (a, b) { return b.ton - a.ton; }).slice(0, 10);
+  }
+
+  function renderCargoBreakdownTable(wrapId, list) {
+    var wrap = document.getElementById(wrapId);
+    if (!list.length) { wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>'; return; }
+
+    var total = list.reduce(function (s, d) { return s + d.ton; }, 0);
+    var maxV = Math.max.apply(null, list.map(function (d) { return d.ton; })) || 1;
+
+    var rowsHtml = list.map(function (d, i) {
+      var pct = total > 0 ? (d.ton / total * 100) : 0;
+      var bw = Math.round(d.ton / maxV * 100);
+      var color = ROW_COLORS[i % ROW_COLORS.length];
+      var growthHtml = '';
+      if (d.prevTon !== undefined) {
+        if (d.prevTon > 0) {
+          var g = (d.ton - d.prevTon) / d.prevTon * 100;
+          var cls = g >= 0 ? 'up' : 'down';
+          var arrow = g >= 0 ? '↑' : '↓';
+          growthHtml = ' · <span class="yoy-badge ' + cls + '">' + arrow + ' ' + Math.abs(g).toFixed(1) + '%</span>';
+        } else {
+          growthHtml = ' · <span class="yoy-badge">шинэ</span>';
+        }
+      }
+      return '<div class="tbl-row" title="' + escHtml(d.name) + ': ' + fmtTon(d.ton) + ' тонн (' + pct.toFixed(1) + '%), ' + d.fl + ' нислэг">' +
+        '<div class="tbl-label">' + escHtml(d.name) + '</div>' +
+        '<div class="tbl-bar-cell"><div class="tbl-bar-track"><div class="tbl-bar-fill" style="width:' + bw + '%;background:' + color + '"></div></div></div>' +
+        '<div class="tbl-val"><div class="n">' + fmtTon(d.ton) + ' т</div><div class="p">' + pct.toFixed(1) + '%' + growthHtml + '</div></div>' +
+      '</div>';
+    }).join('');
+
+    var more = list.length > BREAKDOWN_VISIBLE
+      ? '<div class="tbl-more">↕ ' + (list.length - BREAKDOWN_VISIBLE) + ' нэмэлт мөр</div>'
+      : '';
+
+    wrap.innerHTML =
+      '<div class="tbl">' +
+        '<div class="tbl-hdr"><div class="tbl-label">Нэр</div><div class="tbl-bar-cell">Харьцаа</div><div class="tbl-val" style="padding-right:10px">Ачаа (тонн)</div></div>' +
+        '<div class="tbl-scroll">' + rowsHtml + '</div>' +
+        '<div class="tbl-ftr"><div class="tbl-label">Нийт (' + list.length + ')</div><div class="tbl-bar-cell"></div><div class="tbl-val" style="padding-right:10px">' + fmtTon(total) + ' т</div></div>' +
+        more +
+      '</div>';
+  }
+
+  function renderCargoCarrierChart(rows) {
+    var singleYear = (typeof filters.year === 'number') ? filters.year : null;
+    var yoy = singleYear ? getYoYContext() : null;
+    var list = topGroupsCargo(rows, function (r) { return r.carr; });
+
+    if (yoy) {
+      var prevByCarr = {};
+      yoy.prevRows.forEach(function (r) {
+        if (!(r.cargo > 0)) return;
+        var k = r.carr;
+        if (!k) return;
+        prevByCarr[k] = (prevByCarr[k] || 0) + (r.cargo || 0);
+      });
+      list = list.map(function (d) {
+        return Object.assign({}, d, { prevTon: prevByCarr[d.name] || 0 });
+      });
+    }
+
+    renderCargoBreakdownTable('cargo-carrier-wrap', list);
   }
   // ---------- Бvс нутгийн Treemap (онтологийн region → country шатлал) ----------
   var TREEMAP_TOP_REGIONS = 7;
@@ -1933,97 +2140,6 @@
         data: built.nodes,
       }],
     }, true);
-  }
-
-  // ---------- Өдөр тутмын trend (SVG) ----------
-  function renderLineChart(rows) {
-    var byDate = {};
-    rows.forEach(function (r) {
-      if (!r.date) return;
-      byDate[r.date] = (byDate[r.date] || 0) + (r.pax || 0);
-    });
-    var dates = Object.keys(byDate).sort();
-    var wrap = document.getElementById('line-chart-wrap');
-
-    if (!dates.length) {
-      wrap.innerHTML = '<div class="empty-state">Өгөгдөл алга</div>';
-      return;
-    }
-
-    var values = dates.map(function (d) { return byDate[d]; });
-    var maxV = Math.max.apply(null, values);
-    var niceMax = maxV <= 0 ? 1 : maxV;
-
-    var W = 600, H = 220, padL = 40, padR = 12, padT = 14, padB = 24;
-    var plotW = W - padL - padR, plotH = H - padT - padB;
-
-    function xAt(i) { return padL + (dates.length === 1 ? plotW / 2 : (i / (dates.length - 1)) * plotW); }
-    function yAt(v) { return padT + plotH - (v / niceMax) * plotH; }
-
-    var points = values.map(function (v, i) { return xAt(i) + ',' + yAt(v); }).join(' L ');
-    var linePath = 'M ' + points;
-    var areaPath = 'M ' + xAt(0) + ',' + yAt(0) + ' L ' + points + ' L ' + xAt(dates.length - 1) + ',' + (padT + plotH) + ' L ' + xAt(0) + ',' + (padT + plotH) + ' Z';
-
-    var ticks = 4;
-    var gridLines = '';
-    for (var t = 0; t <= ticks; t++) {
-      var val = (niceMax / ticks) * t;
-      var y = yAt(val);
-      gridLines += '<line class="lc-gridline" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y + '" y2="' + y + '"></line>';
-      gridLines += '<text class="lc-axis-label" x="' + (padL - 6) + '" y="' + (y + 3) + '" text-anchor="end">' + compact(val) + '</text>';
-    }
-
-    var lastX = xAt(dates.length - 1), lastY = yAt(values[values.length - 1]);
-
-    var labelIdxs = [0, Math.floor((dates.length - 1) / 2), dates.length - 1];
-    var xLabels = labelIdxs.map(function (i) {
-      return '<text class="lc-axis-label" x="' + xAt(i) + '" y="' + (H - 4) + '" text-anchor="middle">' + dates[i] + '</text>';
-    }).join('');
-
-    wrap.innerHTML =
-      '<svg class="line-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
-        gridLines +
-        '<path class="lc-area" d="' + areaPath + '"></path>' +
-        '<path class="lc-line" d="' + linePath + '"></path>' +
-        '<circle class="lc-dot" cx="' + lastX + '" cy="' + lastY + '" r="4"></circle>' +
-        xLabels +
-        '<line id="lc-crosshair" class="lc-crosshair" x1="0" x2="0" y1="' + padT + '" y2="' + (padT + plotH) + '" style="display:none"></line>' +
-        '<circle id="lc-hover-dot" class="lc-hover-dot" r="4" style="display:none"></circle>' +
-        '<rect id="lc-overlay" x="' + padL + '" y="0" width="' + plotW + '" height="' + H + '" fill="transparent"></rect>' +
-      '</svg>' +
-      '<div class="lc-tooltip" id="lc-tooltip"><div class="t-date"></div><div class="t-val"></div></div>';
-
-    var svg = wrap.querySelector('svg');
-    var overlay = wrap.querySelector('#lc-overlay');
-    var crosshair = wrap.querySelector('#lc-crosshair');
-    var hoverDot = wrap.querySelector('#lc-hover-dot');
-    var tooltip = wrap.querySelector('#lc-tooltip');
-
-    overlay.addEventListener('mousemove', function (evt) {
-      var rect = svg.getBoundingClientRect();
-      var relX = (evt.clientX - rect.left) / rect.width * W;
-      var i = Math.round(((relX - padL) / plotW) * (dates.length - 1));
-      i = Math.max(0, Math.min(dates.length - 1, i));
-      var x = xAt(i), y = yAt(values[i]);
-
-      crosshair.setAttribute('x1', x); crosshair.setAttribute('x2', x);
-      crosshair.style.display = 'block';
-      hoverDot.setAttribute('cx', x); hoverDot.setAttribute('cy', y);
-      hoverDot.style.display = 'block';
-
-      tooltip.querySelector('.t-date').textContent = dates[i];
-      tooltip.querySelector('.t-val').textContent = fmtNum(values[i]) + ' зорчигч';
-      tooltip.style.display = 'block';
-      var px = (x / W) * rect.width;
-      var py = (y / H) * rect.height;
-      tooltip.style.left = px + 'px';
-      tooltip.style.top = py + 'px';
-    });
-    overlay.addEventListener('mouseleave', function () {
-      crosshair.style.display = 'none';
-      hoverDot.style.display = 'none';
-      tooltip.style.display = 'none';
-    });
   }
 
   // ---------- table ----------
@@ -2363,8 +2479,9 @@
     renderOUChart(rows);
     renderCarrierChart(rows);
     renderCountryChart(rows);
+    renderCargoMonthChart(rows);
+    renderCargoCarrierChart(rows);
     renderRegionTreemap(rows);
-    renderLineChart(rows);
     renderTable();
   }
 
