@@ -2611,15 +2611,17 @@
   // index.json-ий хамгийн сvvлийн fetchedAt-руу буцна.
   var STALE_HOURS = 48;
 
+  // checkedAt (сvvлд шалгасан) нь зөвхөн дотоод бvртгэл/ирээдvйн debug-д зориулагдсан
+  // (dataset attribute-аар devtools-оос харагдана) — хэрэглэгчид хоёр ойролцоо цагийг
+  // зэрэг харуулж төөрөгдvvлэхгvйн тулд UI дээр зөвхөн "Сvvлд шинэчилсэн"-ийг vзvvлнэ.
   function paintUpdatedAt(checkedAt, updatedAt) {
     var updatedEl = document.getElementById('updated-at');
-    if (!checkedAt && !updatedAt) { updatedEl.textContent = ''; return; }
-    var hoursSinceUpdate = updatedAt ? (Date.now() - new Date(updatedAt).getTime()) / 3600000 : Infinity;
+    updatedEl.dataset.lastCheckedAt = checkedAt || '';
+    if (!updatedAt) { updatedEl.textContent = ''; return; }
+    var hoursSinceUpdate = (Date.now() - new Date(updatedAt).getTime()) / 3600000;
     var isStale = hoursSinceUpdate > STALE_HOURS;
-    var parts = [];
-    if (checkedAt) parts.push('Сүүлд шалгасан: ' + new Date(checkedAt).toLocaleString('mn-MN'));
-    if (updatedAt) parts.push('Сүүлд шинэчилсэн: ' + new Date(updatedAt).toLocaleString('mn-MN'));
-    updatedEl.textContent = parts.join(' · ') + (isStale ? ' · 48+ цаг шинэчлэгдээгvй' : '');
+    updatedEl.textContent = 'Сүүлд шинэчилсэн: ' + new Date(updatedAt).toLocaleString('mn-MN')
+      + (isStale ? ' · 48+ цаг шинэчлэгдээгvй' : '');
     updatedEl.classList.toggle('stale', isStale);
   }
 
