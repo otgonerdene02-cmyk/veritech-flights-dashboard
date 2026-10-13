@@ -1,5 +1,5 @@
 /**
- * Playwright тестvvдэд зориулсан туслах функцvvд.
+ * Playwright тестүүдэд зориулсан туслах функцүүд.
  */
 
 async function gotoDashboard(page) {
@@ -13,7 +13,7 @@ async function waitForData(page) {
     const el = document.getElementById('updated-at');
     return el && el.textContent && el.textContent.indexOf('Ачааллаж байна') === -1;
   }, { timeout: 30000 });
-  // Chart.js/ECharts animation-ууд дуусахыг хvлээнэ
+  // Chart.js/ECharts animation-ууд дуусахыг хүлээнэ
   await page.waitForTimeout(400);
 }
 
@@ -30,7 +30,7 @@ async function setTheme(page, theme) {
 
 /**
  * Хоёр элементийн bounding rect огтлолцож байгаа эсэхийг шалгана.
- * `tolerance`-аар хиллэж давхцаж буй (1-2px anti-aliasing зөрvv) тохиолдлыг vл тооцно.
+ * `tolerance`-аар хиллэж давхцаж буй (1-2px anti-aliasing зөрүү) тохиолдлыг үл тооцно.
  */
 function rectsOverlap(a, b, tolerance = 1) {
   if (!a || !b) return false;

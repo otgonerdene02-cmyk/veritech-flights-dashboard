@@ -1,10 +1,10 @@
 name: Check Flight Data Freshness
 
-# fetch-flights.yml өөрөө амжилтгvй болоход issue vvсгэдэг, гэхдээ ТvvНИЙ
-# schedule trigger огт ажиллаагvй бол (job эхлээгvй тул) тэр механизм ажиллах
-# боломжгvй. Энэ watchdog нь тусдаа cron-оор (өөр цагт) ажиллаж, зөвхөн
+# fetch-flights.yml өөрөө амжилтгүй болоход issue үүсгэдэг, гэхдээ ТүүНИЙ
+# schedule trigger огт ажиллаагүй бол (job эхлээгүй тул) тэр механизм ажиллах
+# боломжгүй. Энэ watchdog нь тусдаа cron-оор (өөр цагт) ажиллаж, зөвхөн
 # docs/last-sync-status.json-г уншиж хугацаа хэтэрсэн эсэхийг шалгадаг тул
-# fetch-flights бvр мөсөн "чимээгvй" зогсоход ч илрvvлдэг.
+# fetch-flights бүр мөсөн "чимээгүй" зогсоход ч илрүүлдэг.
 on:
   schedule:
     - cron: '30 8 * * *'  # 16:30 UB — fetch-flights-ийн 4 cron цагаас өөр
@@ -31,28 +31,28 @@ jobs:
             try {
               status = JSON.parse(fs.readFileSync('docs/last-sync-status.json', 'utf8'));
             } catch {
-              // файл vvсээгvй байна — эхний удаа буюу маш эрт vе
+              // файл үүсээгүй байна — эхний удаа буюу маш эрт үе
             }
 
             const lastSuccess = status && status.lastSuccessAt ? new Date(status.lastSuccessAt) : null;
             const hoursSince = lastSuccess ? (Date.now() - lastSuccess.getTime()) / 3600000 : Infinity;
 
-            console.log(`Сvvлийн амжилттай синк: ${status ? status.lastSuccessAt : '(байхгvй)'} (${hoursSince.toFixed(1)} цагийн өмнө)`);
+            console.log(`Сүүлийн амжилттай синк: ${status ? status.lastSuccessAt : '(байхгүй)'} (${hoursSince.toFixed(1)} цагийн өмнө)`);
 
             if (hoursSince <= STALE_THRESHOLD_HOURS) {
-              console.log('Дата шинэ байна, alert vvсгэхгvй.');
+              console.log('Дата шинэ байна, alert үүсгэхгүй.');
               return;
             }
 
-            const title = '⚠️ Нислэгийн дата 30+ цагаар шинэчлэгдээгvй байна';
+            const title = '⚠️ Нислэгийн дата 30+ цагаар шинэчлэгдээгүй байна';
             const body = [
-              `Сvvлийн амжилттай синк: ${status && status.lastSuccessAt ? status.lastSuccessAt : 'тодорхойгvй (файл байхгvй)'}`,
-              `(${hoursSince === Infinity ? 'хэдэн ч удаа амжилттай ажиллаагvй' : hoursSince.toFixed(1) + ' цагийн өмнө'})`,
+              `Сүүлийн амжилттай синк: ${status && status.lastSuccessAt ? status.lastSuccessAt : 'тодорхойгүй (файл байхгүй)'}`,
+              `(${hoursSince === Infinity ? 'хэдэн ч удаа амжилттай ажиллаагүй' : hoursSince.toFixed(1) + ' цагийн өмнө'})`,
               '',
-              'Vvнийг шалгах зvйлс:',
-              '- "Fetch Veritech Flights" workflow-ийн Actions таб дээрх Run history — schedule эвент огт эхлээгvй vv, эсвэл эхэлсэн ч алдаатай vv?',
-              '- Хэрэв огт эхлээгvй бол GitHub-ийн schedule trigger саатсан/алгассан байж болзошгvй — "Run workflow" (workflow_dispatch)-аар гараар ажиллуулж vзнэ vv.',
-              '- Хэрэв эхэлсэн ч алдаатай бол sync-failure шошготой issue vvссэн байх ёстой, тvvнийг шалгана уу.',
+              'Үүнийг шалгах зүйлс:',
+              '- "Fetch Veritech Flights" workflow-ийн Actions таб дээрх Run history — schedule эвент огт эхлээгүй vv, эсвэл эхэлсэн ч алдаатай vv?',
+              '- Хэрэв огт эхлээгүй бол GitHub-ийн schedule trigger саатсан/алгассан байж болзошгүй — "Run workflow" (workflow_dispatch)-аар гараар ажиллуулж үзнэ vv.',
+              '- Хэрэв эхэлсэн ч алдаатай бол sync-failure шошготой issue үүссэн байх ёстой, түүнийг шалгана уу.',
             ].join('\n');
 
             const existing = await github.rest.issues.listForRepo({

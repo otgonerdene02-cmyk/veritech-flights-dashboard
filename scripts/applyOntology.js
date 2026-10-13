@@ -1,14 +1,14 @@
-// Одоо байгаа docs/flights-YYYY.json (жил бvрээр) файлvvдийг MRTD API дуудахгvйгээр
+// Одоо байгаа docs/flights-YYYY.json (жил бүрээр) файлүүдийг MRTD API дуудахгүйгээр
 // ontology lookup (data/ontology/*.json)-оор дахин боловсруулж, region/continent/
 // alliance/category баганыг шингээж буцааж бичдэг standalone script. `npm run
 // apply-ontology`-ээр ажиллуулна. scripts/fetchFlights.js мөн адил enrichAll()-ийг
-// ашигладаг тул логик давхардахгvй -- энэ script зөвхөн API дуудалтгvйгээр локал
-// ажиллах шаардлагатай vед (жишээ нь ontology JSON-ийг гар аргаар шинэчилсний дараа)
-// хэрэглэнэ. Боловсруулах жилvvдийг docs/flights-index.json-оос олж тодорхойлно.
+// ашигладаг тул логик давхардахгүй -- энэ script зөвхөн API дуудалтгүйгээр локал
+// ажиллах шаардлагатай үед (жишээ нь ontology JSON-ийг гар аргаар шинэчилсний дараа)
+// хэрэглэнэ. Боловсруулах жилүүдийг docs/flights-index.json-оос олж тодорхойлно.
 //
 // Flags:
-//   --dry-run   файлд бичихгvй, зөвхөн хэдэн мөр өөрчлөгдөхийг хэвлэнэ.
-//   --no-backup backup (.bak) vvсгэхгvй (анхныхаараа жил бvрийн файлд vvсгэдэг).
+//   --dry-run   файлд бичихгүй, зөвхөн хэдэн мөр өөрчлөгдөхийг хэвлэнэ.
+//   --no-backup backup (.bak) үүсгэхгүй (анхныхаараа жил бүрийн файлд үүсгэдэг).
 'use strict';
 
 const fs = require('fs');
@@ -55,7 +55,7 @@ function processYear(year) {
   }, 0);
 
   if (isDryRun) {
-    console.log(`[dry-run] ${year} он: нийт ${enriched.length} мөрөөс ${changedCount} мөр өөрчлөгдөнө. Файлд бичихгvй.`);
+    console.log(`[dry-run] ${year} он: нийт ${enriched.length} мөрөөс ${changedCount} мөр өөрчлөгдөнө. Файлд бичихгүй.`);
     return { year, count: enriched.length, changedCount };
   }
 
@@ -65,7 +65,7 @@ function processYear(year) {
   }
 
   const output = Object.assign({}, data, { flights: enriched });
-  // fetchFlights.js-тэй ижил compact (indent-гvй) JSON бичдэг -- GitHub-ийн 50MB
+  // fetchFlights.js-тэй ижил compact (indent-гүй) JSON бичдэг -- GitHub-ийн 50MB
   // зөвлөмжит хязгаараас зайлсхийхэд тус нэмэр болно.
   fs.writeFileSync(filePath, JSON.stringify(output), 'utf8');
   console.log(`${year} он: баяжуулсан ${enriched.length} мөрийг (${changedCount} өөрчлөгдсөн) ${filePath}-д бичлээ.`);
@@ -75,12 +75,12 @@ function processYear(year) {
 function main() {
   const years = loadIndexYears();
   if (years.length === 0) {
-    console.error(`${INDEX_FILE}-д жил олдсонгvй.`);
+    console.error(`${INDEX_FILE}-д жил олдсонгүй.`);
     process.exit(1);
   }
 
   if (!isDryRun && !skipBackup) {
-    console.log(`Backup vvсгэлээ: ${years.map(function (y) { return `flights-${y}.json.bak`; }).join(', ')}`);
+    console.log(`Backup үүсгэлээ: ${years.map(function (y) { return `flights-${y}.json.bak`; }).join(', ')}`);
   }
 
   const results = years.map(processYear);
@@ -88,7 +88,7 @@ function main() {
   const totalChanged = results.reduce(function (s, r) { return s + r.changedCount; }, 0);
 
   console.log('');
-  console.log(`Нийт ${years.length} жилийн ${totalCount} мөрөөс ${totalChanged} мөр өөрчлөгдлөө${isDryRun ? ' (dry-run, бичигдээгvй)' : ''}.`);
+  console.log(`Нийт ${years.length} жилийн ${totalCount} мөрөөс ${totalChanged} мөр өөрчлөгдлөө${isDryRun ? ' (dry-run, бичигдээгүй)' : ''}.`);
 }
 
 main();

@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 /**
- * Playwright тестvvдэд зориулсан статик сервер.
+ * Playwright тестүүдэд зориулсан статик сервер.
  *
- * docs/ директорийг shvvж vzvvlnэ, гэхдээ dashboard-ийн уншдаг flights-index.json
- * болон flights-<year>.json хvсэлтvvдийг tests/fixtures/flights.sample.json
- * (тогтмол, commit хийгдсэн dataset) рvv чиглvvлнэ — vнэн зvvдэй docs/-ийн
- * flights-*.json файлууд нь CI-с өдөр бvр автоматаар шинэчлэгддэг тул visual
- * regression тестvvд өдөр бvрийн өгөгдлийн өөрчлөлтөөс vл хамааран тогтвортой
- * vр дvнтэй байхын тулд.
+ * docs/ директорийг шууд үйлчилнэ, гэхдээ dashboard-ийн уншдаг flights-index.json
+ * болон flights-<year>.json хүсэлтүүдийг tests/fixtures/flights.sample.json
+ * (тогтмол, commit хийгдсэн dataset) рүү чиглүүлнэ — үнэн зүүдэй docs/-ийн
+ * flights-*.json файлууд нь CI-с өдөр бүр автоматаар шинэчлэгддэг тул visual
+ * regression тестүүд өдөр бүрийн өгөгдлийн өөрчлөлтөөс үл хамааран тогтвортой
+ * үр дүнтэй байхын тулд.
  *
  * 2026-08-05: 2026-08-01-ний flights.json → flights-<year>.json split-ийн
- * дараа энэ файл шинэчлэгдээгvй vлдэж, /flights.json хvсэлт (dashboard
- * анхнаасаа vvсгэдэггvй болсон) л fixture рvv чиглэж, бодит /flights-index.json
- * болон /flights-<year>.json хvсэлтvvд нь доорх ерөнхий handler-т унаж, docs/
- * дэх ЖИНХЭНЭ (өдөр бvр өөрчлөгддөг) файлуудыг шууд vзvvлж байсан. Vvнээс
- * vvдэн visual snapshot бvр өдөр бvр өөр өгөгдлөөр (мөрийн тоо, KPI дvн зэрэг
- * өөрчлөгдөж, зурган хэмжээ шилждэг) харьцуулагдаж, CI vнэмлэхvй тогтмол
- * бvтэлгvйтдэг болсон. Одоо fixture-ийн жилийг ХvСЭЛТ ХИЙСЭН жилтэй тааруулан
+ * дараа энэ файл шинэчлэгдээгүй үлдэж, /flights.json хүсэлт (dashboard
+ * анхнаасаа үүсгэдэггүй болсон) л fixture рүү чиглэж, бодит /flights-index.json
+ * болон /flights-<year>.json хүсэлтүүд нь доорх ерөнхий handler-т унаж, docs/
+ * дэх ЖИНХЭНЭ (өдөр бүр өөрчлөгддөг) файлуудыг шууд үзүүлж байсан. Үүнээс
+ * үүдэн visual snapshot бүр өдөр бүр өөр өгөгдлөөр (мөрийн тоо, KPI дүн зэрэг
+ * өөрчлөгдөж, зурган хэмжээ шилждэг) харьцуулагдаж, CI үнэмлэхүй тогтмол
+ * бүтэлгүйтдэг болсон. Одоо fixture-ийн жилийг ХүСЭЛТ ХИЙСЭН жилтэй тааруулан
  * дахин тэмдэглэж буцаадаг тул CURRENT_YEAR аль ч он руу шилжсэн ч (жишээ нь
- * 2027 он гарахад) тест fixture-аасаа гарахгvй.
+ * 2027 он гарахад) тест fixture-аасаа гарахгүй.
  */
 
 const path = require('path');
@@ -46,9 +46,9 @@ function loadFixture() {
   return cachedFixture;
 }
 
-// Fixture дэх мөрvvдийг хvсэлтийн жилтэй тааруулж (year талбарыг сольж) буцаана
+// Fixture дэх мөрүүдийг хүсэлтийн жилтэй тааруулж (year талбарыг сольж) буцаана
 // — ингэснээр аль ч "CURRENT_YEAR"-т (машины бодит огноо ямар ч байсан) fixture
-// vргэлж тохирно.
+// үргэлж тохирно.
 function yearFilePayload(year) {
   const fixture = loadFixture();
   const flights = fixture.flights.map((f) => Object.assign({}, f, { year }));
@@ -65,8 +65,8 @@ function indexPayload(year) {
   });
 }
 
-// dashboard-ийн "Сvvлд шалгасан"/"Сvvлд шинэчилсэн" хоёр цагийг унших sync-status
-// fixture — бодит docs/last-sync-status.json (өдөр бvр өөрчлөгддөг) руу унахгvйн тулд.
+// dashboard-ийн "Сүүлд шалгасан"/"Сүүлд шинэчилсэн" хоёр цагийг унших sync-status
+// fixture — бодит docs/last-sync-status.json (өдөр бүр өөрчлөгддөг) руу унахгүйн тулд.
 function syncStatusPayload() {
   const fixture = loadFixture();
   return JSON.stringify({

@@ -5,15 +5,15 @@ const { gotoDashboard, setTheme, rectsOverlap } = require('./helpers');
 /**
  * Давхцлын (overlap) регресс тест.
  *
- * 2026-07-30-ны rem-based font шинэчлэлтийн дараа задаргааны хvснэгтийн
- * (тээвэрлэгч/улс) тогтмол `height`-тэй мөрvvд дэх хос мөр контент
- * (тоон утга + хувь) багтаагvйгээс шалтгаалж, эхний мөрийн том тоон утга
+ * 2026-07-30-ны rem-based font шинэчлэлтийн дараа задаргааны хүснэгтийн
+ * (тээвэрлэгч/улс) тогтмол `height`-тэй мөрүүд дэх хос мөр контент
+ * (тоон утга + хувь) багтаагүйгээс шалтгаалж, эхний мөрийн том тоон утга
  * шууд дээрх толгой мөртэй ("Харьцаа", "Зорчигч") давхцаж харагдах болсон
- * асуудлыг vvсгэсэн (docs/index.html-ийн .tbl-hdr/.tbl-row/.tbl-ftr).
+ * асуудлыг үүсгэсэн (docs/index.html-ийн .tbl-hdr/.tbl-row/.tbl-ftr).
  *
- * Энэ тест бvлэг ижил төрлийн "тогтмол өндөртэй контейнер дэх текст
- * давхцах" асуудлыг ирээдvйд аль ч CSS/font өөрчлөлт дахин vvсгэвэл
- * шvvж илрvvлнэ.
+ * Энэ тест бүлэг ижил төрлийн "тогтмол өндөртэй контейнер дэх текст
+ * давхцах" асуудлыг ирээдүйд аль ч CSS/font өөрчлөлт дахин үүсгэвэл
+ * шүүж илрүүлнэ.
  */
 
 const BREAKDOWN_WRAPS = ['#carrier-wrap', '#country-wrap'];
@@ -64,7 +64,7 @@ for (const theme of THEMES) {
 
       test(`numeric value and its header label do not overlap (${wrapSel})`, async ({ page }) => {
         // Яг тохиолдсон алдааг шууд хардаг тест: "660,660" маягийн том тоон
-        // утга (.tbl-val .n) нь толгой мөрийн шошготой (.tbl-hdr) давхцах ёсгvй.
+        // утга (.tbl-val .n) нь толгой мөрийн шошготой (.tbl-hdr) давхцах ёсгүй.
         const valueEls = page.locator(`${wrapSel} .tbl-row .tbl-val .n`);
         const hdr = page.locator(`${wrapSel} .tbl-hdr`);
         const hdrBox = await hdr.boundingBox();

@@ -75,7 +75,7 @@
   /* --page/--text-primary зэрэг хувьсагчид зөвхөн .viz-root дотор
      тодорхойлогддог тул body дээр (эцэг элемент, .viz-root-ийн гадна)
      var(...)-ээр хандах боломжгүй байсан — үнэлгээ хүчингүй болж,
-     browser-ийн өгөгдмөл хар текст рvv буцдаг байв (dark mode-д
+     browser-ийн өгөгдмөл хар текст рүү буцдаг байв (dark mode-д
      фонтой ойролцоо өнгөтэй тул харагдахгүй болдог байсан гол шалтгаан).
      background/color-ийг тэдгээр хувьсагч бодитоор харагддаг цэг дээр
      (.viz-root өөрөө) тохируулна. */
@@ -106,10 +106,10 @@
     background: var(--surface-1); border: 1px solid var(--border);
     border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;
     /* grid/flex item-ийн default min-width:auto нь дотор нь flex-shrink:0
-       тогтмол өргөнтэй хvvхэд (жишээ нь .tbl-label/.tbl-val) байвал .card-ийг
-       тэдгээрийн min-content хэмжээнээс нарийсгахыг зөвшөөрдөггvй тул
-       нарийн (мобайл) дэлгэц дээр .row2 grid бvхэлдээ viewport-оос гарч
-       хажуу тийш scroll vvсгэдэг асуудлыг засна. */
+       тогтмол өргөнтэй хүүхэд (жишээ нь .tbl-label/.tbl-val) байвал .card-ийг
+       тэдгээрийн min-content хэмжээнээс нарийсгахыг зөвшөөрдөггүй тул
+       нарийн (мобайл) дэлгэц дээр .row2 grid бүхэлдээ viewport-оос гарч
+       хажуу тийш scroll үүсгэдэг асуудлыг засна. */
     min-width: 0;
   }
   .card h2 { font-size: 1rem; font-weight: 600; margin: 0 0 2px; }
@@ -121,9 +121,9 @@
 
   /* filter bar */
   .filter-bar { display: flex; flex-direction: column; gap: 14px; }
-  /* Мөр бvр хэд хэдэн шvvлтийг хэвтээ эгнvvлж, шаардлагатай vед (нарийн
+  /* Мөр бүр хэд хэдэн шүүлтийг хэвтээ эгнүүлж, шаардлагатай үед (нарийн
      дэлгэц) доош эвхэгддэг (wrap) — label дээрээ, control нь доор гэсэн
-     .ffield багана бvрийг эгнvvлж, доод ирмэгээр нь тэгшилнэ. */
+     .ffield багана бүрийг эгнүүлж, доод ирмэгээр нь тэгшилнэ. */
   .frow { display: flex; align-items: flex-end; column-gap: 22px; row-gap: 12px; flex-wrap: wrap; }
   .ffield { display: flex; flex-direction: column; gap: 4px; }
   .ffield-body { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -159,9 +159,9 @@
   .clr-btn:hover, .reset-btn:hover { color: var(--text-primary); }
   .reset-btn { margin-left: auto; }
   .divider { height: 1px; background: var(--gridline); }
-  /* Нарийн (мобайл) дэлгэц дээр frow дотор .ffield-vvд аль хэдийн
-     flex-wrap-аар доош шилждэг тул нэмэлт зохион байгуулалт хэрэггvй —
-     зөвхөн "Бvгд арилгах" товчийг сvvлчийн эвхэгдсэн мөрөнд бvтэн
+  /* Нарийн (мобайл) дэлгэц дээр frow дотор .ffield-үүд аль хэдийн
+     flex-wrap-аар доош шилждэг тул нэмэлт зохион байгуулалт хэрэггүй —
+     зөвхөн "Бүгд арилгах" товчийг сүүлчийн эвхэгдсэн мөрөнд бүтэн
      өргөнөөр харуулж, дарахад хялбар том товч болгоно. */
   @media (max-width: 768px) {
     .frow { column-gap: 16px; }
@@ -287,10 +287,10 @@
     border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.18); padding: 14px 16px;
   }
   .filter-popover.open { display: block; }
-  /* Нарийн дэлгэц дээр .table-controls эвхэгдэхэд (flex-wrap) шvvлтийн товч
-     эгнээний зvvн захад ганцаараа vлддэг тул popover-ийг `right:0`-ээр
-     тохируулбал viewport-ийн зvvн ирмэгээс гадагш гардаг байсан — мобайл
-     дээр `left:0`-ээр зvvн ирмэгт нь тулгаж засав. */
+  /* Нарийн дэлгэц дээр .table-controls эвхэгдэхэд (flex-wrap) шүүлтийн товч
+     эгнээний зүүн захад ганцаараа үлддэг тул popover-ийг `right:0`-ээр
+     тохируулбал viewport-ийн зүүн ирмэгээс гадагш гардаг байсан — мобайл
+     дээр `left:0`-ээр зүүн ирмэгт нь тулгаж засав. */
   @media (max-width: 640px) {
     .filter-popover { left: 0; right: auto; }
   }
@@ -595,19 +595,19 @@
       <div class="table-controls">
         <input class="search" id="search" type="text" placeholder="Хайх… (компани, нислэгийн дугаар, хот, улс)" />
         <div class="table-filter-wrap">
-          <button class="filter-icon-btn" id="tbl-filter-btn" type="button" aria-label="Хvснэгтийн шvvлт" title="Хvснэгтийн шvvлт">
+          <button class="filter-icon-btn" id="tbl-filter-btn" type="button" aria-label="Хүснэгтийн шүүлт" title="Хүснэгтийн шүүлт">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-            <span>Шvvлт</span>
+            <span>Шүүлт</span>
             <span class="filter-badge" id="tbl-filter-badge" style="display:none;">0</span>
           </button>
           <div class="filter-popover" id="tbl-filter-popover">
             <div class="fp-hdr">
-              <h3>Хvснэгтийн шvvлт</h3>
+              <h3>Хүснэгтийн шүүлт</h3>
               <button type="button" class="fp-close" id="tbl-filter-close" aria-label="Хаах">✕</button>
             </div>
             <div class="fp-row">
               <label>Жил</label>
-              <select id="tbl-f-year" class="region-select"><option value="all">Бvгд</option></select>
+              <select id="tbl-f-year" class="region-select"><option value="all">Бүгд</option></select>
             </div>
             <div class="fp-row">
               <label>Сар интервал</label>
@@ -628,31 +628,31 @@
             <div class="fp-row">
               <label>Төрөл</label>
               <div class="fchips" id="tbl-chips-ou">
-                <div class="fchip active" data-ou="all">Бvгд</div>
+                <div class="fchip active" data-ou="all">Бүгд</div>
                 <div class="fchip" data-ou="ОУ">Олон улсын</div>
                 <div class="fchip" data-ou="ОН">Дотоодын</div>
               </div>
               <div class="fchips" id="tbl-chips-dir" style="margin-top:5px">
-                <div class="fchip active" data-dir="all">Бvгд</div>
+                <div class="fchip active" data-dir="all">Бүгд</div>
                 <div class="fchip" data-dir="1">Явсан ↗</div>
                 <div class="fchip" data-dir="0">Ирсэн ↙</div>
               </div>
             </div>
             <div class="fp-row">
-              <label>Бvс нутгаар</label>
-              <select id="tbl-f-region" class="region-select"><option value="all">Бvгд</option></select>
+              <label>Бүс нутгаар</label>
+              <select id="tbl-f-region" class="region-select"><option value="all">Бүгд</option></select>
             </div>
             <div class="fp-row">
               <label>Компани</label>
-              <select id="tbl-f-carr" class="region-select"><option value="all">Бvгд</option></select>
+              <select id="tbl-f-carr" class="region-select"><option value="all">Бүгд</option></select>
             </div>
             <div class="fp-row" style="margin-bottom:0">
               <label>Улс</label>
-              <select id="tbl-f-cntry" class="region-select"><option value="all">Бvгд</option></select>
+              <select id="tbl-f-cntry" class="region-select"><option value="all">Бүгд</option></select>
             </div>
             <div class="fp-actions">
               <button type="button" class="clr-btn" id="tbl-filter-clear">× Арилгах</button>
-              <button type="button" class="btn-export" id="tbl-filter-apply">Шvvх</button>
+              <button type="button" class="btn-export" id="tbl-filter-apply">Шүүх</button>
             </div>
           </div>
         </div>
@@ -674,7 +674,7 @@
 
     <div class="card">
       <h2>Бүс нутаг тус бүрийн зорчигч</h2>
-      <p class="desc">Онтологийн бүс нутгийн шатлал (Зүүн Ази, Зүүн Өмнөд Ази, Ойрхи Дорнод г.м) — талбайн хэмжээ зорчигчийн тоонд пропорциональ. Бүс нутаг дээр дарж улс тус бүрийн задаргаа руу шилжинэ vv (буцахын тулд дээд зvvн буланд гарах зам ашиглана уу).</p>
+      <p class="desc">Онтологийн бүс нутгийн шатлал (Зүүн Ази, Зүүн Өмнөд Ази, Ойрхи Дорнод г.м) — талбайн хэмжээ зорчигчийн тоонд пропорциональ. Бүс нутаг дээр дарж улс тус бүрийн задаргаа руу шилжинэ vv (буцахын тулд дээд зүүн буланд гарах зам ашиглана уу).</p>
       <div id="region-treemap" style="height:420px"></div>
     </div>
 
@@ -757,8 +757,8 @@
 
   // ---------- state ----------
   var allRows = [];
-  // Dashboard анх ачаалахад "Жил" шvvлт автоматаар одоогийн жилээр идэвхжинэ —
-  // хэрэглэгч тусад нь өөрчлөх (эсвэл "Бvгд" сонгох) хvртэл иймэрхvv хэвээр vлдэнэ.
+  // Dashboard анх ачаалахад "Жил" шүүлт автоматаар одоогийн жилээр идэвхжинэ —
+  // хэрэглэгч тусад нь өөрчлөх (эсвэл "Бүгд" сонгох) хүртэл иймэрхүү хэвээр үлдэнэ.
   var CURRENT_YEAR = new Date().getFullYear();
   var filters = { year: CURRENT_YEAR, mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
   var COLUMNS = [
@@ -816,9 +816,9 @@
     });
   }
 
-  // Жил бvр lazy ачаалагдах vед регионы жагсаалт улам бvрдэж болох тул
-  // (арын прожес vvргvй жилvvдийг ачаалах тусам) энэ функцийг дахин дахин
-  // дуудаж болохоор idempotent болгосон — сонголтуудыг vргэлж 0-ээс
+  // Жил бүр lazy ачаалагдах үед регионы жагсаалт улам бүрдэж болох тул
+  // (арын прожес үүргүй жилүүдийг ачаалах тусам) энэ функцийг дахин дахин
+  // дуудаж болохоор idempotent болгосон — сонголтуудыг үргэлж 0-ээс
   // барьж, идэвхтэй утгыг хадгална.
   function populateRegionSelect(rows) {
     var sel = document.getElementById('region-select');
@@ -837,7 +837,7 @@
     rerender();
   });
 
-  // Индекс файлаас олдсон жилvvдийн жагсаалтаар (өгөгдлийн мөр биш) бөглөнө —
+  // Индекс файлаас олдсон жилүүдийн жагсаалтаар (өгөгдлийн мөр биш) бөглөнө —
   // ингэснээр жилийн dropdown-г том flights-YYYY.json файлуудыг татахаас
   // өмнө шууд харуулж болно.
   function populateYearSelect(years) {
@@ -922,8 +922,8 @@
     document.getElementById('mTo').value = '';
     document.getElementById('mFrom').classList.remove('err');
     document.getElementById('mTo').classList.remove('err');
-    // "Бvгд арилгах" нь бусад бvх шvvлтийг цэвэрлэдэг ч Жил шvvлтийг
-    // dashboard-ийн анхны төлөв рvv (одоогийн жил) буцаана, "Бvгд" рvv биш.
+    // "Бүгд арилгах" нь бусад бүх шүүлтийг цэвэрлэдэг ч Жил шүүлтийг
+    // dashboard-ийн анхны төлөв рүү (одоогийн жил) буцаана, "Бүгд" рүү биш.
     filters = { year: CURRENT_YEAR, mFrom: null, mTo: null, ou: 'all', dir: 'all', region: 'all' };
     document.querySelectorAll('.fchip').forEach(function (c) { c.classList.remove('active'); });
     document.querySelector('[data-ou="all"]').classList.add('active');
@@ -1040,8 +1040,8 @@
     var n = rows.length;
     var p = rows.reduce(function (s, r) { return s + (r.pax || 0); }, 0);
     // r.cargo (MRTD-ийн "Ачаа /тонн/" багана, C39) нь ТОННООР — cargoKg
-    // (ACHAA_CARGO, "Ачаа КГ") нь тvvнтэй яг x1000 харьцаатай хос багана.
-    // Файлын шошгыг "(кг)" гэж бичсэн хуучин алдааг давтахгvйн тулд анхаарна уу.
+    // (ACHAA_CARGO, "Ачаа КГ") нь түүнтэй яг x1000 харьцаатай хос багана.
+    // Файлын шошгыг "(кг)" гэж бичсэн хуучин алдааг давтахгүйн тулд анхаарна уу.
     var cargo = rows.reduce(function (s, r) { return s + (r.cargo || 0); }, 0);
     var intlRows = rows.filter(function (r) { return r.ou === 'ОУ'; });
     var domRows = rows.filter(function (r) { return r.ou === 'ОН'; });
@@ -1153,8 +1153,8 @@
     return String(aimagRaw).replace(/\s*\(.*\)\s*$/, '').trim();
   }
 
-  // Боомт бvр өөр өнгөтэй байх (олон улсын зураг дээрх CC палитртай ижил зарчмаар):
-  // маркер, УБ хvртэлх шугам, легенд цэг бvгд ижил өнгө ашиглана.
+  // Боомт бүр өөр өнгөтэй байх (олон улсын зураг дээрх CC палитртай ижил зарчмаар):
+  // маркер, УБ хүртэлх шугам, легенд цэг бүгд ижил өнгө ашиглана.
   var DC = {
     'Алтай':         '#e15759',
     'Баянхонгор':    '#4e79a7',
@@ -1219,15 +1219,32 @@
       return;
     }
 
-    // "Дотоодын" шvvлт идэвхтэй vед (ou === 'ОН') Монголын дотоод боомтуудыг харуулж,
-    // газрын зургийг Монгол улс руу төвлөрvvлнэ ("Бvгд"/"Олон улсын" vед дэлхийн зураг руу буцна).
+    // "Дотоодын" шүүлт идэвхтэй үед (ou === 'ОН') Монголын дотоод боомтуудыг харуулж,
+    // газрын зургийг Монгол улс руу төвлөрүүлнэ ("Бүгд"/"Олон улсын" үед дэлхийн зураг руу буцна).
     var isDomestic = filters.ou === 'ОН';
 
     var mapReady = isDomestic ? ensureMongoliaMap() : ensureWorldMap();
     mapReady.then(function () {
+      // 0 хэмжээтэй (нуугдсан/layout болоогүй) контейнерт echarts зурвал
+      // "drawImage ... width or height of 0" алдаа шиднэ — харагдах хүртэл хойшлуулна.
+      if (!mapDom.clientWidth || !mapDom.clientHeight) {
+        mapDom._pendingRows = rows;
+        if (!mapDom._sizeWatch && typeof ResizeObserver !== 'undefined') {
+          mapDom._sizeWatch = new ResizeObserver(function () {
+            if (!mapDom.clientWidth || !mapDom.clientHeight) return;
+            mapDom._sizeWatch.disconnect();
+            mapDom._sizeWatch = null;
+            renderWorldMap(mapDom._pendingRows);
+          });
+          mapDom._sizeWatch.observe(mapDom);
+        }
+        return;
+      }
       if (!mapChart) {
         mapChart = echarts.init(mapDom);
-        window.addEventListener('resize', function () { mapChart.resize(); });
+        window.addEventListener('resize', function () {
+          if (mapDom.clientWidth && mapDom.clientHeight) mapChart.resize();
+        });
       }
 
       var areaColor = getVar('--gridline');
@@ -1240,8 +1257,8 @@
       var accentStrong = getVar('--accent-strong');
 
       // "mongolia" бол зөвхөн Монгол улсын аймгуудын хилээс тогтсон GeoJSON тул
-      // roam-гvйгээр ч geo компонент өөрөө layout box-даа (left/right/top/bottom)
-      // автоматаар fit хийж, Монгол улсыг дэлгэцэнд бvрэн, томоор харуулна.
+      // roam-гүйгээр ч geo компонент өөрөө layout box-даа (left/right/top/bottom)
+      // автоматаар fit хийж, Монгол улсыг дэлгэцэнд бүрэн, томоор харуулна.
       var geoOption = {
         map: isDomestic ? 'mongolia' : 'world',
         roam: true,
@@ -1256,7 +1273,7 @@
         var dtotals = {};
         rows.forEach(function (r) {
           var c = r.city;
-          if (!c || !DOMESTIC_AIRPORT_COORD[c]) return; // lookup хvснэгтэд байхгvй боомтыг алгасана
+          if (!c || !DOMESTIC_AIRPORT_COORD[c]) return; // lookup хүснэгтэд байхгүй боомтыг алгасана
           if (!dtotals[c]) dtotals[c] = { pax: 0, fl: 0 };
           dtotals[c].pax += (r.pax || 0);
           dtotals[c].fl += 1;
@@ -1265,8 +1282,8 @@
         var airports = Object.keys(dtotals);
         var maxDomPax = airports.reduce(function (m, c) { return Math.max(m, dtotals[c].pax); }, 0);
 
-        // Choropleth: аймаг тус бvрийн нийт зорчигчийг DOMESTIC_AIRPORT_COORD-ийн
-        // "aimag" талбараар нэгтгэж, өнгийн хvчдэлээр (areaColor -> accentStrong) буулгана.
+        // Choropleth: аймаг тус бүрийн нийт зорчигчийг DOMESTIC_AIRPORT_COORD-ийн
+        // "aimag" талбараар нэгтгэж, өнгийн хүчдэлээр (areaColor -> accentStrong) буулгана.
         var aimagTotals = {};
         airports.forEach(function (c) {
           var key = aimagKey(DOMESTIC_AIRPORT_COORD[c].aimag);
@@ -1275,11 +1292,11 @@
         var maxAimagPax = Object.keys(aimagTotals).reduce(function (m, k) { return Math.max(m, aimagTotals[k]); }, 0);
 
         geoOption.label = { show: true, color: textSecondary, fontSize: 9 };
-        // Санамж: geo.tooltip.show = true болгож болохгvй — энэ нь мөн тухайн geo
-        // координатын систем дээр суурилсан ӨӨР series-vvдийн (боомтын effectScatter
+        // Санамж: geo.tooltip.show = true болгож болохгүй — энэ нь мөн тухайн geo
+        // координатын систем дээр суурилсан ӨӨР series-үүдийн (боомтын effectScatter
         // маркерууд) hover tooltip-ийг "хулгайлж", буруу (аймгийн) агуулга харуулдаг
-        // болохыг тест vед илрvvлсэн. Тиймээс аймгийн choropleth нь зөвхөн ХАРАГДАХ
-        // өнгө/хvрээ/нэрээр хязгаарлагдана — боомтын hover tooltip хэвээрээ vлдэнэ.
+        // болохыг тест үед илрүүлсэн. Тиймээс аймгийн choropleth нь зөвхөн ХАРАГДАХ
+        // өнгө/хүрээ/нэрээр хязгаарлагдана — боомтын hover tooltip хэвээрээ үлдэнэ.
         geoOption.regions = Object.keys(AIMAG_NAME_MAP).map(function (enKey) {
           var mnName = AIMAG_NAME_MAP[enKey];
           var pax = aimagTotals[mnName] || 0;
@@ -1287,15 +1304,15 @@
           var fillColor = lerpHexColor(areaColor, accentStrong, t);
           return {
             name: mnName,
-            // emphasis-ийг тухайн бvсийн өөрийн choropleth өнгөөр тодорхой зааж өгөхгvй бол
-            // ECharts hover vед анхны (palette-аас автоматаар оноогдсон) өнгө рvv шилждэг
-            // тул fillColor-оо ХЭВЭЭР vлдээж зөвхөн хvрээгээр тодруулна.
+            // emphasis-ийг тухайн бүсийн өөрийн choropleth өнгөөр тодорхой зааж өгөхгүй бол
+            // ECharts hover үед анхны (palette-аас автоматаар оноогдсон) өнгө рүү шилждэг
+            // тул fillColor-оо ХЭВЭЭР үлдээж зөвхөн хүрээгээр тодруулна.
             itemStyle: { areaColor: fillColor, borderColor: surface, borderWidth: 1 },
             emphasis: { itemStyle: { areaColor: fillColor, borderColor: accent, borderWidth: 2 }, label: { show: true, color: textPrimary, fontSize: 9, fontWeight: 600 } },
           };
         });
 
-        // УБ (одоогийн шинэ болон хуучин буудал) өөр рvv нь шугам татахгvй.
+        // УБ (одоогийн шинэ болон хуучин буудал) өөр рүү нь шугам татахгүй.
         var domLinesData = airports.filter(function (c) { return c !== 'Чингис хаан' && c !== 'Буянт-Ухаа'; }).map(function (c) {
           var coord = DOMESTIC_AIRPORT_COORD[c];
           var dcColor = DC[c] || FALLBACK_DOT_COLOR;
@@ -1384,7 +1401,7 @@
       var totals = {};
       rows.forEach(function (r) {
         var c = r.cntry;
-        if (!c || !COUNTRY_COORD[c]) return; // lookup хvснэгтэд байхгvй улсыг алгасана
+        if (!c || !COUNTRY_COORD[c]) return; // lookup хүснэгтэд байхгүй улсыг алгасана
         totals[c] = (totals[c] || 0) + (r.pax || 0);
       });
 
@@ -1654,7 +1671,7 @@
     var titleEl = document.getElementById('cargo-month-title');
     var singleYear = (typeof filters.year === 'number') ? filters.year : null;
     var yoy = singleYear ? getYoYContext() : null;
-    if (titleEl) titleEl.textContent = 'Сараар ачааны хэмжээ (' + (singleYear ? singleYear + ' он' : 'бvх жил') + ')';
+    if (titleEl) titleEl.textContent = 'Сараар ачааны хэмжээ (' + (singleYear ? singleYear + ' он' : 'бүх жил') + ')';
 
     var labels, tonV, shV, prevTonV = null, prevYearNum = null;
 
@@ -1874,7 +1891,7 @@
     renderBreakdownTable('country-wrap', topGroups(rows, function (r) { return r.cntry; }, ['Монгол', 'Тодорхойгүй']));
   }
 
-  // ---------- Тээвэрлэгч тус бvрийн ачаа — progress-bar жагсаалт + YoY өсөлт ----------
+  // ---------- Тээвэрлэгч тус бүрийн ачаа — progress-bar жагсаалт + YoY өсөлт ----------
   function topGroupsCargo(rows, keyFn, excludeKeys) {
     var by = {};
     rows.forEach(function (r) {
@@ -1951,15 +1968,15 @@
 
     renderCargoBreakdownTable('cargo-carrier-wrap', list);
   }
-  // ---------- Бvс нутгийн Treemap (онтологийн region → country шатлал) ----------
+  // ---------- Бүс нутгийн Treemap (онтологийн region → country шатлал) ----------
   var TREEMAP_TOP_REGIONS = 7;
   var REGION_OTHER_COLOR = '#9aa0a6';
 
   // scripts/ontology.js-ээр урьдчилан баяжуулагдсан `region`/`cntry`/`carr`
-  // баганаар 2 давхар (бvс нутаг → улс) шаталсан treemap дата бэлтгэнэ, улс
-  // бvрийн дотор топ-3 тээвэрлэгчийг tooltip-д зориулж тооцно. "Тодорхойгvй"
-  // (lookup-д ороогvй хот) region-ийг эс тооцно. ROW_COLORS-ийн 8 hue-ийн
-  // хязгаараас хэтрvvлэхгvйн тулд хамгийн жижиг бvсvvдийг "Бусад бvс нутаг"
+  // баганаар 2 давхар (бүс нутаг → улс) шаталсан treemap дата бэлтгэнэ, улс
+  // бүрийн дотор топ-3 тээвэрлэгчийг tooltip-д зориулж тооцно. "Тодорхойгүй"
+  // (lookup-д ороогүй хот) region-ийг эс тооцно. ROW_COLORS-ийн 8 hue-ийн
+  // хязгаараас хэтрүүлэхгүйн тулд хамгийн жижиг бүсүүдийг "Бусад бүс нутаг"
   // нэг node болгож нэгтгэнэ (dataviz-ийн "fold the tail into Other" зарчим).
   function buildRegionTreemapData(rows) {
     var byRegion = {};
@@ -1985,9 +2002,9 @@
         .sort(function (a, b) { return b.pax - a.pax; }).slice(0, 3);
     }
 
-    // country node-уудад itemStyle.color-ыг ЗОРИУДААР олгохгvй -- ECharts
+    // country node-уудад itemStyle.color-ыг ЗОРИУДААР олгохгүй -- ECharts
     // treemap-ийн levels[2].colorSaturation тохиргоо эцэг (region) node-ийн
-    // өнгөнөөс автоматаар цайруулсан хувилбарыг vvсгэнэ.
+    // өнгөнөөс автоматаар цайруулсан хувилбарыг үүсгэнэ.
     function countryNodes(countries, regionTotal) {
       return Object.keys(countries).map(function (c) {
         var d = countries[c];
@@ -2101,7 +2118,7 @@
     if (!regionTreemapChart) {
       dom.innerHTML = '';
       // svg renderer: Playwright-аар drill-down/layout-ыг DOM-оор шалгах боломжтой
-      // болгоно (canvas renderer дотоод элементvvдийг DOM-оор шалгах боломжгvй).
+      // болгоно (canvas renderer дотоод элементүүдийг DOM-оор шалгах боломжгүй).
       regionTreemapChart = echarts.init(dom, null, { renderer: 'svg' });
       window.addEventListener('resize', function () { regionTreemapChart.resize(); });
     }
@@ -2123,9 +2140,9 @@
         nodeClick: 'zoomToNode',
         // leafDepth:1 -- эхлээд ЗӨВХӨН region-level box-уудыг (тэдгээрийн улс
         // задаргааг нуруулж) харуулна; region дээр дарахад л country-level
-        // "навч"-ийг илрvvлж бvтэн дэлгэц дvvргэнэ (жинхэнэ drill-down).
-        // Vvнгvйгээр бvх түвшин НЭГ дор нэгэн зэрэг харагдаж, харагдах байдал
-        // холилдож, дарахад дvрслэл өөрчлөгддөггvй байсан.
+        // "навч"-ийг илрүүлж бүтэн дэлгэц дүүргэнэ (жинхэнэ drill-down).
+        // Үүнгүйгээр бүх түвшин НЭГ дор нэгэн зэрэг харагдаж, харагдах байдал
+        // холилдож, дарахад дүрслэл өөрчлөгддөггүй байсан.
         leafDepth: 1,
         breadcrumb: {
           show: true,
@@ -2133,7 +2150,7 @@
         },
         label: { show: true, color: '#fff', fontSize: 13, overflow: 'truncate', textShadowColor: 'rgba(0,0,0,0.35)', textShadowBlur: 2 },
         // Zoom хийж drill-down хийсний дараа эцэг node-ийн өөрийн upperLabel
-        // мөр default-оор цагаан дэвсгэр дээр vзvvлдэг тул (харанхуй горимд ч
+        // мөр default-оор цагаан дэвсгэр дээр үзүүлдэг тул (харанхуй горимд ч
         // адилхан цагаан) текстийг theme-ийн үндсэн ink өнгөөр (--text-primary)
         // зурж, `backgroundColor`-ыг card-ийн surface-тэй тохируулна.
         upperLabel: { show: true, height: 26, color: textPrimary },
@@ -2187,12 +2204,12 @@
     renderTable();
   });
 
-  // ---------- хvснэгтийн шvvлтийн popover ----------
-  // Дашбоардын ерөнхий дээд шvvлтээр (Жил/Сар/Төрөл/Бvс) аль хэдийн
-  // шvvгдсэн state.rows дээр НЭМЖ (AND logic) хэрэгждэг тул хоёр шvvлт
+  // ---------- хүснэгтийн шүүлтийн popover ----------
+  // Дашбоардын ерөнхий дээд шүүлтээр (Жил/Сар/Төрөл/Бүс) аль хэдийн
+  // шүүгдсэн state.rows дээр НЭМЖ (AND logic) хэрэгждэг тул хоёр шүүлт
   // давхардаж ажиллана. tblFiltersDraft нь popover доторх сонголтуудыг
-  // хадгална, зөвхөн "Шvvх" дарахад tblFilters рvv шилжиж бодитоор
-  // хэрэгждэг — ингэснээр хэрэглэгч сонголт хийж дуустал хvснэгт өөрчлөгдөхгvй.
+  // хадгална, зөвхөн "Шүүх" дарахад tblFilters рүү шилжиж бодитоор
+  // хэрэгждэг — ингэснээр хэрэглэгч сонголт хийж дуустал хүснэгт өөрчлөгдөхгүй.
   var tblFilters = { year: 'all', mFrom: null, mTo: null, dateFrom: null, dateTo: null, ou: 'all', dir: 'all', region: 'all', carr: 'all', cntry: 'all' };
   var tblFiltersDraft = Object.assign({}, tblFilters);
 
@@ -2243,7 +2260,7 @@
 
   function populateSelectOptions(selEl, values, current) {
     var opts = Array.from(new Set(values.filter(Boolean))).sort();
-    selEl.innerHTML = '<option value="all">Бvгд</option>';
+    selEl.innerHTML = '<option value="all">Бүгд</option>';
     opts.forEach(function (v) {
       var o = document.createElement('option');
       o.value = v; o.textContent = v;
@@ -2252,18 +2269,18 @@
     selEl.value = (current === 'all' || opts.indexOf(current) !== -1) ? current : 'all';
   }
 
-  // Popover нээгдэх бvр дуудагдана. Жилийн сонголт нь дашбоардын ерөнхий
-  // Жил шvvлтээс ЗОРИУДААР vл хамаарна (index-д бvртгэлтэй БVХ жилийг санал
-  // болгоно) — учир нь дашбоард тодорхой ганц жилээр шvvгдсэн vед state.rows
-  // зөвхөн тэр жилийн мөр агуулдаг тул vvнээс жил гаргаж авбал бусад жилvvд
-  // dropdown-оос алга болдог байсан. Бусад талбарууд (Бvс/Компани/Улс) нь
-  // харин ч ОДООГИЙН (дашбоардаар аль хэдийн шvvгдсэн) state.rows дата дээр
-  // vндэслэсэн хэвээр vлдэнэ — эдгээрийг бvх жилийн хvрээнд тоочих шаардлагагvй.
+  // Popover нээгдэх бүр дуудагдана. Жилийн сонголт нь дашбоардын ерөнхий
+  // Жил шүүлтээс ЗОРИУДААР үл хамаарна (index-д бүртгэлтэй БҮХ жилийг санал
+  // болгоно) — учир нь дашбоард тодорхой ганц жилээр шүүгдсэн үед state.rows
+  // зөвхөн тэр жилийн мөр агуулдаг тул үүнээс жил гаргаж авбал бусад жилүүд
+  // dropdown-оос алга болдог байсан. Бусад талбарууд (Бүс/Компани/Улс) нь
+  // харин ч ОДООГИЙН (дашбоардаар аль хэдийн шүүгдсэн) state.rows дата дээр
+  // үндэслэсэн хэвээр үлдэнэ — эдгээрийг бүх жилийн хүрээнд тоочих шаардлагагүй.
   function populateTblFilterOptions() {
     var rows = state.rows;
     var years = AVAILABLE_YEARS.map(function (y) { return y.year; }).sort(function (a, b) { return b - a; });
     var yearSel = document.getElementById('tbl-f-year');
-    yearSel.innerHTML = '<option value="all">Бvгд</option>';
+    yearSel.innerHTML = '<option value="all">Бүгд</option>';
     years.forEach(function (y) {
       var o = document.createElement('option');
       o.value = String(y); o.textContent = String(y);
@@ -2365,11 +2382,11 @@
     state.page = 0;
     updateTblFilterBadge();
     closeTblFilterPopover();
-    // Дашбоардын ерөнхий Жил шvvлт "Бvгд" vед л state.rows нь олон жилийн
-    // мөр агуулдаг (getFullHistoryRows). Хvснэгтийн Жил шvvлтээр хараахан
-    // ачаалагдаагvй жил сонгосон бол тухайн жилийг эхлээд татаж аваад
-    // бvтэн rerender хийж, шинэ мөрvvдийг state.rows-д оруулна — эс тэгвэл
-    // dropdown-д харагдаж байгаа ч дата ачаалагдаагvй тул vр дvн хоосон гарна.
+    // Дашбоардын ерөнхий Жил шүүлт "Бүгд" үед л state.rows нь олон жилийн
+    // мөр агуулдаг (getFullHistoryRows). Хүснэгтийн Жил шүүлтээр хараахан
+    // ачаалагдаагүй жил сонгосон бол тухайн жилийг эхлээд татаж аваад
+    // бүтэн rerender хийж, шинэ мөрүүдийг state.rows-д оруулна — эс тэгвэл
+    // dropdown-д харагдаж байгаа ч дата ачаалагдаагүй тул үр дүн хоосон гарна.
     if (typeof tblFilters.year === 'number' && filters.year === 'all' && !yearCache[tblFilters.year]) {
       loadYearData(tblFilters.year).then(function () { rerender(); });
     } else {
@@ -2387,10 +2404,10 @@
   });
 
   // ---------- Excel татах (SheetJS) ----------
-  // state.filtered нь идэвхтэй шvvлт (дашбоардын ерөнхий шvvлт + хvснэгтийн
-  // өөрийн popover шvvлт + хайлтын талбар) бvгдийг нэгтгэсэн vр дvнг агуулдаг
-  // (renderTable-ийн эцэст тохируулагдана) — хуудаслалт хамаарахгvйгээр
-  // ОДООГИЙН ХАРАГДАЖ БУЙ (шvvгдсэн) БVХ мөрийг л татна.
+  // state.filtered нь идэвхтэй шүүлт (дашбоардын ерөнхий шүүлт + хүснэгтийн
+  // өөрийн popover шүүлт + хайлтын талбар) бүгдийг нэгтгэсэн үр дүнг агуулдаг
+  // (renderTable-ийн эцэст тохируулагдана) — хуудаслалт хамаарахгүйгээр
+  // ОДООГИЙН ХАРАГДАЖ БУЙ (шүүгдсэн) БҮХ мөрийг л татна.
   document.getElementById('export-xlsx').addEventListener('click', function () {
     if (typeof XLSX === 'undefined') {
       alert('Excel сан ачаалагдсангүй. Дахин оролдоно уу.');
@@ -2492,16 +2509,16 @@
     renderTable();
   }
 
-  // ---------- жил бvрээр lazy ачаалалт (docs/flights-YYYY.json) ----------
+  // ---------- жил бүрээр lazy ачаалалт (docs/flights-YYYY.json) ----------
   // 71MB нэг flights.json файл GitHub-ийн 50MB зөвлөмжит хязгаараас давсан
-  // тул жил бvрээр тусад нь файлд хуваасан. Dashboard эхлээд зөвхөн
-  // ОДООГИЙН ЖИЛИЙН файлыг л ачаалж хурдан анхны зураг vзvvлээд, бусад
-  // жилvvдийг арын прожесээр (background) аажмаар нэмж татна.
+  // тул жил бүрээр тусад нь файлд хуваасан. Dashboard эхлээд зөвхөн
+  // ОДООГИЙН ЖИЛИЙН файлыг л ачаалж хурдан анхны зураг үзүүлээд, бусад
+  // жилүүдийг арын прожесээр (background) аажмаар нэмж татна.
   var AVAILABLE_YEARS = []; // [{year,count,fetchedAt}], индексээс
   var yearCache = {};       // year -> enriched rows[]
   var yearLoadPromises = {};// year -> Promise<rows[]> (давхар татахаас сэргийлнэ)
   var allYearsLoaded = false;
-  var chatIndexCache = null; // getChatIndex()-ийн кэшлэгдсэн vр дvн (rowCount-оор хvчингvй болно)
+  var chatIndexCache = null; // getChatIndex()-ийн кэшлэгдсэн үр дүн (rowCount-оор хүчингүй болно)
 
   function loadYearData(year) {
     if (yearCache[year]) return Promise.resolve(yearCache[year]);
@@ -2530,14 +2547,14 @@
     return AVAILABLE_YEARS.reduce(function (acc, y) { return acc.concat(yearCache[y.year] || []); }, []);
   }
 
-  // computeChat() query бvр дээр D (12,222+ мөр)-ийг дахин бvрэн скан хийж хотын/
-  // тээвэрлэгчийн жагсаалт vvсгэдэг байсан нь (O(n) скан өөрөө хямд ч гэсэн, урьд нь
+  // computeChat() query бүр дээр D (12,222+ мөр)-ийг дахин бүрэн скан хийж хотын/
+  // тээвэрлэгчийн жагсаалт үүсгэдэг байсан нь (O(n) скан өөрөө хямд ч гэсэн, урьд нь
   // reduce+concat ашигласан хэсэг нь бодитоор O(n²) байсан — доор тайлбарласан)
-  // chatbot-ийн ХАРИУ vзvvлэх БVР main thread-ийг секундын түвшинд блоклож,
-  // UI-г (quick-reply товч, input) "гацсан/ажиллахгvй" мэт харагдуулж байсан гол
-  // шалтгаан байв. Эдгээр жагсаалт нь ачаалагдсан жилvvдийн мөрийн тоо
-  // өөрчлөгдөхөөс (шинэ жил ачаалагдах) бусад vед өөрчлөгддөггvй тул query бvрд
-  // дахин тооцоолохын оронд нэг л удаа vvсгэж кэшлэнэ.
+  // chatbot-ийн ХАРИУ үзүүлэх БҮР main thread-ийг секундын түвшинд блоклож,
+  // UI-г (quick-reply товч, input) "гацсан/ажиллахгүй" мэт харагдуулж байсан гол
+  // шалтгаан байв. Эдгээр жагсаалт нь ачаалагдсан жилүүдийн мөрийн тоо
+  // өөрчлөгдөхөөс (шинэ жил ачаалагдах) бусад үед өөрчлөгддөггүй тул query бүрд
+  // дахин тооцоолохын оронд нэг л удаа үүсгэж кэшлэнэ.
   function getChatIndex(D) {
     if (chatIndexCache && chatIndexCache.rowCount === D.length) return chatIndexCache;
     var citySet = new Set();
@@ -2570,10 +2587,10 @@
     document.getElementById('history-status').textContent = text;
   }
 
-  // Одоогийн жилийг ачаалсны дараа vлдсэн жилvvдийг дараалан (нэг нэгээр)
-  // арын прожесээр татна. Жил бvр орж ирэх тусам: (1) Бvс нутгийн шvvлтийн
-  // сонголтыг өргөжvvлнэ, (2) хэрэв хэрэглэгч "Бvгд" сонгосон бол шууд дахин
-  // зурна (аажмаар бvрдэж буй мэдээллийг харуулна).
+  // Одоогийн жилийг ачаалсны дараа үлдсэн жилүүдийг дараалан (нэг нэгээр)
+  // арын прожесээр татна. Жил бүр орж ирэх тусам: (1) Бүс нутгийн шүүлтийн
+  // сонголтыг өргөжүүлнэ, (2) хэрэв хэрэглэгч "Бүгд" сонгосон бол шууд дахин
+  // зурна (аажмаар бүрдэж буй мэдээллийг харуулна).
   function prefetchRemainingYears() {
     var others = AVAILABLE_YEARS.filter(function (y) { return y.year !== CURRENT_YEAR; });
     if (!others.length) { allYearsLoaded = true; setHistoryStatus(''); return Promise.resolve(); }
@@ -2602,26 +2619,34 @@
     });
   }
 
-  // "Сvvлд шалгасан" (last checked) болон "Сvvлд шинэчилсэн" (last updated) хоёр
-  // тусдаа цаг vзvvлнэ — эх сурвалж нь docs/last-sync-status.json (writeSyncStatus.js-ээр
-  // cron ажиллагаа бvрд бичигддэг). lastAttemptAt нь ажиллагаа БVР (шинэ дата олдсон
-  // эсэхээс vл хамааран) шинэчлэгддэг тул "шалгасан", харин lastUpdatedAt нь ЗӨВХӨН
-  // бодит шинэ/өөрчлөгдсөн мөр орж ирсэн vед л шинэчлэгддэг тул "шинэчилсэн" гэсэн
-  // утгыг зөв илэрхийлнэ. Тэр файл олдохгvй бол (хуучин deploy, локал тест) flights-
-  // index.json-ий хамгийн сvvлийн fetchedAt-руу буцна.
+  // "Сүүлд шалгасан" (last checked) болон "Сүүлд шинэчилсэн" (last updated) хоёр
+  // тусдаа цаг үзүүлнэ — эх сурвалж нь docs/last-sync-status.json (writeSyncStatus.js-ээр
+  // cron ажиллагаа бүрд бичигддэг). lastAttemptAt нь ажиллагаа БҮР (шинэ дата олдсон
+  // эсэхээс үл хамааран) шинэчлэгддэг тул "шалгасан", харин lastUpdatedAt нь ЗӨВХӨН
+  // бодит шинэ/өөрчлөгдсөн мөр орж ирсэн үед л шинэчлэгддэг тул "шинэчилсэн" гэсэн
+  // утгыг зөв илэрхийлнэ. Тэр файл олдохгүй бол (хуучин deploy, локал тест) flights-
+  // index.json-ий хамгийн сүүлийн fetchedAt-руу буцна.
   var STALE_HOURS = 48;
 
-  // checkedAt (сvvлд шалгасан) нь зөвхөн дотоод бvртгэл/ирээдvйн debug-д зориулагдсан
+  // checkedAt (сүүлд шалгасан) нь зөвхөн дотоод бүртгэл/ирээдүйн debug-д зориулагдсан
   // (dataset attribute-аар devtools-оос харагдана) — хэрэглэгчид хоёр ойролцоо цагийг
-  // зэрэг харуулж төөрөгдvvлэхгvйн тулд UI дээр зөвхөн "Сvvлд шинэчилсэн"-ийг vзvvлнэ.
+  // зэрэг харуулж төөрөгдүүлэхгүйн тулд UI дээр зөвхөн "Сүүлд шинэчилсэн"-ийг үзүүлнэ.
+  // toLocaleString('mn-MN') нь Chrome-д mn өгөгдөлгүй тул "10/12/2026, 6:02:06 AM"
+  // гэсэн америк хэлбэрт унадаг — ЖЖЖЖ-СС-ӨӨ ЦЦ:ММ (хэрэглэгчийн цагийн бүс) гараар.
+  function fmtDateTime(d) {
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+      + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
   function paintUpdatedAt(checkedAt, updatedAt) {
     var updatedEl = document.getElementById('updated-at');
     updatedEl.dataset.lastCheckedAt = checkedAt || '';
     if (!updatedAt) { updatedEl.textContent = ''; return; }
     var hoursSinceUpdate = (Date.now() - new Date(updatedAt).getTime()) / 3600000;
     var isStale = hoursSinceUpdate > STALE_HOURS;
-    updatedEl.textContent = 'Сүүлд шинэчилсэн: ' + new Date(updatedAt).toLocaleString('mn-MN')
-      + (isStale ? ' · 48+ цаг шинэчлэгдээгvй' : '');
+    updatedEl.textContent = 'Сүүлд шинэчилсэн: ' + fmtDateTime(new Date(updatedAt))
+      + (isStale ? ' · 48+ цаг шинэчлэгдээгүй' : '');
     updatedEl.classList.toggle('stale', isStale);
   }
 
@@ -2683,11 +2708,11 @@
     'ирланд':'Ирланд','ирландад':'Ирланд','ирландаас':'Ирланд',
   };
 
-  // ── Онтологийн иерархи: бvс нутаг/тив/альянс синоним ──
-  // flights.json-ий мөр бvр (scripts/ontology.js-ээр урьдчилан баяжуулагдсан) region/
+  // ── Онтологийн иерархи: бүс нутаг/тив/альянс синоним ──
+  // flights.json-ий мөр бүр (scripts/ontology.js-ээр урьдчилан баяжуулагдсан) region/
   // continent/alliance гэсэн бэлэн баганатай тул эндэх map зөвхөн хэрэглэгчийн
-  // асуултад орсон vгийг тэдгээр баганын БОДИТ утгатай тааруулах л vvрэгтэй — join/
-  // нэгтгэх нэмэлт логик хэрэггvй (SYN-тай яг адил pattern).
+  // асуултад орсон үгийг тэдгээр баганын БОДИТ утгатай тааруулах л үүрэгтэй — join/
+  // нэгтгэх нэмэлт логик хэрэггүй (SYN-тай яг адил pattern).
   var REGION_SYN = {
     'зүүн ази':'Зүүн Ази', 'дорнод ази':'Зүүн Ази',
     'зүүн өмнөд ази':'Зүүн Өмнөд Ази', 'зүүн-өмнөд ази':'Зүүн Өмнөд Ази',
@@ -2706,8 +2731,8 @@
   };
 
   // ── Хотын alias (гар аргаар цэгцэлсэн, data/ontology/city-country-region.json-ий
-  // aliases талбартай нийцтэй) — Токёо/Инчон/Пекин мэт vг сан/зохион бичлэгээрээ
-  // өөр (фонетик fuzzy match-аар барьж чадахгvй) нэрсийг ТОДОРХОЙ, найдвартай
+  // aliases талбартай нийцтэй) — Токёо/Инчон/Пекин мэт үг сан/зохион бичлэгээрээ
+  // өөр (фонетик fuzzy match-аар барьж чадахгүй) нэрсийг ТОДОРХОЙ, найдвартай
   // байдлаар шийднэ. Утга нь cityBase (композит биш) хэлбэрээр — matchesCity()
   // аль хэдийн "/" -ээр задарсан хоёр талыг адилхан тааруулдаг тул жишээ нь
   // "Токио" гэж шийдвэл Нарита/Ханеда хоёр буудлын мөрийг АЛИНЫГ нь ч хамруулна.
@@ -2810,11 +2835,11 @@
   // (жишээ нь "Хонг Конг" -> "хонгконг") нэр дэвшигч болгон гаргана — "ХонгКонг"
   // мэт зайгүй бичигддэг өгөгдлийн хотын нэртэй харьцуулахад хэрэгтэй.
   function fuzzyCandidateTokens(ql) {
-    // Ерөнхий (стоп) vгсийг (жишээ нь "явсан", "хэдэн") эхнээс нь хасна —
-    // эс тэгвээс тэдгээр vг санамсаргvй давхцлаар (жишээ нь "явсан" ба
-    // "Бусан" хотын нэр хоёрын хооронд ердөө 2 vсгийн ялгаа байдаг) хотын нэр
+    // Ерөнхий (стоп) үгсийг (жишээ нь "явсан", "хэдэн") эхнээс нь хасна —
+    // эс тэгвээс тэдгээр үг санамсаргүй давхцлаар (жишээ нь "явсан" ба
+    // "Бусан" хотын нэр хоёрын хооронд ердөө 2 үсгийн ялгаа байдаг) хотын нэр
     // мэт танигдах эрсдэлтэй. isGenericWord нь -ын/-ийн гэх мэт төгсгөлийн
-    // нөхцөлийг тайраад стоп vгтэй тааруулна ("улсын" -> "улс" гэх мэт).
+    // нөхцөлийг тайраад стоп үгтэй тааруулна ("улсын" -> "улс" гэх мэт).
     var words = ql.replace(/[^a-zа-яёөүA-ZА-ЯЁӨҮ]+/g, ' ').trim().split(/\s+/)
       .filter(function (w) { return w.length >= 3 && !isGenericWord(w); });
     var out = [];
@@ -2865,10 +2890,10 @@
   ]);
   // Асуулт дотор аль нэг таних үгсэн санд ороогүй 3+ үсэгтэй үг үлдсэн эсэхийг шалгана —
   // тийм бол хэрэглэгч тодорхой нэр хэлсэн ч бид таниагүй байх магадлалтай
-  // vг (эсвэл түүний -ын/-ийг/-аас гэх мэт төгсгөлийн нөхцөл тайрсан хэлбэр нь)
+  // үг (эсвэл түүний -ын/-ийг/-аас гэх мэт төгсгөлийн нөхцөл тайрсан хэлбэр нь)
   // CHAT_STOPWORDS-д байгаа эсэхийг шалгана — Монгол хэл нийлмэл (agglutinative)
-  // тул "улс" стоп vг ч "улсын", "улсаар" гэх мэт хэлбэрээр өгүүлбэрт орж ирдэг;
-  // яг таарсан эсэхийг л шалбал ийм хувилбарууд танигдахгvй vлдэнэ.
+  // тул "улс" стоп үг ч "улсын", "улсаар" гэх мэт хэлбэрээр өгүүлбэрт орж ирдэг;
+  // яг таарсан эсэхийг л шалбал ийм хувилбарууд танигдахгүй үлдэнэ.
   function isGenericWord(word) {
     for (var trim = 0; trim <= 3 && word.length - trim >= 2; trim++) {
       if (CHAT_STOPWORDS.has(trim === 0 ? word : word.slice(0, word.length - trim))) return true;
@@ -2927,32 +2952,32 @@
   // cntry, dir ("1"=явсан,"0"=ирсэн), ou ("ОУ"/"ОН"), pax, cargo, adult, child,
   // infant, transit, vip, diplomat, crew, mailKg гэх мэт — шууд ашигладаг.
   function computeChat(q) {
-    // Чатбот vргэлж БvХ ачаалагдсан жилийн туршид хайдаг (dashboard-ийн
-    // идэвхтэй "Жил" шvvлтээс vл хамааран) — учир нь хэрэглэгч зөвхөн нэг
-    // жил сонгосон vед ч "нийт хэдэн зорчигч байсан бэ" мэт асуулт асуувал
-    // бvх түvхийг хайх нь зvйтэй.
+    // Чатбот үргэлж БүХ ачаалагдсан жилийн туршид хайдаг (dashboard-ийн
+    // идэвхтэй "Жил" шүүлтээс үл хамааран) — учир нь хэрэглэгч зөвхөн нэг
+    // жил сонгосон үед ч "нийт хэдэн зорчигч байсан бэ" мэт асуулт асуувал
+    // бүх түүхийг хайх нь зүйтэй.
     var D = getFullHistoryRows();
     var ql = q.toLowerCase();
 
     var country = null, carrier = null, city = null, month = null, dayFrom = null, dayTo = null, dir = null, ou = null;
     var region = null, continent = null, alliance = null, acManufacturer = null, acCategory = null;
-    // Улс/бvс/тив/альянс/тээвэрлэгчийг аль хэдийн танисан vгсийг (жишээ нь
-    // "солонгос") дараа нь ХОТЫН нэр хайхад дахин ашиглахгvй байхын тулд
-    // бvртгэнэ — эс тэгвээс нэг vг хоёр өөр газарзvйн шvvлт болж давхар
-    // (АND) орж, "Солонгос" гэсэн улсын vг санамсаргvй "Мөрөн" хот мэт
-    // хотын нэртэй fuzzy таарч, зөрчилдсөн шvvлтээс vр дvн 0 гарах эрсдэлтэй.
+    // Улс/бүс/тив/альянс/тээвэрлэгчийг аль хэдийн танисан үгсийг (жишээ нь
+    // "солонгос") дараа нь ХОТЫН нэр хайхад дахин ашиглахгүй байхын тулд
+    // бүртгэнэ — эс тэгвээс нэг үг хоёр өөр газарзүйн шүүлт болж давхар
+    // (АND) орж, "Солонгос" гэсэн улсын үг санамсаргүй "Мөрөн" хот мэт
+    // хотын нэртэй fuzzy таарч, зөрчилдсөн шүүлтээс үр дүн 0 гарах эрсдэлтэй.
     var consumedKeywords = [];
 
     for (var k in SYN) {
       if (Object.prototype.hasOwnProperty.call(SYN, k) && ql.indexOf(k) !== -1) { country = SYN[k]; consumedKeywords.push(k); break; }
     }
 
-    // Онтологийн иерархи (бvс нутаг/тив/альянс) — flights.json-ий мөр бvр дээр
+    // Онтологийн иерархи (бүс нутаг/тив/альянс) — flights.json-ий мөр бүр дээр
     // scripts/ontology.js-ээр урьдчилан баяжуулагдсан region/continent/alliance
     // баганатай тул энд зөвхөн хэрэглэгчийн бичсэн синонимыг тэдгээрийн БОДИТ утгатай
     // тааруулна. Тив (жишээ "Ази") дурдагдвал доорх filter шатанд шууд
-    // `r.continent === continent`-ээр шvvгдэх тул тухайн тивд харьяалагдах БVХ
-    // бvс/улс/хотын датаг нэмэлт join логикгvйгээр автоматаар нэгтгэнэ.
+    // `r.continent === continent`-ээр шүүгдэх тул тухайн тивд харьяалагдах БҮХ
+    // бүс/улс/хотын датаг нэмэлт join логикгүйгээр автоматаар нэгтгэнэ.
     for (var kr in REGION_SYN) {
       if (Object.prototype.hasOwnProperty.call(REGION_SYN, kr) && ql.indexOf(kr) !== -1) { region = REGION_SYN[kr]; consumedKeywords.push(kr); break; }
     }
@@ -2968,33 +2993,33 @@
     if (/narrow.?body|нарийн фюзеляж/.test(ql)) acCategory = 'narrow-body';
     else if (/wide.?body|өргөн фюзеляж/.test(ql)) acCategory = 'wide-body';
 
-    // Хот/тээвэрлэгчийн жагсаалт, normalize хийсэн хувилбарууд query бvрд дахин
-    // тооцоологдохгvй, D өөрчлөгдөөгvй л бол кэшээс ирнэ (getChatIndex тайлбарыг vз)
+    // Хот/тээвэрлэгчийн жагсаалт, normalize хийсэн хувилбарууд query бүрд дахин
+    // тооцоологдохгүй, D өөрчлөгдөөгүй л бол кэшээс ирнэ (getChatIndex тайлбарыг үз)
     var idx = getChatIndex(D);
     var allCarriers = idx.allCarriers;
     for (var i = 0; i < allCarriers.length; i++) {
       if (ql.indexOf(allCarriers[i].toLowerCase()) !== -1) { carrier = allCarriers[i]; consumedKeywords.push(allCarriers[i].toLowerCase()); break; }
     }
 
-    // 1. flights.json-оос давхардуулгаагvй хотуудын жагсаалт — нийлмэл утгын хоёр
-    // талыг (жишээ нь "Сөvл" ба "Инчеон") тус тусад нь тааруулж болохоор задална
+    // 1. flights.json-оос давхардуулгаагүй хотуудын жагсаалт — нийлмэл утгын хоёр
+    // талыг (жишээ нь "Сөүл" ба "Инчеон") тус тусад нь тааруулж болохоор задална
     var cityBases = idx.cityBases;
 
-    // Улс/бvс/тив/альянс/тээвэрлэгчид аль хэдийн "хэрэглэгдсэн" vгсийг хассан
-    // хувилбар — зөвхөн ХОТ хайхад ашиглана (дээрх тайлбарыг vз)
+    // Улс/бүс/тив/альянс/тээвэрлэгчид аль хэдийн "хэрэглэгдсэн" үгсийг хассан
+    // хувилбар — зөвхөн ХОТ хайхад ашиглана (дээрх тайлбарыг үз)
     var qlForCity = ql;
     consumedKeywords.forEach(function (kw) { qlForCity = qlForCity.split(kw).join(' '); });
 
     // 2. Эхлээд яг таарсан бодит хотын нэрсээр шалгана (урт нэр эхэлж таарч
-    // богино нэрийн санамсаргvй давхцлаас сэргийлнэ), 3. олдоогvй бол fuzzy
-    // matching-ээр (латин/өөр бичлэг, дутуу vсэг, залгасан төгсгөлийн нөхцөл
-    // зэргийг тэвчих) хамгийн ойрхон хотыг олно — хатуу alias жагсаалт хэрэггvй
+    // богино нэрийн санамсаргүй давхцлаас сэргийлнэ), 3. олдоогүй бол fuzzy
+    // matching-ээр (латин/өөр бичлэг, дутуу үсэг, залгасан төгсгөлийн нөхцөл
+    // зэргийг тэвчих) хамгийн ойрхон хотыг олно — хатуу alias жагсаалт хэрэггүй
     var cityClarify = null;
     var sortedCityBases = idx.sortedCityBases;
     for (var ci = 0; ci < sortedCityBases.length; ci++) {
       if (qlForCity.indexOf(sortedCityBases[ci].toLowerCase()) !== -1) { city = sortedCityBases[ci]; break; }
     }
-    // Гар аргаар цэгцэлсэн alias (Токёо/Инчон/Пекин г.м) — vг сан/зохион бичлэгээрээ
+    // Гар аргаар цэгцэлсэн alias (Токёо/Инчон/Пекин г.м) — үг сан/зохион бичлэгээрээ
     // өгөгдлийн бодит нэрнээс тэс өөр тул fuzzy match-аас ӨМНӨ шалгаж, тодорхой,
     // найдвартай хариулт өгнө (fuzzy бол магадлалын тооцоо л хийдэг).
     if (!city) {
@@ -3016,10 +3041,10 @@
       if (a >= 1 && a <= 31 && b >= 1 && b <= 31 && a !== b) { dayFrom = Math.min(a, b); dayTo = Math.max(a, b); }
     }
 
-    // Хэрэглэгч тодорхой жил дурдвал ("2025 онд...") зөвхөн тэр жилээр шvvнэ.
-    // Жил дурдаагvй бол чимээгvйгээр БVХ түvхийг (2020-2026) нэгтгэж хариулдаг
-    // байсан нь хэрэглэгчийг ямар хугацааны дата харж байгаагаа андуурахад хvргэдэг
-    // байсан тул — жил заагаагvй vед ТАЙЛАНТ ОН (CURRENT_YEAR)-оор л хариулна.
+    // Хэрэглэгч тодорхой жил дурдвал ("2025 онд...") зөвхөн тэр жилээр шүүнэ.
+    // Жил дурдаагүй бол чимээгүйгээр БҮХ түүхийг (2020-2026) нэгтгэж хариулдаг
+    // байсан нь хэрэглэгчийг ямар хугацааны дата харж байгаагаа андуурахад хүргэдэг
+    // байсан тул — жил заагаагүй үед ТАЙЛАНТ ОН (CURRENT_YEAR)-оор л хариулна.
     var yearM = ql.match(/\b(20\d{2})\b/);
     var explicitYear = yearM ? parseInt(yearM[1], 10) : null;
     var year = explicitYear || CURRENT_YEAR;
@@ -3181,15 +3206,15 @@
       if (result.cityClarify) {
         html += '<div style="font-size: 0.875rem;color:var(--accent-2);margin-bottom:6px">💡 "' + escHtml(f.city) + '" гэж тодорхойлов — "' + escHtml(result.cityClarify) + '" хотыг хэлж байсан бол дахин тодорхой бичнэ үү.</div>';
       }
-      // vр дvн 0 мөр гарвал ямар ч тайлбаргvй "0" гэж vзvvлэхгvй — учир нь
-      // энэ нь ихэвчлэн бодит "0 зорчигч" биш, харин 2+ газарзvйн шvvлт
-      // (жишээ нь улс + хот) санамсаргvй давхарч зөрчилдсөний илрэл байдаг.
-      // Хэрэглэгчид шvvлт буруу тайлагдсан байж болзошгvйг тодорхой мэдэгдэнэ.
+      // үр дүн 0 мөр гарвал ямар ч тайлбаргүй "0" гэж үзүүлэхгүй — учир нь
+      // энэ нь ихэвчлэн бодит "0 зорчигч" биш, харин 2+ газарзүйн шүүлт
+      // (жишээ нь улс + хот) санамсаргүй давхарч зөрчилдсөний илрэл байдаг.
+      // Хэрэглэгчид шүүлт буруу тайлагдсан байж болзошгүйг тодорхой мэдэгдэнэ.
       if (!result.unmatched && result.count === 0 && scopeParts.length) {
         var geoFilters = [f.country, f.city, f.carrier, f.region, f.continent, f.alliance].filter(Boolean);
         var zeroMsg = geoFilters.length > 1
-          ? '⚠ Тохирох дата олдсонгvй. "' + geoFilters.map(escHtml).join(' + ') + '" гэсэн шvvлтvvд хамт (AND) хэрэглэгдсэн тул зөрчилдсөн байж болзошгvй — асуултаа нэг газар (улс/хот/тив) заасан хэлбэрээр дахин бичиж vзнэ vv.'
-          : '⚠ Тохирох дата олдсонгvй.';
+          ? '⚠ Тохирох дата олдсонгүй. "' + geoFilters.map(escHtml).join(' + ') + '" гэсэн шүүлтүүд хамт (AND) хэрэглэгдсэн тул зөрчилдсөн байж болзошгүй — асуултаа нэг газар (улс/хот/тив) заасан хэлбэрээр дахин бичиж үзнэ vv.'
+          : '⚠ Тохирох дата олдсонгүй.';
         html += '<div style="font-size: 0.875rem;color:var(--accent-2);margin-bottom:6px">' + zeroMsg + '</div>';
       }
       html += '<div style="font-size: 0.875rem;color:var(--text-muted);margin-bottom:6px">' + escHtml(scope) + '</div>';

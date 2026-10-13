@@ -6,11 +6,11 @@ const { gotoDashboard, setTheme } = require('./helpers');
  * Screenshot-based visual regression тест.
  *
  * Тогтмол fixture dataset (tests/fixtures/flights.sample.json) дээр ажилладаг
- * тул docs/flights.json-ийн өдөр тутмын автомат шинэчлэлтээс vл хамааран
- * тогтвортой vр дvн өгнө. "updated-at" цагийн тэмдэглэгээ vргэлж өөрчлөгдөх
+ * тул docs/flights.json-ийн өдөр тутмын автомат шинэчлэлтээс үл хамааран
+ * тогтвортой үр дүн өгнө. "updated-at" цагийн тэмдэглэгээ үргэлж өөрчлөгдөх
  * боломжтой тул screenshot-оос mask-лагдана.
  *
- * Анхны (baseline) зурган файлыг vvсгэхийн тулд:
+ * Анхны (baseline) зурган файлыг үүсгэхийн тулд:
  *   npx playwright test --update-snapshots
  */
 
@@ -19,7 +19,7 @@ test.describe('dashboard visual regression', () => {
     test(`full dashboard — ${theme} mode`, async ({ page }) => {
       await gotoDashboard(page);
       await setTheme(page, theme);
-      await page.waitForTimeout(500); // chart/animation бvрэн дуусахыг хvлээнэ
+      await page.waitForTimeout(500); // chart/animation бүрэн дуусахыг хүлээнэ
 
       await expect(page).toHaveScreenshot(`dashboard-full-${theme}.png`, {
         fullPage: true,
@@ -55,7 +55,7 @@ test.describe('dashboard visual regression', () => {
     test(`region treemap — ${theme} mode`, async ({ page }) => {
       await gotoDashboard(page);
       await setTheme(page, theme);
-      await page.waitForTimeout(500); // echarts treemap render/animation бvрэн дуусахыг хvлээнэ
+      await page.waitForTimeout(500); // echarts treemap render/animation бүрэн дуусахыг хүлээнэ
 
       const card = page.locator('#region-treemap').locator('xpath=ancestor::*[contains(@class,"card")][1]');
       await expect(card).toHaveScreenshot(`region-treemap-${theme}.png`);
