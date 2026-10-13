@@ -54,3 +54,35 @@ test('харагдах текстэд кирилл үгийн дотор лат�
   });
   expect(bad).toEqual([]);
 });
+
+test('гар утсанд (375px) нислэгийн жагсаалт карт болж, хуудас хажуу тийш гүйхгүй', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await gotoDashboard(page);
+  const r = await page.evaluate(() => {
+    const cards = document.querySelectorAll('#mcards .mcard');
+    const wide = [...cards].filter((c) => c.getBoundingClientRect().right > window.innerWidth + 1).length;
+    return {
+      docW: document.documentElement.scrollWidth, vw: window.innerWidth,
+      cards: cards.length, wide,
+      table: getComputedStyle(document.querySelector('.table-scroll')).display,
+    };
+  });
+  expect(r.table).toBe('none');
+  expect(r.cards).toBeGreaterThan(0);
+  expect(r.wide).toBe(0);
+  expect(r.docW).toBeLessThanOrEqual(r.vw);
+});
+
+test('өмнөх онуудын ачааллын текст 0-ээс эхэлсэн тоо харуулахгүй', async ({ page }) => {
+  const seen = [];
+  await page.exposeFunction('__hs', (t) => seen.push(t));
+  await page.addInitScript(() => {
+    new MutationObserver(() => {
+      const el = document.getElementById('history-status');
+      if (el) window.__hs(el.textContent);
+    }).observe(document, { subtree: true, childList: true, characterData: true });
+  });
+  await gotoDashboard(page);
+  await page.waitForTimeout(500);
+  expect(seen.filter((t) => /\(0\//.test(t))).toEqual([]);
+});

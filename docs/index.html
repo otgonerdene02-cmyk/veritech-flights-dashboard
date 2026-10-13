@@ -352,6 +352,27 @@
       border-right: none;
     }
   }
+  /* Гар утсанд 31 баганатай хүснэгт ~3300px өргөн болж байсан тул ≤640px дээр
+     мөр бүрийг карт болгоно: гол 6 талбар шууд, үлдсэн нь "Дэлгэрэнгүй" дотор. */
+  .mcards-wrap { display: none; }
+  @media (max-width: 640px) {
+    .table-scroll { display: none; }
+    .mcards-wrap { display: block; }
+  }
+  .mcards-sort { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 8px; }
+  .mcards-sort select { flex: 1; min-width: 0; font: inherit; padding: 5px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--page); color: var(--text-primary); }
+  .mcard { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 0.875rem; }
+  .mcard-top { display: flex; justify-content: space-between; gap: 8px; color: var(--text-secondary); font-size: 0.8125rem; }
+  .mcard-top b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .mcard-carr { font-weight: 700; margin: 4px 0 2px; overflow-wrap: anywhere; }
+  .mcard-route { color: var(--text-secondary); overflow-wrap: anywhere; }
+  .mcard-nums { display: flex; gap: 16px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .mcard-nums span { color: var(--text-muted); font-size: 0.75rem; display: block; }
+  .mcard details { margin-top: 6px; }
+  .mcard summary { cursor: pointer; color: var(--accent); font-size: 0.8125rem; }
+  .mcard dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0 0; font-size: 0.8125rem; }
+  .mcard dt { color: var(--text-muted); }
+  .mcard dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
   .pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.875rem; color: var(--text-secondary); }
   .pager button {
     font: inherit; font-size: 0.875rem; background: var(--page); border: 1px solid var(--border);
@@ -663,6 +684,13 @@
           <thead id="thead"></thead>
           <tbody id="tbody"></tbody>
         </table>
+      </div>
+      <!-- Гар утас (≤640px): 31 баганатай хүснэгтийн оронд мөр бүрийг карт болгоно -->
+      <div class="mcards-wrap">
+        <label class="mcards-sort">Эрэмбэ:
+          <select id="m-sort"></select>
+        </label>
+        <div class="mcards" id="mcards"></div>
       </div>
       <div id="empty" class="empty-state" style="display:none;">Илэрц олдсонгүй</div>
       <div class="pager">
@@ -2193,6 +2221,20 @@
     });
   });
 
+  // Гар утасны картын эрэмбэ — толгой мөр харагдахгүй тул state.sortKey/sortDir-ийг
+  // select-ээр сольж, хүснэгтийн толгойтой ижил эрэмбэ хэрэглэнэ.
+  var mcardsEl = document.getElementById('mcards');
+  var mSortEl = document.getElementById('m-sort');
+  mSortEl.innerHTML = COLUMNS.slice(0, 9).map(function (c) {
+    return '<option value="' + c.key + ':desc">' + c.label + ' ↓</option>'
+      + '<option value="' + c.key + ':asc">' + c.label + ' ↑</option>';
+  }).join('');
+  mSortEl.addEventListener('change', function () {
+    var p = mSortEl.value.split(':');
+    state.sortKey = p[0]; state.sortDir = p[1]; state.page = 0;
+    renderTable();
+  });
+
   searchEl.addEventListener('input', function () {
     state.page = 0;
     renderTable();
@@ -2469,6 +2511,31 @@
       }).join('') + '</tr>';
     }).join('');
 
+    // Гар утасны карт — хүснэгттэй ИЖИЛ pageRows (эрэмбэ, шүүлт, хуудаслалт нэг)
+    var MAIN_KEYS = { date: 1, weekday: 1, flight: 1, carr: 1, dirLabel: 1, city: 1, cntry: 1, pax: 1, cargoKg: 1 };
+    function cellText(c, raw) {
+      if (!c.num) return raw == null ? '' : String(raw);
+      return c.dec != null
+        ? (Number(raw) || 0).toLocaleString('mn-MN', { minimumFractionDigits: c.dec, maximumFractionDigits: c.dec })
+        : fmtNum(raw || 0);
+    }
+    mSortEl.value = state.sortKey + ':' + state.sortDir;
+    mcardsEl.innerHTML = pageRows.map(function (r) {
+      var route = [r.dirLabel, [r.city, r.cntry].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+      var rest = COLUMNS.filter(function (c) { return !MAIN_KEYS[c.key] && r[c.key] != null && r[c.key] !== ''; });
+      return '<div class="mcard">'
+        + '<div class="mcard-top"><span>' + escHtml(r.date || '—') + (r.weekday ? ' · ' + escHtml(r.weekday) : '') + '</span>'
+        + '<b>' + escHtml(r.flight || '—') + '</b></div>'
+        + '<div class="mcard-carr">' + escHtml(r.carr || '—') + '</div>'
+        + '<div class="mcard-route">' + escHtml(route || '—') + '</div>'
+        + '<div class="mcard-nums"><div><span>Зорчигч</span>' + fmtNum(r.pax || 0) + '</div>'
+        + '<div><span>Ачаа (кг)</span>' + fmtNum(r.cargoKg || 0) + '</div></div>'
+        + (rest.length ? '<details><summary>Дэлгэрэнгүй (' + rest.length + ' талбар)</summary><dl>'
+          + rest.map(function (c) { return '<dt>' + escHtml(c.label) + '</dt><dd>' + escHtml(cellText(c, r[c.key])) + '</dd>'; }).join('')
+          + '</dl></details>' : '')
+        + '</div>';
+    }).join('');
+
     var totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
     pageInfo.textContent = (filtered.length ? (state.page + 1) : 0) + ' / ' + totalPages + ' (нийт ' + filtered.length + ')';
     prevBtn.disabled = state.page <= 0;
@@ -2523,7 +2590,9 @@
   function loadYearData(year) {
     if (yearCache[year]) return Promise.resolve(yearCache[year]);
     if (yearLoadPromises[year]) return yearLoadPromises[year];
-    var p = fetch('./flights-' + year + '.json', { cache: 'no-store' })
+    // 'no-cache' = ETag-аар дахин шалгана: өөрчлөгдөөгүй жил 304 буцаж хөтчийн
+    // кэшээс уншигдана ('no-store' байхад зочлол бүрд ~54MB (gzip ~5MB) дахин татдаг байв).
+    var p = fetch('./flights-' + year + '.json', { cache: 'no-cache' })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status + ' flights-' + year + '.json');
         return r.json();
@@ -2595,17 +2664,17 @@
     var others = AVAILABLE_YEARS.filter(function (y) { return y.year !== CURRENT_YEAR; });
     if (!others.length) { allYearsLoaded = true; setHistoryStatus(''); return Promise.resolve(); }
 
+    // "(0/6)" гэж тэгээс эхэлсэн тоо гацсан мэт харагддаг байсан тул яг
+    // одоо татаж буй ОНЫГ нэрлэж, дарааллын дугаарыг 1-ээс эхлүүлнэ.
     var loadedCount = 0;
-    setHistoryStatus('Түүхэн дата ачаалж байна… (' + loadedCount + '/' + others.length + ')');
 
     var chain = Promise.resolve();
     others.forEach(function (y) {
       chain = chain.then(function () {
+        setHistoryStatus('Өмнөх онуудыг ачаалж байна: ' + y.year + ' он (' + (loadedCount + 1) + '/' + others.length + ')…');
         return loadYearData(y.year).then(function () {
           loadedCount += 1;
-          setHistoryStatus(loadedCount < others.length
-            ? 'Түүхэн дата ачаалж байна… (' + loadedCount + '/' + others.length + ')'
-            : '');
+          if (loadedCount >= others.length) setHistoryStatus('');
           populateRegionSelect(getFullHistoryRows());
           // "Бүгд" сонгосон үед шинэ жил бүрт дахин зурна — мөн YoY харьцуулалтад
           // яг хэрэгтэй өмнөх жил (filters.year - 1) ирж дуусмагц (тодорхой нэг жил
