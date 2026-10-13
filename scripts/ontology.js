@@ -1,8 +1,8 @@
-// data/ontology/*.json lookup хvснэгтvvдийг ашиглан flight мөр бvрт region/continent/
+// data/ontology/*.json lookup хүснэгтүүдийг ашиглан flight мөр бүрт region/continent/
 // alliance/category зэрэг баганыг шингээдэг (enrich) модуль. scripts/fetchFlights.js
-// (шинэ мөр орж ирэх бvрт) болон scripts/applyOntology.js (одоо байгаа
-// flights-YYYY.json файлvvдыг дахин боловсруулах) хоёулаа энэ модулийг ашигладаг тул
-// логик давхардахгvй.
+// (шинэ мөр орж ирэх бүрт) болон scripts/applyOntology.js (одоо байгаа
+// flights-YYYY.json файлүүдыг дахин боловсруулах) хоёулаа энэ модулийг ашигладаг тул
+// логик давхардахгүй.
 'use strict';
 
 const fs = require('fs');
@@ -15,14 +15,14 @@ const cityMap = JSON.parse(fs.readFileSync(path.join(ONTOLOGY_DIR, 'city-country
 const airlineMap = JSON.parse(fs.readFileSync(path.join(ONTOLOGY_DIR, 'airline-alliance.json'), 'utf8'));
 const aircraftData = JSON.parse(fs.readFileSync(path.join(ONTOLOGY_DIR, 'aircraft-category.json'), 'utf8'));
 const aircraftTypes = aircraftData.types || {};
-// Урт (олон vсэгтэй) угтвараас эхлэн шалгах ёстой (жишээ "9H" "H"-ээс өмнө) тул
+// Урт (олон үсэгтэй) угтвараас эхлэн шалгах ёстой (жишээ "9H" "H"-ээс өмнө) тул
 // prefix-ийн уртаар буурахаар эрэмбэлнэ -- эх JSON доторх бичлэгийн дараалалд
-// найдахгvй.
+// найдахгүй.
 const registrationPrefixes = (aircraftData.registrationPrefixes || [])
   .slice()
   .sort(function (a, b) { return b.prefix.length - a.prefix.length; });
 
-// Регистрацийн код заримдаа Латинтай төстэй Кирилл vсэгтэй холилдож бичигддэг
+// Регистрацийн код заримдаа Латинтай төстэй Кирилл үсэгтэй холилдож бичигддэг
 // (жишээ "UP-В3720" доtorh "В" нь Кирилл), угтвар тааруулахын өмнө Латин руу жигдэлнэ.
 const CYRILLIC_LOOKALIKE_TO_LATIN = {
   'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H',
@@ -37,8 +37,8 @@ function normalizeRegistration(reg) {
   return out.toUpperCase();
 }
 
-// Танигдаагvй утга бvрийг ажиллах vед НЭГ л удаа console.warn хийх (мянга мянган
-// давхардсан мөр бvрт биш) -- давхардал арилгах Set.
+// Танигдаагүй утга бүрийг ажиллах үед НЭГ л удаа console.warn хийх (мянга мянган
+// давхардсан мөр бүрт биш) -- давхардал арилгах Set.
 var warned = new Set();
 function warnOnce(kind, value) {
   var key = kind + '::' + value;
@@ -102,7 +102,7 @@ function parseAircraft(aircraftStr) {
     if (matched) {
       result.acRegCountry = matched.country;
     } else {
-      warnOnce('бvртгэлийн код', regPart);
+      warnOnce('бүртгэлийн код', regPart);
     }
   }
 
@@ -110,8 +110,8 @@ function parseAircraft(aircraftStr) {
 }
 
 // Нэг flight мөрийг region/continent/alliance/category зэрэг шинэ баганаар
-// баяжуулна. Түvхий cntry/carr/aircraft талбарыг хэвээр vлдээж, зөвхөн НЭМЭЛТ
-// багана нэмнэ (одоо байгаа chatbot/UI код эвдрэхгvй).
+// баяжуулна. Түүхий cntry/carr/aircraft талбарыг хэвээр үлдээж, зөвхөн НЭМЭЛТ
+// багана нэмнэ (одоо байгаа chatbot/UI код эвдрэхгүй).
 function enrichFlight(row) {
   var cityInfo = lookupCityInfo(row.city);
   var airlineInfo = lookupAirlineInfo(row.carr);

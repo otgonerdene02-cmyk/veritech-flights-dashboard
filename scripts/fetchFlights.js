@@ -10,40 +10,40 @@ const PASSWORD = process.env.MRTD_PASSWORD;
 const INDICATOR_ID = process.env.MRTD_INDICATOR_ID || '14995832';
 const PAGE_SIZE = 1000;
 const REQUEST_DELAY_MS = 250;
-const MAX_PAGES = 50; // аюулгvйн дээд хязгаар (жил бvрт) — ~11.9k мөр / 1000 хуудас vед ~12 хvсэлт хvлээгдэнэ
-const EARLIEST_YEAR = 2005; // аюулгvйн доод хязгаар — бодит дата дуусахаас өмнө (хоосон жил давхар) endless loop vvсэхээс сэргийлнэ
+const MAX_PAGES = 50; // аюулгүйн дээд хязгаар (жил бүрт) — ~11.9k мөр / 1000 хуудас үед ~12 хүсэлт хүлээгдэнэ
+const EARLIEST_YEAR = 2005; // аюулгүйн доод хязгаар — бодит дата дуусахаас өмнө (хоосон жил давхар) endless loop үүсэхээс сэргийлнэ
 
 // 2026-08-01 (3): API-г шууд (Postman-той адил, жинхэнэ credential-аар) шалгасны
-// дvнд:
+// дүнд:
 //   - C26 (жил) талбар дээрх criteria { operator: '=' } НАЙДВАРТАЙ ажилладаг
-//     (жил бvрт зөв totalcount/OGNOO буцаана — жишээ нь C26=2026 → 11979,
+//     (жил бүрт зөв totalcount/OGNOO буцаана — жишээ нь C26=2026 → 11979,
 //     C26=2025 → 20272, C26=2019 → 0). Иймд жилээр backfill хийхэд ашиглаж болно.
 //   - Гэвч "UPDATED" (шинэчлэлтийн Unixtimestamp) талбар дээр criteria
-//     ШvvЛТЛЭХ боломжгvй: "UPDATED" гэдэг key-г criteria-д өгвөл vл тоож,
-//     сервер өөр (бvх түvхэн) totalcount буцаадаг. Мөн raw мөрөнд ижил утгыг
-//     агуулдаг "C41" талбар дээр туршихад ч тогтворгvй — operator '>' vед 0
-//     мөр (буруу хоосон), operator '<' vед бvх түvхэн дата (шvvлтгvй мэт)
-//     буцаадаг. Иймд Unixtimestamp-аар "зөвхөн шинэ мөр" гэж шvvх API
-//     түвшинд НАЙДВАРТАЙ БИШ тул ашиглаагvй болно.
-// Дvгнэлт: өдөр тутмын (автомат cron) ажиллагаанд зөвхөн ОДООГИЙН ЖИЛИЙГ
-// (C26=currentYear) татна — хямд (~12-20 хvсэлт) бөгөөд бараг бvх шинэ/
-// өөрчлөгдсөн мөр энэ дотор байна. Бvх түvхэн жилийг дахин бvрэн татах
-// (backfill) зөвхөн FETCH_ALL_YEARS=1 орчны хувьсагчтай vед л (гараар
+//     ШүүЛТЛЭХ боломжгүй: "UPDATED" гэдэг key-г criteria-д өгвөл үл тоож,
+//     сервер өөр (бүх түүхэн) totalcount буцаадаг. Мөн raw мөрөнд ижил утгыг
+//     агуулдаг "C41" талбар дээр туршихад ч тогтворгүй — operator '>' үед 0
+//     мөр (буруу хоосон), operator '<' үед бүх түүхэн дата (шүүлтгүй мэт)
+//     буцаадаг. Иймд Unixtimestamp-аар "зөвхөн шинэ мөр" гэж шүүх API
+//     түвшинд НАЙДВАРТАЙ БИШ тул ашиглаагүй болно.
+// Дүгнэлт: өдөр тутмын (автомат cron) ажиллагаанд зөвхөн ОДООГИЙН ЖИЛИЙГ
+// (C26=currentYear) татна — хямд (~12-20 хүсэлт) бөгөөд бараг бүх шинэ/
+// өөрчлөгдсөн мөр энэ дотор байна. Бүх түүхэн жилийг дахин бүрэн татах
+// (backfill) зөвхөн FETCH_ALL_YEARS=1 орчны хувьсагчтай үед л (гараар
 // ажиллуулахад зориулсан) хийгдэнэ.
 const BACKFILL_ALL_YEARS = /^(1|true)$/i.test(process.env.FETCH_ALL_YEARS || '');
 
-// 2026-08-01 (4): docs/flights.json нэг файлдаа 71MB хvрч GitHub-ийн 50MB
-// зөвлөмжит хязгаараас давсан тул жил бvрээр тусад нь файлд (flights-YYYY.json)
+// 2026-08-01 (4): docs/flights.json нэг файлдаа 71MB хүрч GitHub-ийн 50MB
+// зөвлөмжит хязгаараас давсан тул жил бүрээр тусад нь файлд (flights-YYYY.json)
 // хуваасан. Энэ нь хоёр давуу талтай:
-//   1) Файл бvрийн хэмжээ хамгийн том жилд ч (~20 мянган мөр) 50MB-аас хол
-//      доогуур vлддэг.
+//   1) Файл бүрийн хэмжээ хамгийн том жилд ч (~20 мянган мөр) 50MB-аас хол
+//      доогуур үлддэг.
 //   2) Өдөр тутмын (анхдагч) горим зөвхөн ОДООГИЙН ЖИЛИЙН файлыг л дахин
-//      бичдэг болсон тул өмнөх жилvvдийн файлд огт хvрдэггvй (өмнө нь
-//      бvх жилийн дата НЭГ файлд байсан тул анхдагч горимоор дахин бичихэд
-//      бусад жилvvдийн дата устдаг байсан нөхцөл байдлыг бvтцийн хувьд
+//      бичдэг болсон тул өмнөх жилүүдийн файлд огт хүрдэггүй (өмнө нь
+//      бүх жилийн дата НЭГ файлд байсан тул анхдагч горимоор дахин бичихэд
+//      бусад жилүүдийн дата устдаг байсан нөхцөл байдлыг бүтцийн хувьд
 //      арилгасан).
-// docs/flights-index.json нь dashboard-д "ямар жилvvд бэлэн байгааг" том
-// файлуудыг татахгvйгээр мэдэх боломж олгодог жижиг индекс файл.
+// docs/flights-index.json нь dashboard-д "ямар жилүүд бэлэн байгааг" том
+// файлуудыг татахгүйгээр мэдэх боломж олгодог жижиг индекс файл.
 const OUT_DIR = path.join(__dirname, '..', 'docs');
 const INDEX_FILE = path.join(OUT_DIR, 'flights-index.json');
 
@@ -52,7 +52,7 @@ function yearFile(year) {
 }
 
 if (!USERNAME || !PASSWORD) {
-  console.error('MRTD_USERNAME / MRTD_PASSWORD орчны хувьсагч тохируулаагvй байна.');
+  console.error('MRTD_USERNAME / MRTD_PASSWORD орчны хувьсагч тохируулаагүй байна.');
   process.exit(1);
 }
 
@@ -137,7 +137,7 @@ function fetchPage(offset, criteria) {
   });
 }
 
-// Тухайн НЭГ жилийн бvх хуудсыг (C26 талбараар шvvж) дараалан татна.
+// Тухайн НЭГ жилийн бүх хуудсыг (C26 талбараар шүүж) дараалан татна.
 async function fetchYearRows(year) {
   const criteria = { C26: [{ operator: '=', operand: String(year) }] };
   const rows = [];
@@ -197,8 +197,8 @@ function writeIndex(entriesByYear) {
 
 // Мөрийн агуулгыг харьцуулахад ашиглах талбарууд — mapVeritechRow-ийн гаралт.
 // id/unixtimestamp болон enrichAll-ээр нэмэгддэг region/continent/alliance/...
-// зэрэг үvсмэл багануудыг оруулаагvй, учир нь тэдгээр нь raw API талбар
-// өөрчлөгдөөгvй ч ontology лавлах хvснэгт шинэчлэгдвэл өөрчлөгдөж болно.
+// зэрэг үүсмэл багануудыг оруулаагүй, учир нь тэдгээр нь raw API талбар
+// өөрчлөгдөөгүй ч ontology лавлах хүснэгт шинэчлэгдвэл өөрчлөгдөж болно.
 const COMPARE_FIELDS = [
   'year', 'month', 'day', 'carr', 'city', 'cntry', 'dir', 'ou', 'pax', 'cargo',
   'adult', 'child', 'infant', 'transit', 'vip', 'diplomat', 'crew', 'seated',
@@ -209,8 +209,8 @@ function rowsEqual(a, b) {
   return COMPARE_FIELDS.every((k) => a[k] === b[k]);
 }
 
-// Тухайн жилийн raw мөрvvдийг боловсруулж, ЗӨВХӨН ТvvНИЙ flights-YYYY.json
-// файлд бичнэ (бусад жилийн файлд огт хvрэхгvй). Өмнөх агуулгатай нь
+// Тухайн жилийн raw мөрүүдийг боловсруулж, ЗӨВХӨН ТүүНИЙ flights-YYYY.json
+// файлд бичнэ (бусад жилийн файлд огт хүрэхгүй). Өмнөх агуулгатай нь
 // Unixtimestamp-аар харьцуулж added/updated/unchanged тоологоо буцаана.
 function processYear(year, rawRows) {
   const fresh = rawRows.map((row) => Object.assign(
@@ -219,7 +219,7 @@ function processYear(year, rawRows) {
   ));
   const uniqueTs = new Set(fresh.map((f) => f.unixtimestamp));
   if (uniqueTs.size !== fresh.length) {
-    console.warn(`  Анхаар (${year}): ${fresh.length - uniqueTs.size} давхардсан Unixtimestamp илэрлээ (хуудаслалт давхцсан байж болзошгvй).`);
+    console.warn(`  Анхаар (${year}): ${fresh.length - uniqueTs.size} давхардсан Unixtimestamp илэрлээ (хуудаслалт давхцсан байж болзошгүй).`);
   }
 
   const existing = loadYearFile(year);
@@ -249,7 +249,7 @@ function processYear(year, rawRows) {
   };
 
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  // Compact (indent-гvй) JSON — целlofile хэмжээг бууруулах зорилготой
+  // Compact (indent-гүй) JSON — целlofile хэмжээг бууруулах зорилготой
   // (GitHub-ийн 50MB зөвлөмжит хязгаараас зайлсхийхэд тус нэмэр болно).
   fs.writeFileSync(yearFile(year), JSON.stringify(output), 'utf8');
 
@@ -259,7 +259,7 @@ function processYear(year, rawRows) {
 async function main() {
   const currentYear = new Date().getFullYear();
   console.log(BACKFILL_ALL_YEARS
-    ? `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, БVХ ЖИЛЭЭР (${currentYear}-аас ухран, FETCH_ALL_YEARS=1)...`
+    ? `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, БҮХ ЖИЛЭЭР (${currentYear}-аас ухран, FETCH_ALL_YEARS=1)...`
     : `Татаж эхэлж байна: pageSize=${PAGE_SIZE}, зөвхөн одоогийн жил (${currentYear})...`);
 
   const index = loadIndex();
@@ -274,7 +274,7 @@ async function main() {
 
     if (rows.length === 0) {
       if (BACKFILL_ALL_YEARS) {
-        console.log(`${year} он: 0 мөр — дата эндээс цаашид байхгvй гэж vзэж татахаа зогсоов.`);
+        console.log(`${year} он: 0 мөр — дата эндээс цаашид байхгүй гэж үзэж татахаа зогсоов.`);
       }
       break;
     }
@@ -282,7 +282,7 @@ async function main() {
     const result = processYear(year, rows);
     results.push(result);
     indexByYear.set(year, { year, count: result.count, fetchedAt: result.fetchedAt });
-    console.log(`${year} он: ${result.count} мөр татагдлаа (шинэ: ${result.added}, шинэчлэгдсэн: ${result.updated}, өөрчлөгдөөгvй: ${result.unchanged})`);
+    console.log(`${year} он: ${result.count} мөр татагдлаа (шинэ: ${result.added}, шинэчлэгдсэн: ${result.updated}, өөрчлөгдөөгүй: ${result.unchanged})`);
 
     if (!BACKFILL_ALL_YEARS) break; // анхдагч горим: зөвхөн currentYear нэг л давталт
     await sleep(REQUEST_DELAY_MS);
@@ -303,18 +303,18 @@ async function main() {
     .forEach(({ year, count }) => console.log(`  ${year} он: ${count} мөр`));
 
   console.log('');
-  console.log('Дvнгvvд:');
-  console.log(`  Татагдсан жилvvд: ${results.length} (${results.map((r) => r.year).sort((a, b) => a - b).join(', ')})`);
+  console.log('Дүнгүүд:');
+  console.log(`  Татагдсан жилүүд: ${results.length} (${results.map((r) => r.year).sort((a, b) => a - b).join(', ')})`);
   console.log(`  Нийт татагдсан мөр: ${totalCount}`);
-  console.log(`  Нийт хvсэлт: ${requestCount}`);
+  console.log(`  Нийт хүсэлт: ${requestCount}`);
   console.log(`  Шинэ мөр (added): ${totalAdded}`);
   console.log(`  Шинэчлэгдсэн мөр (updated): ${totalUpdated}`);
-  console.log(`  Өөрчлөгдөөгvй мөр (unchanged): ${totalUnchanged}`);
+  console.log(`  Өөрчлөгдөөгүй мөр (unchanged): ${totalUnchanged}`);
   console.log(`  Бичигдсэн файлууд: ${results.map((r) => `flights-${r.year}.json`).join(', ')}, flights-index.json`);
 
   // writeSyncStatus.js-д "бодит шинэ дата олдсон уу" гэдгийг дамжуулна (dashboard
-  // дээрх "Сvvлд шинэчилсэн" нь зөвхөн vvнд vндэслэнэ — "Сvvлд шалгасан"-аас ялгаатай
-  // нь ажиллагаа бvрд биш, зөвхөн бодит өөрчлөлт орсон vед л урагшилна).
+  // дээрх "Сүүлд шинэчилсэн" нь зөвхөн үүнд үндэслэнэ — "Сүүлд шалгасан"-аас ялгаатай
+  // нь ажиллагаа бүрд биш, зөвхөн бодит өөрчлөлт орсон үед л урагшилна).
   const hasChanges = totalAdded > 0 || totalUpdated > 0;
   if (process.env.GITHUB_OUTPUT) {
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `changed=${hasChanges}\n`, 'utf8');

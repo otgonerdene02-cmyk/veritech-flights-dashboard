@@ -2,13 +2,13 @@ name: Fetch Veritech Flights
 
 on:
   schedule:
-    # 2026-08-05 ТУРШИЛТЫН Vр Дvн: */20 cron-оор 1 цагийн турш ЗАЛГААГvй
-    # (0/3 хvлээгдэж байсан schedule эвент огт vvсээгvй) — GitHub-ийн
-    # дотоод "schedule" trigger энэ repo дээр одоогоор бараг бvрмөсөн
-    # ажиллахгvй байгааг баталгаажуулав. Иймд гол ажиллагааг ГАДААД
+    # 2026-08-05 ТУРШИЛТЫН Үр Дүн: */20 cron-оор 1 цагийн турш ЗАЛГААГүй
+    # (0/3 хүлээгдэж байсан schedule эвент огт үүсээгүй) — GitHub-ийн
+    # дотоод "schedule" trigger энэ repo дээр одоогоор бараг бүрмөсөн
+    # ажиллахгүй байгааг баталгаажуулав. Иймд гол ажиллагааг ГАДААД
     # scheduler-оор (cron-job.org → workflow_dispatch API, доор тайлбарласан
-    # тохиргоог хар) хийлгэж, доорх GitHub-ийн дотоод cron-ыг зөвхөн vнэгvй
-    # НӨӨЦ давхаргаар vлдээв (заримдаа ажилласан ч гэсэн хор хvргэхгvй,
+    # тохиргоог хар) хийлгэж, доорх GitHub-ийн дотоод cron-ыг зөвхөн үнэгүй
+    # НӨӨЦ давхаргаар үлдээв (заримдаа ажилласан ч гэсэн хор хүргэхгүй,
     # учир нь fetchFlights.js idempotent).
     - cron: '0 22 * * *'  # 06:00 UB
     - cron: '0 4 * * *'   # 12:00 UB
@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       full_backfill:
-        description: 'Бvх түvхэн жилийг дахин бvрэн татах (нэг удаагийн backfill). Хоосон бол зөвхөн одоогийн жилийг татна.'
+        description: 'Бүх түүхэн жилийг дахин бүрэн татах (нэг удаагийн backfill). Хоосон бол зөвхөн одоогийн жилийг татна.'
         type: boolean
         default: false
 
@@ -32,8 +32,8 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    # full_backfill (~7 жил) хэвийн vед ~8-9 мин vргэлжилдэг; 20 мин нь хангалттай
-    # хуцаа vлдээж, гэвч vнэхээр гацсан ажиллагааг concurrency queue-г мөнхөд
+    # full_backfill (~7 жил) хэвийн үед ~8-9 мин үргэлжилдэг; 20 мин нь хангалттай
+    # хуцаа үлдээж, гэвч үнэхээр гацсан ажиллагааг concurrency queue-г мөнхөд
     # блоклохоос сэргийлнэ.
     timeout-minutes: 20
     steps:
@@ -81,8 +81,8 @@ jobs:
           script: |
             const step = '${{ steps.fetch.outcome }}' === 'failure' ? 'fetch' : 'commit/push';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const title = '🔴 fetch-flights cron амжилтгvй боллоо';
-            const body = `\`${step}\` алхам амжилтгvй боллоо.\n\nRun: ${runUrl}\n\nЛогийг шалгаад засаад энэ issue-г хаана уу (дараагийн амжилттай ажиллагаа vvнийг автоматаар хаана).`;
+            const title = '🔴 fetch-flights cron амжилтгүй боллоо';
+            const body = `\`${step}\` алхам амжилтгүй боллоо.\n\nRun: ${runUrl}\n\nЛогийг шалгаад засаад энэ issue-г хаана уу (дараагийн амжилттай ажиллагаа үүнийг автоматаар хаана).`;
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'sync-failure',
             });

@@ -3,12 +3,12 @@ const { test, expect } = require('@playwright/test');
 const { gotoDashboard, setTheme } = require('./helpers');
 
 /**
- * "Бvс нутаг тус бvрийн зорчигч" ECharts treemap-ийн layout/overflow болон
+ * "Бүс нутаг тус бүрийн зорчигч" ECharts treemap-ийн layout/overflow болон
  * region → country drill-down функцийг шалгах тест.
  *
- * Treemap нь `renderer:'svg'`-ээр vvсгэгддэг (docs/index.html, renderRegionTreemap)
- * тул дотоод rect/text-vvдийг нь энгийн DOM query-ээр шалгах боломжтой (canvas
- * renderer бол боломжгvй байх байсан).
+ * Treemap нь `renderer:'svg'`-ээр үүсгэгддэг (docs/index.html, renderRegionTreemap)
+ * тул дотоод rect/text-үүдийг нь энгийн DOM query-ээр шалгах боломжтой (canvas
+ * renderer бол боломжгүй байх байсан).
  */
 
 test.describe('region treemap', () => {
@@ -25,11 +25,11 @@ test.describe('region treemap', () => {
     expect(containerBox).not.toBeNull();
     expect(cardBox).not.toBeNull();
 
-    // Контейнер эцэг card-ийнхаа өргөнөөс хэтрэхгvй (хэвтээ scroll vvсгэхгvй)
+    // Контейнер эцэг card-ийнхаа өргөнөөс хэтрэхгүй (хэвтээ scroll үүсгэхгүй)
     expect(containerBox.x).toBeGreaterThanOrEqual(cardBox.x - 1);
     expect(containerBox.x + containerBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width + 1);
 
-    // Хуудасны бие даяараа хэвтээ scroll vvсгэхгvй эсэхийг шалгана
+    // Хуудасны бие даяараа хэвтээ scroll үүсгэхгүй эсэхийг шалгана
     const hasHorizontalScroll = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
     expect(hasHorizontalScroll).toBe(false);
   });
@@ -60,7 +60,7 @@ test.describe('region treemap', () => {
       Array.from(document.querySelectorAll('#region-treemap text')).map((t) => t.textContent)
     );
 
-    // Хамгийн том (áль хэдийн эрэмбэлэгдсэн) region зvvн дээд хэсэгт байрлах тул
+    // Хамгийн том (áль хэдийн эрэмбэлэгдсэн) region зүүн дээд хэсэгт байрлах тул
     // тэнд дарна — тодорхой улсын нэр биш, зөвхөн ХАРАГДАХ ТЕКСТИЙН ОЛОНЛОГ
     // өөрчлөгдсөн эсэхийг шалгаж fragile болохоос сэргийлнэ.
     await page.mouse.click(box.x + box.width * 0.2, box.y + box.height * 0.3);
@@ -73,8 +73,8 @@ test.describe('region treemap', () => {
 
     expect(labelsAfter.join('|')).not.toBe(labelsBefore.join('|'));
 
-    // Drill-down хийсний дараа breadcrumb 2 (эсвэл түvнээс дээш) хэсэгтэй болно
-    // (жишээ "Зvvн Ази" root context) -- өмнө нь ердөө root л байсан.
+    // Drill-down хийсний дараа breadcrumb 2 (эсвэл түүнээс дээш) хэсэгтэй болно
+    // (жишээ "Зүүн Ази" root context) -- өмнө нь ердөө root л байсан.
     const breadcrumbGrew = labelsAfter.length >= labelsBefore.length;
     expect(breadcrumbGrew).toBe(true);
   });
@@ -93,8 +93,8 @@ test.describe('region treemap', () => {
 
       // upperLabel (drill хийсний дараа харагдах эцэг node-ийн нэр) текстийн
       // өнгө нь тухайн theme-ийн --text-primary-тай ЯГ тохирч байгаа эсэхийг
-      // шалгана (theme бvрт өөр өнгөтэй тул "цагаан биш" гэх мэт статик шалгуур
-      // dark mode-д буруу эерэг vр дvн өгнө -- theme-ийн бодит утгатай харьцуулна).
+      // шалгана (theme бүрт өөр өнгөтэй тул "цагаан биш" гэх мэт статик шалгуур
+      // dark mode-д буруу эерэг үр дүн өгнө -- theme-ийн бодит утгатай харьцуулна).
       const result = await page.evaluate(() => {
         const vizRoot = document.querySelector('.viz-root') || document.documentElement;
         const expected = getComputedStyle(vizRoot).getPropertyValue('--text-primary').trim();
@@ -104,7 +104,7 @@ test.describe('region treemap', () => {
       });
 
       // hex (#rrggbb) -> "rgb(r, g, b)" болгож харьцуулна (getComputedStyle нь
-      // fill-ийг vргэлж rgb() хэлбэрээр буцаадаг тул)
+      // fill-ийг үргэлж rgb() хэлбэрээр буцаадаг тул)
       function hexToRgb(hex) {
         const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
         if (!m) return hex;

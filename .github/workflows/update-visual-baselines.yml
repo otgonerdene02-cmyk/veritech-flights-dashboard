@@ -1,11 +1,11 @@
 name: Update Visual Baselines
 
-# Гараар л ажиллуулна (workflow_dispatch). Локал дээр vvсгэсэн snapshot нь
+# Гараар л ажиллуулна (workflow_dispatch). Локал дээр үүсгэсэн snapshot нь
 # OS-specific нэртэй тул (жишээ: *-win32.png), ubuntu-latest дээр ажилладаг
-# visual-tests.yml нь эхний удаад өөрийн орчны (Linux) baseline-гvй байх
+# visual-tests.yml нь эхний удаад өөрийн орчны (Linux) baseline-гүй байх
 # болно. Энэ workflow-г нэг удаа гараар ажиллуулж CI-ийн орчинд зориулсан
-# баримт (ground truth) snapshot vvсгэж commit хийнэ — дараа нь
-# visual-tests.yml тэрхvv Linux baseline-тай харьцуулна.
+# баримт (ground truth) snapshot үүсгэж commit хийнэ — дараа нь
+# visual-tests.yml тэрхүү Linux baseline-тай харьцуулна.
 
 on:
   workflow_dispatch: {}

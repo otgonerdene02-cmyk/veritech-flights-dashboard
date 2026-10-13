@@ -35,9 +35,9 @@ function loadChatEngine() {
   ) + "  function monthLabel(m) { return m + '-р сар'; }\n";
 
   // computeChat() нь D-ээ getFullHistoryRows()-оор (AVAILABLE_YEARS/yearCache-аас
-  // угсарч) авдаг тул эдгээр хоёр функцийг тусад нь зvvж авна — тэдгээр нь
+  // угсарч) авдаг тул эдгээр хоёр функцийг тусад нь зүүж авна — тэдгээр нь
   // dashboard-ийн лази ачаалалтын код (fetch(...) IIFE) дунд байрладаг тул
-  // бvхэл блокоор биш, зөвхөн ХОЁР функцийг тус тусад нь extract хийнэ.
+  // бүхэл блокоор биш, зөвхөн ХОЁР функцийг тус тусад нь extract хийнэ.
   const historyFn = extractBlock(html, '  function getFullHistoryRows() {', '  // computeChat()');
   const chatIndexFn = extractBlock(html, '  function getChatIndex(D) {', '  function getVisibleRows() {');
 
@@ -63,10 +63,10 @@ function loadChatEngine() {
   return sandbox;
 }
 
-// docs/flights-YYYY.json бvр жилийн дата агуулдаг (2026-08-01-ний split-ийн
-// дараа) тул жил бvрийг тусад нь (yearCache шиг) буцаана — computeChat() нь
-// жил заагаагvй асуултад ЗӨВХӨН CURRENT_YEAR-ийг ашигладаг тул тестийн
-// "expected" утга ч мөн ижил хамрах хvрээгээр тооцогдох ёстой.
+// docs/flights-YYYY.json бүр жилийн дата агуулдаг (2026-08-01-ний split-ийн
+// дараа) тул жил бүрийг тусад нь (yearCache шиг) буцаана — computeChat() нь
+// жил заагаагүй асуултад ЗӨВХӨН CURRENT_YEAR-ийг ашигладаг тул тестийн
+// "expected" утга ч мөн ижил хамрах хүрээгээр тооцогдох ёстой.
 function loadFlightsByYear() {
   const yearFiles = fs.readdirSync(DOCS_DIR).filter((f) => /^flights-\d{4}\.json$/.test(f));
   const byYear = {};
@@ -146,7 +146,7 @@ function buildCases(rows) {
       expectUnmatched: false,
     },
     {
-      name: 'Хот: Инчон рvv (явсан) — Сөүлтэй ЗОРИУДААР ижил байх ёстой',
+      name: 'Хот: Инчон рүү (явсан) — Сөүлтэй ЗОРИУДААР ижил байх ёстой',
       query: 'Инчон руу хэдэн зорчигч ниссэн бэ?',
       // Датанд Сөүлийн ганц хувилбар ("Сөүл/Инчеон") л байгаа тул Инчон болон
       // Сөүл query хоёр яг ижил мөрүүдийг олох ёстой — энэ алдаа биш, харин
@@ -158,7 +158,7 @@ function buildCases(rows) {
       mustEqual: 'Хот: Сөүл рүү (явсан)',
     },
     {
-      name: 'Хот: Токио рvv (явсан)',
+      name: 'Хот: Токио рүү (явсан)',
       query: 'Токио руу хэдэн зорчигч ниссэн бэ?',
       expected: sumPax(tokyoDeparted),
       expectUnmatched: false,
@@ -191,8 +191,8 @@ function run() {
   engine.AVAILABLE_YEARS = years.map(function (y) { return { year: y }; });
   engine.yearCache = byYear;
 
-  // computeChat() нь жил заагаагvй асуултад CURRENT_YEAR-ийг л ашигладаг тул
-  // "expected" утгыг мөн ЗӨВХӨН тухайн жилийн мөрvvдээс тооцно.
+  // computeChat() нь жил заагаагүй асуултад CURRENT_YEAR-ийг л ашигладаг тул
+  // "expected" утгыг мөн ЗӨВХӨН тухайн жилийн мөрүүдээс тооцно.
   const rows = byYear[engine.CURRENT_YEAR] || [];
 
   if (!rows.length) {
